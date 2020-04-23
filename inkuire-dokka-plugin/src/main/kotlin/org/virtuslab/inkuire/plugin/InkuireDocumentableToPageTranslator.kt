@@ -7,14 +7,16 @@ import org.jetbrains.dokka.pages.ContentText
 import org.jetbrains.dokka.pages.DCI
 import org.jetbrains.dokka.pages.ModulePageNode
 import org.jetbrains.dokka.transformers.documentation.DocumentableToPageTranslator
-import org.virtuslab.inkuire.plugin.model.toAdapter
+import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer
+import org.virtuslab.inkuire.plugin.transformers.DokkaToSerializableModelTransformer
 
 object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
+    private val transformer : DokkaToSerializableModelTransformer = DefaultDokkaToSerializableModelTransformer()
 
     override fun invoke(module: DModule) = ModulePageNode(
             name = "root",
             content = ContentText(
-                    text = Gson().toJson(module.toAdapter()).toString(),
+                    text = Gson().toJson(transformer.transform(module)).toString(),
                     dci = DCI(emptySet(), ContentKind.Main),
                     platforms = emptySet()
             ),
