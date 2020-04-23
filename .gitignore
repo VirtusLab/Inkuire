@@ -86,6 +86,8 @@ fabric.properties
 .idea/**/markdown-navigator.xml
 .idea/**/markdown-navigator/
 
+.idea/thriftCompiler.xml
+
 ### Kotlin ###
 # Compiled class file
 *.class
