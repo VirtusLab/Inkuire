@@ -28,4 +28,8 @@ dependencies{
     implementation("org.typelevel:mouse_$scalaVersion:0.25")
 
     implementation("com.softwaremill.quicklens:quicklens_$scalaVersion:1.5.0")
+    implementation("com.softwaremill.diffx:diffx-core_$scalaVersion:0.3.28")
+    implementation("com.softwaremill.diffx:diffx-scalatest_$scalaVersion:0.3.28")
+
+    implementation("io.scalaland:chimney_$scalaVersion:0.5.1")
 }
