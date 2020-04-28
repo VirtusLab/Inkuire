@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature}
-import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.engine.parser.model.{GenericType, Signature}
+import org.virtuslab.inkuire.engine.parser.model.Type._
 
 class KotlinSignatureParserTest extends AnyFlatSpec with Matchers {
 

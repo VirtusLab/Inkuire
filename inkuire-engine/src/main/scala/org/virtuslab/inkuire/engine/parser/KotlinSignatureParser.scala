@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.parser
 
-import org.virtuslab.inkuire.engine.model.{ConcreteType, GenericType, Signature, Type}
+import org.virtuslab.inkuire.engine.parser.model.{ConcreteType, GenericType, Signature, Type}
 
 import scala.util.parsing.combinator._
 

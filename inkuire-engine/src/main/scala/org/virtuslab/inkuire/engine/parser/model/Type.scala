@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.model
+package org.virtuslab.inkuire.engine.parser.model
 
 trait Type
 case class ConcreteType(name: String) extends Type

@@ -26,4 +26,6 @@ dependencies{
     implementation("org.typelevel:cats-effect_$scalaVersion:2.1.1")
     implementation("org.typelevel:cats-mtl-core_$scalaVersion:0.7.1")
     implementation("org.typelevel:mouse_$scalaVersion:0.25")
+
+    implementation("com.softwaremill.quicklens:quicklens_$scalaVersion:1.5.0")
 }
