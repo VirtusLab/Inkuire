@@ -2,11 +2,11 @@ package org.virtuslab.inkuire.engine.cli.model
 
 import cats.data.StateT
 import cats.effect.IO
-import org.virtuslab.inkuire.engine.model.DokkaDb
+import org.virtuslab.inkuire.engine.model.InkuireDb
 
 object Engine {
   case class Env(
-    db: DokkaDb,
+    db: InkuireDb,
     dbPath: String
   )
 
