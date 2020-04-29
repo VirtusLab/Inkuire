@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.parser
+package org.virtuslab.inkuire.engine
 
 import com.softwaremill.diffx.scalatest.DiffMatcher
 import org.scalatest.flatspec.AnyFlatSpec

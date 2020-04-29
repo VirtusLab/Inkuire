@@ -3,7 +3,6 @@ package org.virtuslab.inkuire.engine.parser
 import org.virtuslab.inkuire.engine.model.Type._
 import scala.util.parsing.combinator.RegexParsers
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.model
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, Type, TypeVariable, Unresolved}
 
 class KotlinSignatureParser extends RegexParsers {
@@ -35,7 +34,7 @@ class KotlinSignatureParser extends RegexParsers {
     variables ~
       singleType ~
       ("." ~> "(" ~> types <~ ")") ~
-      ("->" ~> singleType) ^^ { case typeVars ~ receiver ~ args ~ result => model.Signature(receiver, args, result, SignatureContext(typeVars.toSet, Map.empty)) }
+      ("->" ~> singleType) ^^ { case typeVars ~ receiver ~ args ~ result => Signature(receiver, args, result, SignatureContext(typeVars.toSet, Map.empty)) }
 }
 
 object KotlinSignatureParser extends KotlinSignatureParser {

@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.parser
 
-import org.virtuslab.inkuire.engine.model
+import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
@@ -38,7 +38,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Int".concreteType.?,
           Seq.empty,
           "Double".concreteType,
@@ -59,7 +59,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Int".concreteType,
           Seq(
             "String".concreteType.?,
@@ -83,7 +83,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Short".concreteType,
           Seq(
             "Double".concreteType
@@ -111,7 +111,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           GenericType(
             "Array".concreteType.?,
             Seq(
@@ -139,7 +139,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           GenericType(
             "Array".concreteType,
             Seq(
@@ -167,7 +167,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           GenericType(
             "Array".concreteType,
             Seq(
@@ -200,7 +200,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           GenericType(
             "Array".concreteType,
             Seq(

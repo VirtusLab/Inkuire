@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.parser
 
-import org.virtuslab.inkuire.engine.model
+import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
@@ -45,7 +45,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "B".typeVariable,
           Seq(
             GenericType(
@@ -78,7 +78,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Int".concreteType,
           Seq(
             GenericType(
@@ -111,7 +111,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Int".concreteType,
           Seq(
             GenericType(
@@ -144,7 +144,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Float".concreteType,
           Seq(
             GenericType(
@@ -187,7 +187,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           "Float".concreteType,
           Seq(
             GenericType(
@@ -230,7 +230,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     //then
     val expectedRes =
       Right(
-        model.Signature(
+        Signature(
           GenericType(
             "A".typeVariable,
             Seq(

@@ -6,7 +6,7 @@ import cats.syntax.all._
 import cats.effect.IO
 import org.virtuslab.inkuire.engine.utils.syntax._
 import org.virtuslab.inkuire.engine.cli.model.{CliContext, CliParam}
-import org.virtuslab.inkuire.engine.model.DokkaDb
+import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.cli.model.Engine._
 import org.virtuslab.inkuire.engine.parser.KotlinSignatureParser
 import org.virtuslab.inkuire.engine.utils.helpers.IOHelpers
@@ -63,7 +63,7 @@ object Main extends App with IOHelpers {
   }
 
   def startConsole(data: CliContext): IO[Unit] =
-    IO { DokkaDb.read(data.dbPath) } >>= { db =>
+    IO { InkuireDb.read(data.dbPath) } >>= { db =>
       handleCommands.runA(Env(db, data.dbPath))
     }
 
