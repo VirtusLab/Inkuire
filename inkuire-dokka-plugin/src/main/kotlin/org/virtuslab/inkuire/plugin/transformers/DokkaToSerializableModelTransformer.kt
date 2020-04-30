@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.plugin.transformers
 
 import org.jetbrains.dokka.model.*
-import org.virtuslab.inkuire.plugin.model.*
+import org.virtuslab.inkuire.model.*
 
 abstract class DokkaToSerializableModelTransformer {
     fun transform(root: DModule) : SDModule = root.toSerializable()

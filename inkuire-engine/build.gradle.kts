@@ -32,4 +32,8 @@ dependencies{
     implementation("com.softwaremill.diffx:diffx-scalatest_$scalaVersion:0.3.28")
 
     implementation("io.scalaland:chimney_$scalaVersion:0.5.1")
+
+    implementation("com.google.code.gson:gson:2.8.6")
+
+    compileOnly(project(":inkuire-common"))
 }

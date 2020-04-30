@@ -1,8 +1,14 @@
 package org.virtuslab.inkuire.plugin
 
+<<<<<<< HEAD
 import com.google.gson.Gson
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.pages.ContentNode
+=======
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.dokka.base.renderers.FileWriter
+import org.jetbrains.dokka.pages.ContentText
+>>>>>>> WIP
 import org.jetbrains.dokka.pages.ModulePageNode
 import org.jetbrains.dokka.pages.RootPageNode
 import org.jetbrains.dokka.plugability.DokkaContext

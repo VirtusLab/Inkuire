@@ -1,0 +1,1441 @@
+{
+  "dri": "/////",
+  "name": "example",
+  "packages": [
+    {
+      "dri": "example/////",
+      "name": "example",
+      "functions": [
+        {
+          "dri": "example//main/#//",
+          "name": "main",
+          "isConstructor": false,
+          "parameters": [],
+          "generics": []
+        },
+        {
+          "dri": "example//main/#//",
+          "name": "main",
+          "isConstructor": false,
+          "parameters": [],
+          "generics": []
+        },
+        {
+          "dri": "example//clockList/#//",
+          "name": "clockList",
+          "isConstructor": false,
+          "parameters": [],
+          "generics": []
+        },
+        {
+          "dri": "example//extensionFun/example.Clock#//",
+          "name": "extensionFun",
+          "isConstructor": false,
+          "parameters": [],
+          "generics": [],
+          "receiver": {
+            "dri": "example//extensionFun/example.Clock#/0/"
+          }
+        }
+      ],
+      "properties": [],
+      "classlikes": [
+        {
+          "dri": "example/Clock////",
+          "name": "Clock",
+          "constructors": [
+            {
+              "dri": "example/Clock/\u003cinit\u003e/#kotlin.String//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [
+                {
+                  "dri": "example/Clock/\u003cinit\u003e/#kotlin.String/1/",
+                  "name": "string"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/\u003cinit\u003e/#kotlin.Int//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [
+                {
+                  "dri": "example/Clock/\u003cinit\u003e/#kotlin.Int/1/",
+                  "name": "int"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/\u003cinit\u003e/#kotlin.Int#kotlin.String//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [
+                {
+                  "dri": "example/Clock/\u003cinit\u003e/#kotlin.Int#kotlin.String/1/",
+                  "name": "int"
+                },
+                {
+                  "dri": "example/Clock/\u003cinit\u003e/#kotlin.Int#kotlin.String/2/",
+                  "name": "string"
+                }
+              ],
+              "generics": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "example/Clock/getTime/#//",
+              "name": "getTime",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/onlyNativeFunction/#//",
+              "name": "onlyNativeFunction",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getTimesInMillis/#//",
+              "name": "getTimesInMillis",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getYear/#//",
+              "name": "getYear",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/extension/kotlin.Int#//",
+              "name": "extension",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": [],
+              "receiver": {
+                "dri": "example/Clock/extension/kotlin.Int#/0/"
+              }
+            },
+            {
+              "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int//",
+              "name": "threeParams",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/1/",
+                  "name": "a"
+                },
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/2/",
+                  "name": "b"
+                },
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/3/",
+                  "name": "c"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?//",
+              "name": "foo",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?/1/",
+                  "name": "bar"
+                }
+              ],
+              "generics": [
+                {
+                  "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?//",
+                  "name": "T"
+                }
+              ],
+              "receiver": {
+                "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?/0/"
+              }
+            },
+            {
+              "dri": "kotlin/Any/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/onlyJsFunction/#//",
+              "name": "onlyJsFunction",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/onlyJVMFunction/#//",
+              "name": "onlyJVMFunction",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getDayOfTheWeek/#//",
+              "name": "getDayOfTheWeek",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [
+            {
+              "dri": "example/Clock/int/#//",
+              "name": "int",
+              "getter": {
+                "dri": "example/Clock/\u003cget-int\u003e/#//",
+                "name": "getInt",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/Clock/int/#//",
+              "name": "int",
+              "getter": {
+                "dri": "example/Clock/\u003cget-int\u003e/#//",
+                "name": "getInt",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/Clock/int/#//",
+              "name": "int",
+              "getter": {
+                "dri": "example/Clock/\u003cget-int\u003e/#//",
+                "name": "getInt",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/Clock/string/#//",
+              "name": "string",
+              "getter": {
+                "dri": "example/Clock/\u003cget-string\u003e/#//",
+                "name": "getString",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/Clock/string/#//",
+              "name": "string",
+              "getter": {
+                "dri": "example/Clock/\u003cget-string\u003e/#//",
+                "name": "getString",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/Clock/string/#//",
+              "name": "string",
+              "getter": {
+                "dri": "example/Clock/\u003cget-string\u003e/#//",
+                "name": "getString",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            }
+          ],
+          "classlikes": [],
+          "generics": [],
+          "supertypes": []
+        },
+        {
+          "dri": "example/House////",
+          "name": "House",
+          "constructors": [
+            {
+              "dri": "example/House/\u003cinit\u003e/#kotlin.String#kotlin.Int//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [
+                {
+                  "dri": "example/House/\u003cinit\u003e/#kotlin.String#kotlin.Int/1/",
+                  "name": "street"
+                },
+                {
+                  "dri": "example/House/\u003cinit\u003e/#kotlin.String#kotlin.Int/2/",
+                  "name": "number"
+                }
+              ],
+              "generics": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "example/House/addFloor/#//",
+              "name": "addFloor",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [
+            {
+              "dri": "example/House/owner/#//",
+              "name": "owner",
+              "setter": {
+                "dri": "example/House/\u003cset-owner\u003e/#kotlin.String//",
+                "name": "setOwner",
+                "isConstructor": false,
+                "parameters": [
+                  {
+                    "dri": "example/House/\u003cset-owner\u003e/#kotlin.String/1/",
+                    "name": "owner"
+                  }
+                ],
+                "generics": []
+              },
+              "getter": {
+                "dri": "example/House/\u003cget-owner\u003e/#//",
+                "name": "getOwner",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/House/differentOwner/#//",
+              "name": "differentOwner",
+              "getter": {
+                "dri": "example/House/\u003cget-differentOwner\u003e/#//",
+                "name": "getDifferentOwner",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/House/street/#//",
+              "name": "street",
+              "getter": {
+                "dri": "example/House/\u003cget-street\u003e/#//",
+                "name": "getStreet",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/House/number/#//",
+              "name": "number",
+              "getter": {
+                "dri": "example/House/\u003cget-number\u003e/#//",
+                "name": "getNumber",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            }
+          ],
+          "classlikes": [
+            {
+              "dri": "example/House.Basement////",
+              "name": "Basement",
+              "constructors": [
+                {
+                  "dri": "example/House.Basement/\u003cinit\u003e/#//",
+                  "name": "\u003cinit\u003e",
+                  "isConstructor": true,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "functions": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Any/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Any/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/House.Basement/pickles/#//",
+                  "name": "pickles",
+                  "getter": {
+                    "dri": "example/House.Basement/\u003cget-pickles\u003e/#//",
+                    "name": "getPickles",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": [],
+              "generics": [],
+              "supertypes": []
+            },
+            {
+              "name": "Companion",
+              "dri": "example/House.Companion////",
+              "functions": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Any/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Any/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/House.Companion/DEFAULT/#//",
+                  "name": "DEFAULT",
+                  "getter": {
+                    "dri": "example/House.Companion/\u003cget-DEFAULT\u003e/#//",
+                    "name": "getDEFAULT",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": [],
+              "supertypes": []
+            }
+          ],
+          "companion": {
+            "name": "Companion",
+            "dri": "example/House.Companion////",
+            "functions": [
+              {
+                "dri": "kotlin/Any/equals/#kotlin.Any?//",
+                "name": "equals",
+                "isConstructor": false,
+                "parameters": [
+                  {
+                    "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                    "name": "other"
+                  }
+                ],
+                "generics": []
+              },
+              {
+                "dri": "kotlin/Any/hashCode/#//",
+                "name": "hashCode",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              },
+              {
+                "dri": "kotlin/Any/toString/#//",
+                "name": "toString",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            ],
+            "properties": [
+              {
+                "dri": "example/House.Companion/DEFAULT/#//",
+                "name": "DEFAULT",
+                "getter": {
+                  "dri": "example/House.Companion/\u003cget-DEFAULT\u003e/#//",
+                  "name": "getDEFAULT",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              }
+            ],
+            "classlikes": [],
+            "supertypes": []
+          },
+          "generics": [],
+          "supertypes": []
+        },
+        {
+          "dri": "example/ClockDays////",
+          "name": "ClockDays",
+          "entries": [
+            {
+              "dri": "example/ClockDays.FIRST////",
+              "name": "FIRST",
+              "functions": [
+                {
+                  "dri": "kotlin/Enum/clone/#//",
+                  "name": "clone",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+                  "name": "compareTo",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/finalize/#//",
+                  "name": "finalize",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/getDeclaringClass/#//",
+                  "name": "getDeclaringClass",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/ClockDays.FIRST/name/#//",
+                  "name": "name",
+                  "getter": {
+                    "dri": "example/ClockDays.FIRST/\u003cget-name\u003e/#//",
+                    "name": "getName",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                },
+                {
+                  "dri": "example/ClockDays.FIRST/ordinal/#//",
+                  "name": "ordinal",
+                  "getter": {
+                    "dri": "example/ClockDays.FIRST/\u003cget-ordinal\u003e/#//",
+                    "name": "getOrdinal",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": []
+            },
+            {
+              "dri": "example/ClockDays.SECOND////",
+              "name": "SECOND",
+              "functions": [
+                {
+                  "dri": "kotlin/Enum/clone/#//",
+                  "name": "clone",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+                  "name": "compareTo",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/finalize/#//",
+                  "name": "finalize",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/getDeclaringClass/#//",
+                  "name": "getDeclaringClass",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/ClockDays.SECOND/name/#//",
+                  "name": "name",
+                  "getter": {
+                    "dri": "example/ClockDays.SECOND/\u003cget-name\u003e/#//",
+                    "name": "getName",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                },
+                {
+                  "dri": "example/ClockDays.SECOND/ordinal/#//",
+                  "name": "ordinal",
+                  "getter": {
+                    "dri": "example/ClockDays.SECOND/\u003cget-ordinal\u003e/#//",
+                    "name": "getOrdinal",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": []
+            },
+            {
+              "dri": "example/ClockDays.THIRD////",
+              "name": "THIRD",
+              "functions": [
+                {
+                  "dri": "kotlin/Enum/clone/#//",
+                  "name": "clone",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+                  "name": "compareTo",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/finalize/#//",
+                  "name": "finalize",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/getDeclaringClass/#//",
+                  "name": "getDeclaringClass",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/ClockDays.THIRD/name/#//",
+                  "name": "name",
+                  "getter": {
+                    "dri": "example/ClockDays.THIRD/\u003cget-name\u003e/#//",
+                    "name": "getName",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                },
+                {
+                  "dri": "example/ClockDays.THIRD/ordinal/#//",
+                  "name": "ordinal",
+                  "getter": {
+                    "dri": "example/ClockDays.THIRD/\u003cget-ordinal\u003e/#//",
+                    "name": "getOrdinal",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": []
+            },
+            {
+              "dri": "example/ClockDays.FOURTH////",
+              "name": "FOURTH",
+              "functions": [
+                {
+                  "dri": "kotlin/Enum/clone/#//",
+                  "name": "clone",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+                  "name": "compareTo",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/finalize/#//",
+                  "name": "finalize",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/getDeclaringClass/#//",
+                  "name": "getDeclaringClass",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/ClockDays.FOURTH/name/#//",
+                  "name": "name",
+                  "getter": {
+                    "dri": "example/ClockDays.FOURTH/\u003cget-name\u003e/#//",
+                    "name": "getName",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                },
+                {
+                  "dri": "example/ClockDays.FOURTH/ordinal/#//",
+                  "name": "ordinal",
+                  "getter": {
+                    "dri": "example/ClockDays.FOURTH/\u003cget-ordinal\u003e/#//",
+                    "name": "getOrdinal",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": []
+            },
+            {
+              "dri": "example/ClockDays.FIFTH////",
+              "name": "FIFTH",
+              "functions": [
+                {
+                  "dri": "kotlin/Enum/clone/#//",
+                  "name": "clone",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+                  "name": "compareTo",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+                  "name": "equals",
+                  "isConstructor": false,
+                  "parameters": [
+                    {
+                      "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                      "name": "other"
+                    }
+                  ],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/finalize/#//",
+                  "name": "finalize",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/getDeclaringClass/#//",
+                  "name": "getDeclaringClass",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/hashCode/#//",
+                  "name": "hashCode",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                },
+                {
+                  "dri": "kotlin/Enum/toString/#//",
+                  "name": "toString",
+                  "isConstructor": false,
+                  "parameters": [],
+                  "generics": []
+                }
+              ],
+              "properties": [
+                {
+                  "dri": "example/ClockDays.FIFTH/name/#//",
+                  "name": "name",
+                  "getter": {
+                    "dri": "example/ClockDays.FIFTH/\u003cget-name\u003e/#//",
+                    "name": "getName",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                },
+                {
+                  "dri": "example/ClockDays.FIFTH/ordinal/#//",
+                  "name": "ordinal",
+                  "getter": {
+                    "dri": "example/ClockDays.FIFTH/\u003cget-ordinal\u003e/#//",
+                    "name": "getOrdinal",
+                    "isConstructor": false,
+                    "parameters": [],
+                    "generics": []
+                  }
+                }
+              ],
+              "classlikes": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "kotlin/Enum/compareTo/#example.ClockDays//",
+              "name": "compareTo",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Enum/compareTo/#example.ClockDays/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Enum/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Enum/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Enum/finalize/#//",
+              "name": "finalize",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Enum/getDeclaringClass/#//",
+              "name": "getDeclaringClass",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Enum/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Enum/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [
+            {
+              "dri": "example/ClockDays/name/#//",
+              "name": "name",
+              "getter": {
+                "dri": "example/ClockDays/\u003cget-name\u003e/#//",
+                "name": "getName",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/ClockDays/ordinal/#//",
+              "name": "ordinal",
+              "getter": {
+                "dri": "example/ClockDays/\u003cget-ordinal\u003e/#//",
+                "name": "getOrdinal",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            }
+          ],
+          "classlikes": [],
+          "constructors": [],
+          "supertypes": [
+            "kotlin/Enum////"
+          ]
+        },
+        {
+          "dri": "example/InterfaceToInheritFrom////",
+          "name": "InterfaceToInheritFrom",
+          "functions": [
+            {
+              "dri": "kotlin/Any/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [],
+          "classlikes": [],
+          "generics": [],
+          "supertypes": []
+        },
+        {
+          "dri": "example/ParticularClock////",
+          "name": "ParticularClock",
+          "constructors": [
+            {
+              "dri": "example/ParticularClock/\u003cinit\u003e/#example.ClockDays//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [
+                {
+                  "dri": "example/ParticularClock/\u003cinit\u003e/#example.ClockDays/1/",
+                  "name": "clockDay"
+                }
+              ],
+              "generics": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "example/ParticularClock/ringBell/#kotlin.Int//",
+              "name": "ringBell",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/ParticularClock/ringBell/#kotlin.Int/1/",
+                  "name": "times"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/ParticularClock/useGreeter/#greeteer.Greeter//",
+              "name": "useGreeter",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/ParticularClock/useGreeter/#greeteer.Greeter/1/",
+                  "name": "greeter"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/ParticularClock/getDayOfTheWeek/#//",
+              "name": "getDayOfTheWeek",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getTime/#//",
+              "name": "getTime",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getTimesInMillis/#//",
+              "name": "getTimesInMillis",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/extension/kotlin.Int#//",
+              "name": "extension",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": [],
+              "receiver": {
+                "dri": "example/Clock/extension/kotlin.Int#/0/"
+              }
+            },
+            {
+              "dri": "example/Clock/onlyJVMFunction/#//",
+              "name": "onlyJVMFunction",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/getYear/#//",
+              "name": "getYear",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int//",
+              "name": "threeParams",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/1/",
+                  "name": "a"
+                },
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/2/",
+                  "name": "b"
+                },
+                {
+                  "dri": "example/Clock/threeParams/#kotlin.Int#kotlin.Int#kotlin.Int/3/",
+                  "name": "c"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?//",
+              "name": "foo",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?/1/",
+                  "name": "bar"
+                }
+              ],
+              "generics": [
+                {
+                  "dri": "example/ParticularClock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?//",
+                  "name": "T"
+                }
+              ],
+              "receiver": {
+                "dri": "example/Clock/foo/kotlin.Int#TypeParam(bounds\u003d[kotlin.Any?])?/0/"
+              }
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [
+            {
+              "dri": "example/ParticularClock/int/#//",
+              "name": "int",
+              "getter": {
+                "dri": "example/ParticularClock/\u003cget-int\u003e/#//",
+                "name": "getInt",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            },
+            {
+              "dri": "example/ParticularClock/string/#//",
+              "name": "string",
+              "getter": {
+                "dri": "example/ParticularClock/\u003cget-string\u003e/#//",
+                "name": "getString",
+                "isConstructor": false,
+                "parameters": [],
+                "generics": []
+              }
+            }
+          ],
+          "classlikes": [],
+          "generics": [],
+          "supertypes": [
+            "example/InterfaceToInheritFrom////",
+            "example/Clock////"
+          ]
+        },
+        {
+          "dri": "example/AnotherParticularClock////",
+          "name": "AnotherParticularClock",
+          "constructors": [
+            {
+              "dri": "example/AnotherParticularClock/\u003cinit\u003e/#//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "kotlin/Any/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [],
+          "classlikes": [],
+          "generics": [],
+          "supertypes": [
+            "example/InterfaceToInheritFrom////"
+          ]
+        }
+      ],
+      "typealiases": []
+    },
+    {
+      "dri": "greeteer/////",
+      "name": "greeteer",
+      "functions": [],
+      "properties": [],
+      "classlikes": [
+        {
+          "dri": "greeteer/Greeter////",
+          "name": "Greeter",
+          "constructors": [
+            {
+              "dri": "greeteer/Greeter/\u003cinit\u003e/#//",
+              "name": "\u003cinit\u003e",
+              "isConstructor": true,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "functions": [
+            {
+              "dri": "greeteer/Greeter/greet/#//",
+              "name": "greet",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/equals/#kotlin.Any?//",
+              "name": "equals",
+              "isConstructor": false,
+              "parameters": [
+                {
+                  "dri": "kotlin/Any/equals/#kotlin.Any?/1/",
+                  "name": "other"
+                }
+              ],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/hashCode/#//",
+              "name": "hashCode",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            },
+            {
+              "dri": "kotlin/Any/toString/#//",
+              "name": "toString",
+              "isConstructor": false,
+              "parameters": [],
+              "generics": []
+            }
+          ],
+          "properties": [],
+          "classlikes": [],
+          "generics": [],
+          "supertypes": []
+        }
+      ],
+      "typealiases": []
+    }
+  ]
+}
