@@ -3,7 +3,10 @@ package org.virtuslab.inkuire.engine.parser
 import org.virtuslab.inkuire.engine.model.Type._
 import scala.util.parsing.combinator.RegexParsers
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, Type, TypeVariable, Unresolved}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, Type, Unresolved}
+import org.virtuslab.inkuire.engine.utils.syntax._
+import cats.instances.all._
+import cats.syntax.all._
 
 class KotlinSignatureParser extends RegexParsers {
 
@@ -20,34 +23,58 @@ class KotlinSignatureParser extends RegexParsers {
       singleType ^^ (Seq(_)) |
       "" ^^^ Seq.empty
 
-  def whereClause: Parser[Seq[(TypeVariable, Type)]] = ???
+  def constraints: Parser[Seq[(String, Type)]] =
+    (identifier <~ ":") ~ singleType ~ ("," ~> constraints) ^^ { case id ~ typ ~ consts => (id, typ) +: consts } |
+    (identifier <~ ":") ~ singleType ^^ { case id ~ typ => Seq((id, typ)) }
 
-  def typeVariables: Parser[Seq[TypeVariable]] =
-    (identifier <~ "," ) ~ typeVariables ^^ { case typeVar ~ vars => typeVar.typeVariable +: vars } |
-      identifier ^^ (v => Seq(v.typeVariable))
+  def whereClause: Parser[Map[String, Seq[Type]]] = "where" ~> constraints ^^ (_.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }) | "" ^^^ Map.empty
 
-  def variables: Parser[Seq[TypeVariable]] =
+  def typeVariables: Parser[Seq[String]] =
+    (identifier <~ "," ) ~ typeVariables ^^ { case typeVar ~ vars => typeVar +: vars } |
+      identifier ^^ (Seq(_))
+
+  def variables: Parser[Seq[String]] =
     "<" ~> typeVariables <~ ">" |
       "" ^^^ Seq.empty
 
+  def receiver: Parser[Option[Type]] =
+    singleType <~ "." ^^ (Some(_)) | "" ^^^ None
+
   def signature: Parser[Signature] =
     variables ~
-      singleType ~
-      ("." ~> "(" ~> types <~ ")") ~
-      ("->" ~> singleType) ^^ { case typeVars ~ receiver ~ args ~ result => Signature(receiver, args, result, SignatureContext(typeVars.toSet, Map.empty)) }
+      receiver ~
+      ("(" ~> types <~ ")") ~
+      ("->" ~> singleType) ~
+      whereClause ^^ { case typeVars ~ rcvr ~ args ~ result ~ where => Signature(rcvr, args, result, SignatureContext(typeVars.toSet, where)) }
 }
 
-object KotlinSignatureParser extends KotlinSignatureParser {
+object KotlinSignatureParser {
+
+  private val kotlinSignatureParser = new KotlinSignatureParser
+
   def parse(str: String): Either[String, Signature] = {
-    doParse(str).map { sgn =>
-      val converter: Type => Type = resolve(sgn.context.vars)
-      sgn
-        .modifyAll(_.receiver, _.result).using(converter)
-        .modify(_.arguments).using(_.map(converter))
+    doParse(str) >>= (sgn => convert(sgn)) >>= (sgn => validate(sgn))
+  }
+
+  private def doParse(str: String): Either[String, Signature] = {
+    import kotlinSignatureParser._
+    kotlinSignatureParser.parse(signature, str) match {
+      case Success(matched, _) => Right(matched)
+      case Failure(msg, _) => Left(msg)
+      case Error(msg, _) => Left(msg)
     }
   }
 
-  private def resolve(vars: Set[TypeVariable])(t: Type): Type =
+  private def convert(sgn: Signature): Either[String, Signature] = {
+    val converter: Type => Type = resolve(sgn.context.vars)
+    sgn
+      .modifyAll(_.receiver.each, _.result).using(converter)
+      .modify(_.arguments).using(_.map(converter))
+      .modify(_.context.constraints).using(_.map(_.modify(_._2).using(_.map(converter))))
+      .right[String]
+  }
+
+  private def resolve(vars: Set[String])(t: Type): Type =
     t match {
       case genType: GenericType =>
         val converter: Type => Type = resolve(vars)
@@ -55,15 +82,19 @@ object KotlinSignatureParser extends KotlinSignatureParser {
           .modify(_.base).using(converter)
           .modify(_.params).using(_.map(converter))
       case _: Unresolved        =>
-        vars.find(_.name == t.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
+        vars.find(_ == t.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
       case _                    => t
+    }
+
+  private def validate(sgn: Signature): Either[String, Signature] = {
+    sgn.whenOrElse(sgn.context.constraints.keySet.subsetOf(sgn.context.vars))("Constraints can only be defined for declared variables")
   }
 
-  private def doParse(str: String): Either[String, Signature] = {
-    parse(signature, str) match {
-      case Success(matched, _) => Right(matched)
-      case Failure(msg, _) => Left(msg)
-      case Error(msg, _) => Left(msg)
-    }
+  //TODO actually, I am not sure if THIS should be a strategy for defaults, so not used for now
+  private def fallToDefault(sgn: Signature): Either[String, Signature] = {
+    val default = Seq("Any".concreteType.?)
+    sgn.modify(_.context.constraints).using { consts =>
+      sgn.context.vars.map(v => (v, consts.getOrElse(v, default))).toMap
+    }.right[String]
   }
 }

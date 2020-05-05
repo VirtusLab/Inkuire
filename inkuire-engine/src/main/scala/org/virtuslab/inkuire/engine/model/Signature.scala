@@ -1,25 +1,20 @@
 package org.virtuslab.inkuire.engine.model
 
-import org.virtuslab.inkuire.engine.model.TypeVariable
-
 case class Signature(
-  receiver: Type,
+  receiver: Option[Type],
   arguments: Seq[Type],
   result: Type,
   context: SignatureContext
 )
 
 case class SignatureContext(
-  vars: Set[TypeVariable],
-  constraints: Map[TypeVariable, Set[Type]]
+  vars: Set[String],
+  constraints: Map[String, Seq[Type]]
 )
 
 object SignatureContext {
 
   def empty: SignatureContext = {
-    SignatureContext(
-      Set.empty,
-      Map.empty
-    )
+    SignatureContext(Set.empty, Map.empty)
   }
 }

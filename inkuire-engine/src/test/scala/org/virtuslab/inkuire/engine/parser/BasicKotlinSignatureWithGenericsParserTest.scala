@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
-import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.engine.utils.syntax._
 
 class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
 
@@ -18,7 +18,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "String".concreteType,
+          "String".concreteType.some,
           Seq("Int".concreteType),
           GenericType(
             "List".concreteType,
@@ -49,7 +49,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             Seq(
               "Double".concreteType
             )
-          ),
+          ).some,
           Seq(
             "Int".concreteType
           ),
@@ -77,7 +77,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             Seq(
               "Double".concreteType
             )
-          ),
+          ).some,
           Seq(
             "Int".concreteType
           ),
@@ -100,7 +100,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -128,7 +128,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -162,7 +162,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             GenericType(
               "Map".concreteType,

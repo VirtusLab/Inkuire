@@ -4,6 +4,7 @@ import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{ExternalSignature, GenericType, InkuireDb, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.service.ExactMatchServiceTest.Fixture
+import org.virtuslab.inkuire.engine.utils.syntax._
 
 class ExactMatchServiceTest extends BaseInkuireTest {
 
@@ -57,13 +58,30 @@ class ExactMatchServiceTest extends BaseInkuireTest {
     //then
     res should matchTo[Seq[ExternalSignature]] (Seq(rangeExternalSignature))
   }
+
+  it should "match signature without receiver" in new Fixture {
+    //given
+    val exactMatchService = new ExactMatchService(
+      InkuireDb(
+        Seq(
+          mainExternalSignature
+        ),
+        Map.empty
+      )
+    )
+    //when
+    val res: Seq[ExternalSignature] = exactMatchService |??| mainSignature
+
+    //then
+    res should matchTo[Seq[ExternalSignature]] (Seq(mainExternalSignature))
+  }
 }
 
 object ExactMatchServiceTest {
   trait Fixture {
 
     val equalsSignature: Signature = Signature(
-      "Int".concreteType,
+      "Int".concreteType.some,
       Seq(
         "Int".concreteType
       ),
@@ -77,7 +95,7 @@ object ExactMatchServiceTest {
     )
 
     val toStringSignature: Signature = Signature(
-      "Int".concreteType,
+      "Int".concreteType.some,
       Seq.empty,
       "String".concreteType,
       SignatureContext.empty
@@ -89,7 +107,7 @@ object ExactMatchServiceTest {
     )
 
     val rangeSignature: Signature = Signature(
-      "Long".concreteType,
+      "Long".concreteType.some,
       Seq(
         "Long".concreteType
       ),
@@ -105,6 +123,25 @@ object ExactMatchServiceTest {
       rangeSignature,
       "range",
       "/Long/range"
+    )
+
+    val mainSignature: Signature = Signature(
+      None,
+      Seq(
+        GenericType(
+          "Array".concreteType,
+          Seq(
+            "String".concreteType
+          )
+        )
+      ),
+      "Unit".concreteType,
+      SignatureContext.empty
+    )
+    val mainExternalSignature: ExternalSignature = ExternalSignature(
+      mainSignature,
+      "main",
+      "/Main/main"
     )
   }
 }
