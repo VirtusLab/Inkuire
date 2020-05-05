@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{Signature, SignatureContext}
-import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.engine.utils.syntax._
 
 class BasicKotlinSignatureParserTest extends BaseInkuireTest {
 
@@ -18,7 +18,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType
           ),
@@ -40,7 +40,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType
           ),
@@ -62,7 +62,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType
           ),
@@ -85,7 +85,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType
           ),
@@ -108,7 +108,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType,
             "Long".concreteType,
@@ -133,7 +133,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq.empty,
           "Double".concreteType,
           SignatureContext.empty

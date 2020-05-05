@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
-import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
 
@@ -18,7 +18,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType.?,
+          "Int".concreteType.?.some,
           Seq.empty,
           "Double".concreteType,
           SignatureContext.empty
@@ -39,7 +39,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType.?,
+          "Int".concreteType.?.some,
           Seq.empty,
           "Double".concreteType,
           SignatureContext.empty
@@ -60,7 +60,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             "String".concreteType.?,
             "Double".concreteType
@@ -84,7 +84,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Short".concreteType,
+          "Short".concreteType.some,
           Seq(
             "Double".concreteType
           ),
@@ -117,7 +117,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             Seq(
               "Short".concreteType
             )
-          ),
+          ).some,
           Seq(
             "Double".concreteType
           ),
@@ -145,7 +145,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             Seq(
               "Short".concreteType.?
             )
-          ),
+          ).some,
           Seq(
             "Double".concreteType
           ),
@@ -173,14 +173,14 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             Seq(
               "Short".concreteType
             )
-          ),
+          ).some,
           Seq(
             "Double".concreteType
           ),
           "A".typeVariable.?,
           SignatureContext(
             Set(
-              "A".typeVariable
+              "A"
             ),
             Map.empty
           )
@@ -206,7 +206,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             Seq(
               "Short".concreteType
             )
-          ),
+          ).some,
           Seq(
             "Double".concreteType
           ),
@@ -218,7 +218,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
           ),
           SignatureContext(
             Set(
-              "A".typeVariable
+              "A"
             ),
             Map.empty
           )

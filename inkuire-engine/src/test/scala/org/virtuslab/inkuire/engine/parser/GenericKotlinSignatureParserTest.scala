@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
-import org.virtuslab.inkuire.engine.model.SignatureContext
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.engine.utils.syntax._
 
 class GenericKotlinSignatureParserTest extends BaseInkuireTest {
 
@@ -18,14 +18,14 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             "Int".concreteType
           ),
           "A".typeVariable,
           SignatureContext(
             Set(
-              "A".typeVariable
+              "A"
             ),
             Map.empty
           )
@@ -46,7 +46,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "B".typeVariable,
+          "B".typeVariable.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -58,7 +58,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "B".typeVariable
+              "B"
             ),
             Map.empty
           )
@@ -79,7 +79,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             GenericType(
               "A".typeVariable,
@@ -91,7 +91,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "A".typeVariable
+              "A"
             ),
             Map.empty
           )
@@ -112,7 +112,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Int".concreteType,
+          "Int".concreteType.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -124,7 +124,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "XD".typeVariable
+              "XD"
             ),
             Map.empty
           )
@@ -145,7 +145,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -167,7 +167,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "x".typeVariable
+              "x"
             ),
             Map.empty
           )
@@ -188,7 +188,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          "Float".concreteType,
+          "Float".concreteType.some,
           Seq(
             GenericType(
               "List".concreteType,
@@ -210,7 +210,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "x".typeVariable
+              "x"
             ),
             Map.empty
           )
@@ -236,7 +236,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
             Seq(
               "Int".concreteType
             )
-          ),
+          ).some,
           Seq(
             "B".typeVariable,
             "Float".concreteType
@@ -244,8 +244,8 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
           "Double".concreteType,
           SignatureContext(
             Set(
-              "A".typeVariable,
-              "B".typeVariable
+              "A",
+              "B"
             ),
             Map.empty
           )
