@@ -1,9 +1,12 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.Monoid
+import cats.data.{Validated, ValidatedNec}
 import org.virtuslab.inkuire.engine.model.Type._
+
 import scala.util.parsing.combinator.RegexParsers
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, Type, Unresolved}
+import org.virtuslab.inkuire.engine.model.{ConcreteType, FunctionType, GenericType, Signature, SignatureContext, Type, TypeVariable, Unresolved}
 import org.virtuslab.inkuire.engine.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
@@ -14,9 +17,26 @@ class KotlinSignatureParser extends RegexParsers {
 
   def nullability: Parser[Boolean] = "?" ^^^ true | "" ^^^ false
 
-  def singleType: Parser[Type] =
-    identifier ~ ("<" ~> types <~ ">") ~ nullability ^^ { case genericType ~ types ~ nullable => GenericType(Unresolved(genericType, nullable), types) } |
+  def typ: Parser[Type] =
+    genericType |
       identifier ~ nullability ^^ { case id ~ nullable => Unresolved(id, nullable) }
+
+  def singleType: Parser[Type] =
+    functionType |
+      typ |
+      ("(" ~> singleType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ }
+
+  def receiverType: Parser[Type] =
+    ("(" ~> functionType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ } |
+      ("(" ~> functionType <~ ")") |
+      typ |
+      ("(" ~> receiverType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ }
+
+  def functionType: Parser[FunctionType] =
+    receiver ~ ("(" ~> types <~ ")") ~ ("->" ~> singleType) ^^ { case rcvr ~ args ~ result => FunctionType(rcvr, args, result) }
+
+  def genericType: Parser[GenericType] =
+    identifier ~ ("<" ~> types <~ ">") ~ nullability ^^ { case genType ~ types ~ nullable => GenericType(Unresolved(genType, nullable), types) }
 
   def types: Parser[Seq[Type]] =
     (singleType <~ ",") ~ types ^^ { case typ ~ types => typ +: types } |
@@ -38,14 +58,15 @@ class KotlinSignatureParser extends RegexParsers {
       "" ^^^ Seq.empty
 
   def receiver: Parser[Option[Type]] =
-    singleType <~ "." ^^ (Some(_)) | "" ^^^ None
+    receiverType <~ "." ^^ (Some(_)) | "" ^^^ None
 
   def signature: Parser[Signature] =
     variables ~
       receiver ~
       ("(" ~> types <~ ")") ~
       ("->" ~> singleType) ~
-      whereClause ^^ { case typeVars ~ rcvr ~ args ~ result ~ where => Signature(rcvr, args, result, SignatureContext(typeVars.toSet, where)) }
+      whereClause ^^ { case typeVars ~ rcvr ~ args ~ result ~ where => Signature(rcvr, args, result, SignatureContext(typeVars.toSet, where)) } |
+      ("(" ~> signature <~ ")")
 }
 
 object KotlinSignatureParser {
@@ -74,20 +95,64 @@ object KotlinSignatureParser {
       .right[String]
   }
 
-  private def resolve(vars: Set[String])(t: Type): Type =
+  private def resolve(vars: Set[String])(t: Type): Type = {
+    val converter: Type => Type = resolve(vars)
     t match {
-      case genType: GenericType =>
-        val converter: Type => Type = resolve(vars)
+      case genType: GenericType  =>
         genType
           .modify(_.base).using(converter)
           .modify(_.params).using(_.map(converter))
-      case _: Unresolved        =>
-        vars.find(_ == t.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
-      case _                    => t
+      case funType: FunctionType =>
+        funType
+          .modify(_.receiver.each).using(converter)
+          .modify(_.args).using(_.map(converter))
+          .modify(_.result).using(converter)
+      case u: Unresolved         =>
+        vars.find(_ == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
+      case _                     => t
     }
+  }
 
   private def validate(sgn: Signature): Either[String, Signature] = {
-    sgn.whenOrElse(sgn.context.constraints.keySet.subsetOf(sgn.context.vars))("Constraints can only be defined for declared variables")
+    for {
+      _ <- validateConstraintsForNonVariables(sgn)
+      _ <- validateTypeParamsArgs(sgn)
+      _ <- validateUpperBounds(sgn)
+    } yield sgn
+  }
+
+  private def validateConstraintsForNonVariables(sgn: Signature): Either[String, Unit] =
+    Either.cond(sgn.context.constraints.keySet.subsetOf(sgn.context.vars), (), "Constraints can only be defined for declared variables")
+
+  private def validateTypeParamsArgs(sgn: Signature): Either[String, Unit] = {
+    sgn.receiver.map(doValidateTypeParamsArgs).getOrElse(().right) >>
+      sgn.arguments.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
+      doValidateTypeParamsArgs(sgn.result) >>
+      sgn.context.constraints.values.toSeq.flatten.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _)
+  }
+
+  private def doValidateTypeParamsArgs(t: Type): Either[String, Unit] = {
+    t match {
+      case GenericType(base, params)               =>
+        Either.cond(!base.isInstanceOf[TypeVariable], (), "Type arguments are not allowed for type parameters") >>
+          doValidateTypeParamsArgs(base) >>
+          params.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _)
+      case FunctionType(receiver, args, result, _) =>
+        receiver.map(doValidateTypeParamsArgs).getOrElse(().right) >>
+          args.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
+          doValidateTypeParamsArgs(result)
+      case _                                       => ().right
+    }
+  }
+
+  private def validateUpperBounds(sgn: Signature): Either[String, Unit] = {
+    Either.cond(
+      sgn.context.constraints.values.toSeq.flatten.collect {
+        case t: FunctionType => t.receiver.isEmpty
+      }.forall(identity),
+      (),
+      "Extension function cannot be used as upper bound"
+    )
   }
 
   //TODO actually, I am not sure if THIS should be a strategy for defaults, so not used for now

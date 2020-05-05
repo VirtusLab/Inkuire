@@ -68,39 +68,6 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
-  it should "parse signature with type variable as base type in generic" in {
-    //given
-    val str = "<A> Int.(A<Byte>)->Double"
-
-    //when
-    val res = KotlinSignatureParser.parse(str)
-
-    //then
-    val expectedRes =
-      Right(
-        Signature(
-          "Int".concreteType.some,
-          Seq(
-            GenericType(
-              "A".typeVariable,
-              Seq(
-                "Byte".concreteType
-              )
-            )
-          ),
-          "Double".concreteType,
-          SignatureContext(
-            Set(
-              "A"
-            ),
-            Map.empty
-          )
-        )
-      )
-
-    res should matchTo[Either[String, Signature]] (expectedRes)
-  }
-
   it should "parse signature with type variable as parameter type in generic" in {
     //given
     val str = "<XD> Int.(List<XD>)-> Double"
@@ -177,52 +144,9 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
-  it should "parse signature with type variable in the middle of deeply nested parameter types" in {
-    //given
-    val str = "<x> Float.(List<x<Set<Float>>>)-> Double"
-
-    //when
-    val res = KotlinSignatureParser.parse(str)
-
-    //then
-    val expectedRes =
-      Right(
-        Signature(
-          "Float".concreteType.some,
-          Seq(
-            GenericType(
-              "List".concreteType,
-              Seq(
-                GenericType(
-                  "x".typeVariable,
-                  Seq(
-                    GenericType(
-                      "Set".concreteType,
-                      Seq(
-                        "Float".concreteType
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          ),
-          "Double".concreteType,
-          SignatureContext(
-            Set(
-              "x"
-            ),
-            Map.empty
-          )
-        )
-      )
-
-    res should matchTo[Either[String, Signature]] (expectedRes)
-  }
-
   it should "parse signature with multiple type variables" in {
     //given
-    val str = "<A, B> A<Int>.(B, Float)-> Double"
+    val str = "<A, B> A.(B, Float)-> Double"
 
     //when
     val res = KotlinSignatureParser.parse(str)
@@ -231,12 +155,7 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          GenericType(
-            "A".typeVariable,
-            Seq(
-              "Int".concreteType
-            )
-          ).some,
+          "A".typeVariable.some,
           Seq(
             "B".typeVariable,
             "Float".concreteType
@@ -253,5 +172,17 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
       )
 
     res should matchTo[Either[String, Signature]] (expectedRes)
+  }
+
+  it should "return error when type arguments are used for type parameters" in {
+    //given
+    val str = "<A> A<String>.(Int) -> String"
+
+    //when
+    val res = KotlinSignatureParser.parse(str)
+
+    //then
+
+    res should be(Symbol("left"))
   }
 }

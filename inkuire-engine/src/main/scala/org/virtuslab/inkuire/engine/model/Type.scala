@@ -4,7 +4,6 @@ import com.softwaremill.quicklens._
 import io.scalaland.chimney.dsl._
 
 trait Type {
-  def name: String
   def asVariable: Type
   def asConcrete: Type
   def nullable: Boolean
@@ -37,8 +36,6 @@ case class GenericType(
   params: Seq[Type]
 ) extends Type {
 
-  override def name: String = base.name
-
   override def asVariable: Type = this.modify(_.base).using(_.asVariable)
 
   override def asConcrete: Type = this.modify(_.base).using(_.asConcrete)
@@ -55,6 +52,19 @@ case class TypeVariable(
   override def asVariable: Type = this
 
   override def asConcrete: Type = this.transformInto[ConcreteType]
+
+  override def ? : Type = this.modify(_.nullable).setTo(true)
+}
+case class FunctionType(
+  receiver: Option[Type],
+  args: Seq[Type],
+  result: Type,
+  nullable: Boolean = false
+) extends Type {
+
+  override def asVariable: Type = throw new RuntimeException("Operation not allowed!")
+
+  override def asConcrete: Type = this
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }

@@ -25,11 +25,16 @@ dependencies{
     implementation("org.typelevel:cats-core_$scalaVersion:2.1.1")
     implementation("org.typelevel:cats-effect_$scalaVersion:2.1.1")
     implementation("org.typelevel:cats-mtl-core_$scalaVersion:0.7.1")
-    implementation("org.typelevel:mouse_$scalaVersion:0.25")
 
     implementation("com.softwaremill.quicklens:quicklens_$scalaVersion:1.5.0")
     implementation("com.softwaremill.diffx:diffx-core_$scalaVersion:0.3.28")
     implementation("com.softwaremill.diffx:diffx-scalatest_$scalaVersion:0.3.28")
 
     implementation("io.scalaland:chimney_$scalaVersion:0.5.1")
+}
+
+task("runCli", JavaExec::class) {
+    main = "org.virtuslab.inkuire.engine.cli.Main"
+    classpath = sourceSets["main"].runtimeClasspath
+    standardInput = System.`in`
 }

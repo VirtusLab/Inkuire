@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{FunctionType, GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.utils.syntax._
 
@@ -190,9 +190,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
-  it should "parse signature with nullable variable as generic" in {
+  it should "null result in function type if there are no parentheses" in {
     //given
-    val str = "<A> Array<Short>.(Double) -> A<Long>?"
+    val str = "<A> Byte.( ()->Int? ) -> A?"
 
     //when
     val res = KotlinSignatureParser.parse(str)
@@ -201,19 +201,50 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          GenericType(
-            "Array".concreteType,
-            Seq(
-              "Short".concreteType
-            )
-          ).some,
+          "Byte".concreteType.some,
           Seq(
-            "Double".concreteType
+            FunctionType(
+              None,
+              Seq.empty,
+              "Int".concreteType.?
+            )
+          ),
+          "A".typeVariable.?,
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map.empty
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]] (expectedRes)
+  }
+
+  it should "null function type if it is in parentheses" in {
+    //given
+    val str = "<A> Byte.( (()->Int)? ) -> Array<A>?"
+
+    //when
+    val res = KotlinSignatureParser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "Byte".concreteType.some,
+          Seq(
+            FunctionType(
+              None,
+              Seq.empty,
+              "Int".concreteType
+            ).?
           ),
           GenericType(
-            "A".typeVariable.?,
+            "Array".concreteType.?,
             Seq(
-              "Long".concreteType
+              "A".typeVariable
             )
           ),
           SignatureContext(
