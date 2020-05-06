@@ -35,5 +35,5 @@ dependencies{
 
     implementation("com.google.code.gson:gson:2.8.6")
 
-    compileOnly(project(":inkuire-common"))
+    implementation(project(":inkuire-common"))
 }

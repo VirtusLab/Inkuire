@@ -2,12 +2,16 @@ package org.virtuslab.inkuire.engine.model
 import java.nio.file.{Files, Path}
 
 import com.google.gson.Gson
-import org.virtuslab.inkuire.model.{SDAnnotation, SDClass, SDEnum, SDEnumEntry, SDFunction, SDInterface, SDModule, SDObject}
+import org.virtuslab.inkuire.model._
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.model.util.CustomGsonFactory
+import com.softwaremill.quicklens._
 
 import scala.jdk.CollectionConverters._
 import scala.io.Source
 import util._
+
+import scala.annotation.tailrec
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
@@ -17,15 +21,36 @@ case class InkuireDb(
 object InkuireDb {
   implicit def listAsScala[T](list: java.util.List[T]) : Iterable[T] = list.asScala
 
+  @tailrec
+  private def parseBound(b: SBound): String = {
+    b match{
+      case t: STypeConstructor => t.getDri.getClassName
+      case o: SOtherParameter => o.getName
+      case n: SNullable => parseBound(n.getInner)
+      case j: SPrimitiveJavaType => j.getName
+      case v: SVoid => "void"
+      case p: SPrimitiveJavaType => p.getName
+    }
+  }
+
+  private def receiver(f: SDFunction) = {
+    val receiver = f.getReceiver
+    val className = f.getDri.getClassName
+    if(receiver == null) {
+      if (className == null) None
+      else Some(className.concreteType)
+    } else Some(receiver.getName.concreteType)
+  }
+
   private def generateFunctionSignature(f: SDFunction) = ExternalSignature(
     Signature(
-      f.getReceiver.getName.concreteType,
+      receiver(f),
       f.getParameters.map(s => s.getName.concreteType).toSeq,
-      f.getReceiver.getName.concreteType,
+      parseBound(f.getType).concreteType,
       SignatureContext.empty
     ),
     f.getName,
-    f.getDri
+    f.getDri.getOriginal
   )
 
   def read(path: Path): InkuireDb = {
@@ -35,29 +60,24 @@ object InkuireDb {
 
   def read(text: String): InkuireDb = parseSource(text)
 
-  private def parseSource(source: String) : InkuireDb = {
-    val module = new Gson().fromJson(source, classOf[SDModule])
+  private def parseSource(source: String): InkuireDb = {
+    val module = new CustomGsonFactory().getInstance().fromJson(source, classOf[SDModule])
     mapModule(module)
   }
 
   def mapModule(module: SDModule): InkuireDb = {
+    val globalFunctions = module.getPackages.flatMap(_.getFunctions).map(generateFunctionSignature)
 
-    val globalFunctions = module.getPackages.flatMap(p => p.getFunctions).map { f =>
-      generateFunctionSignature(f)
-    }
-
-    val methods = module.getPackages.flatMap(p => p.getClasslikes).flatMap(c =>
-      c match{
+    val methods = module.getPackages.flatMap(_.getClasslikes).flatMap{ c =>
+      c match {
         case i: SDInterface => i.getFunctions
         case e: SDEnum => e.getFunctions ++ e.getEntries.flatMap(ee => ee.getFunctions)
         case o: SDObject => o.getFunctions
         case c: SDClass => c.getFunctions
         case a: SDAnnotation => a.getFunctions
         case _ => List.empty
-    }
-    ).map {
-      f => generateFunctionSignature(f)
-    }
+      }
+    }.map (generateFunctionSignature)
 
     new InkuireDb((globalFunctions ++ methods).toSeq, Map.empty)
   }

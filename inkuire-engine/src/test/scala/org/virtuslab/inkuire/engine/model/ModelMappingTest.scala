@@ -1,11 +1,13 @@
 package org.virtuslab.inkuire.engine.model
 
+import java.nio.file.{Files, Paths}
+
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 
 class ModelMappingTest extends BaseInkuireTest {
   it should "map global function" in {
     //given
-    val source = "{\n   \"dri\":\"/////\",\n   \"name\":\"example\",\n   \"packages\":[\n      {\n         \"dri\":\"example/////\",\n         \"name\":\"example\",\n         \"functions\":[\n            {\n               \"dri\":\"example//main/#//\",\n               \"name\":\"main\",\n               \"isConstructor\":false,\n               \"parameters\":[\n\n               ],\n               \"generics\":[\n\n               ]\n            }\n         ],\n         \"properties\":[],\n         \"classlikes\":[],\n         \"typealiases\":[]\n     }\n ]\n}"
+    val source = Paths.get("src/test", "resources", "modelTestData","1.json")
 
     //when
     val inkuire = InkuireDb.read(source)
@@ -13,7 +15,27 @@ class ModelMappingTest extends BaseInkuireTest {
     //then
     val expected = Seq(
       ExternalSignature(Signature(
-        None, Seq.empty, ConcreteType("Unit"), SignatureContext(Set.empty, Map.empty)), "main", "example/////")
+        None, Seq.empty, ConcreteType("Unit"), SignatureContext(Set.empty, Map.empty)), "main", "example//main/#//")
+    )
+    inkuire.functions should matchTo(expected)
+  }
+
+  it should "map method" in {
+    //given
+    val source = Paths.get("src/test", "resources", "modelTestData","2.json")
+
+    //when
+    val inkuire = InkuireDb.read(source)
+
+    //then
+    val expected = Seq(
+      ExternalSignature(
+        Signature(
+          Some(ConcreteType("Clock")), Seq.empty, ConcreteType("String"), SignatureContext(Set.empty, Map.empty)
+        ),
+        "getTime",
+        "example/Clock/getTime/#//"
+      )
     )
     inkuire.functions should matchTo(expected)
   }

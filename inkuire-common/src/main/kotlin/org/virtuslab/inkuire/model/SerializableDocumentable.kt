@@ -1,13 +1,22 @@
 package org.virtuslab.inkuire.model
 
+data class SDRI(
+    val packageName: String?,
+    val className: String?,
+    val callableName: String?,
+    val original: String
+) {
+    override fun toString(): String = original
+}
+
 data class SDModule(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val packages: List<SDPackage>
 )
 
 data class SDPackage(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val functions: List<SDFunction>,
     val properties: List<SDProperty>,
@@ -16,7 +25,7 @@ data class SDPackage(
 )
 
 data class SDClass(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val constructors: List<SDFunction>,
     val functions: List<SDFunction>,
@@ -28,7 +37,7 @@ data class SDClass(
 ) : SDClasslike()
 
 data class SDEnum(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val entries: List<SDEnumEntry>,
     val functions: List<SDFunction>,
@@ -40,7 +49,7 @@ data class SDEnum(
 ) : SDClasslike()
 
 data class SDEnumEntry(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val functions: List<SDFunction>,
     val properties: List<SDProperty>,
@@ -48,17 +57,17 @@ data class SDEnumEntry(
 )
 
 data class SDFunction(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val isConstructor: Boolean,
     val parameters: List<SDParameter>,
-//    val type: Bound,
+    val type: SBound,
     val generics: List<SDTypeParameter>,
     val receiver: SDParameter?
 )
 
 data class SDInterface(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
     val functions: List<SDFunction>,
     val properties: List<SDProperty>,
@@ -70,7 +79,7 @@ data class SDInterface(
 
 data class SDObject(
     val name: String?,
-    val dri: String,
+    val dri: SDRI,
     val functions: List<SDFunction>,
     val properties: List<SDProperty>,
     val classlikes: List<SDClasslike>,
@@ -79,7 +88,7 @@ data class SDObject(
 
 data class SDAnnotation(
     val name: String,
-    val dri: String,
+    val dri: SDRI,
     val functions: List<SDFunction>,
     val properties: List<SDProperty>,
     val classlikes: List<SDClasslike>,
@@ -88,31 +97,68 @@ data class SDAnnotation(
 ) : SDClasslike()
 
 data class SDProperty(
-    val dri: String,
+    val dri: SDRI,
     val name: String,
-//    val type: Bound,
+    val type: SBound,
     val receiver: SDParameter?,
     val setter: SDFunction?,
     val getter: SDFunction?
 )
 
 data class SDParameter(
-    val dri: String,
-    val name: String?
-//    val type: Bound,
+    val dri: SDRI,
+    val name: String?,
+    val type: SBound
 )
 
 data class SDTypeParameter(
-    val dri: String,
-    val name: String
-//    val bounds: List<Bound>
+    val dri: SDRI,
+    val name: String,
+    val bounds: List<SBound>
 )
 
 data class SDTypeAlias(
-    val dri: String,
-    val name: String
-//    val type: Bound,
-//    val underlyingType: Bound
+    val dri: SDRI,
+    val name: String,
+    val type: SBound,
+    val underlyingType: SBound
 )
 
 sealed class SDClasslike
+
+//Placeholder for deserialization
+class NullClasslike : SDClasslike()
+
+class NullBound : SBound()
+
+class NullProjection : SProjection()
+
+sealed class SProjection
+
+sealed class SBound : SProjection()
+
+data class SOtherParameter(val name: String) : SBound()
+
+object SStar : SProjection()
+
+data class STypeConstructor(
+        val dri: SDRI,
+        val projections: List<SProjection>,
+        val modifier: SFunctionModifiers = SFunctionModifiers.NONE
+) : SBound()
+
+enum class SFunctionModifiers {
+    NONE, FUNCTION, EXTENSION
+}
+
+data class SNullable(val inner: SBound) : SBound()
+
+data class SVariance(val kind: Kind, val inner: SBound) : SProjection() {
+    enum class Kind { In, Out }
+}
+
+data class SPrimitiveJavaType(val name: String) : SBound()
+
+object SVoid : SBound()
+
+object SJavaObject : SBound()

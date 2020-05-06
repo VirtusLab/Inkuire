@@ -5,7 +5,7 @@ import org.jetbrains.dokka.pages.ContentNode
 import org.jetbrains.dokka.pages.DCI
 import org.jetbrains.dokka.pages.PlatformData
 import org.jetbrains.dokka.pages.Style
-import org.virtuslab.inkuire.plugin.model.SDModule
+import org.virtuslab.inkuire.model.SDModule
 
 data class InkuireContentNode(
         val inkuireModelRoot: SDModule,
