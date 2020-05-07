@@ -10,6 +10,7 @@ import org.virtuslab.inkuire.engine.model.{ConcreteType, FunctionType, GenericTy
 import org.virtuslab.inkuire.engine.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
+import org.virtuslab.inkuire.engine.model.StarProjection
 
 class KotlinSignatureParser extends RegexParsers {
 
@@ -20,6 +21,8 @@ class KotlinSignatureParser extends RegexParsers {
   def typ: Parser[Type] =
     genericType |
       identifier ~ nullability ^^ { case id ~ nullable => Unresolved(id, nullable) }
+
+  def starProjection: Parser[Type] = "*" ^^^ StarProjection
 
   def singleType: Parser[Type] =
     functionType |
@@ -36,26 +39,39 @@ class KotlinSignatureParser extends RegexParsers {
     receiver ~ ("(" ~> types <~ ")") ~ ("->" ~> singleType) ^^ { case rcvr ~ args ~ result => FunctionType(rcvr, args, result) }
 
   def genericType: Parser[GenericType] =
-    identifier ~ ("<" ~> types <~ ">") ~ nullability ^^ { case genType ~ types ~ nullable => GenericType(Unresolved(genType, nullable), types) }
+    identifier ~ ("<" ~> typeArguments <~ ">") ~ nullability ^^ { case genType ~ types ~ nullable => GenericType(Unresolved(genType, nullable), types) }
 
   def types: Parser[Seq[Type]] =
     (singleType <~ ",") ~ types ^^ { case typ ~ types => typ +: types } |
       singleType ^^ (Seq(_)) |
       "" ^^^ Seq.empty
 
+  def typeArgument: Parser[Type] = singleType | starProjection
+
+  def typeArguments: Parser[Seq[Type]] =
+    (typeArgument <~ ",") ~ typeArguments ^^ { case typ ~ types => typ +: types } |
+      typeArgument ^^ (Seq(_)) |
+      "" ^^^ Seq.empty
+
   def constraints: Parser[Seq[(String, Type)]] =
     (identifier <~ ":") ~ singleType ~ ("," ~> constraints) ^^ { case id ~ typ ~ consts => (id, typ) +: consts } |
     (identifier <~ ":") ~ singleType ^^ { case id ~ typ => Seq((id, typ)) }
 
-  def whereClause: Parser[Map[String, Seq[Type]]] = "where" ~> constraints ^^ (_.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }) | "" ^^^ Map.empty
+  def whereClause: Parser[Map[String, Seq[Type]]] =
+    "where" ~> constraints ^^ (_.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }) |
+      "" ^^^ Map.empty
 
-  def typeVariables: Parser[Seq[String]] =
-    (identifier <~ "," ) ~ typeVariables ^^ { case typeVar ~ vars => typeVar +: vars } |
-      identifier ^^ (Seq(_))
+  def typeVariable: Parser[(String, Seq[Type])] =
+    (identifier <~ ":") ~ singleType ^^ { case typeVar ~ constraint => (typeVar, Seq(constraint)) } |
+    identifier ^^ ((_, Seq.empty[Type]))
 
-  def variables: Parser[Seq[String]] =
+  def typeVariables: Parser[(Seq[String], Map[String, Seq[Type]])] =
+    (typeVariable <~ "," ) ~ typeVariables ^^ { case typeVar ~ vars => (typeVar._1 +: vars._1, vars._2.updatedWith(typeVar._1)(s => Some(s.toSeq.flatten ++ typeVar._2))) } |
+      typeVariable ^^ (v => (Seq(v._1), Map(v._1 -> v._2)))
+
+  def variables: Parser[(Seq[String], Map[String, Seq[Type]])] =
     "<" ~> typeVariables <~ ">" |
-      "" ^^^ Seq.empty
+      "" ^^^ (Seq.empty, Map.empty)
 
   def receiver: Parser[Option[Type]] =
     receiverType <~ "." ^^ (Some(_)) | "" ^^^ None
@@ -65,7 +81,18 @@ class KotlinSignatureParser extends RegexParsers {
       receiver ~
       ("(" ~> types <~ ")") ~
       ("->" ~> singleType) ~
-      whereClause ^^ { case typeVars ~ rcvr ~ args ~ result ~ where => Signature(rcvr, args, result, SignatureContext(typeVars.toSet, where)) } |
+      whereClause ^^ {
+        case typeVars ~ rcvr ~ args ~ result ~ where =>
+          Signature(
+            rcvr,
+            args,
+            result,
+            SignatureContext(
+              typeVars._1.toSet,
+              (typeVars._2.keys++where.keys).map(k => k -> (where.get(k).toSeq.flatten++typeVars._2.get(k).toSeq.flatten)).toMap.filter(_._2.nonEmpty)
+            )
+          )
+      } |
       ("(" ~> signature <~ ")")
 }
 
@@ -90,8 +117,8 @@ object KotlinSignatureParser {
     val converter: Type => Type = resolve(sgn.context.vars)
     sgn
       .modifyAll(_.receiver.each, _.result).using(converter)
-      .modify(_.arguments).using(_.map(converter))
-      .modify(_.context.constraints).using(_.map(_.modify(_._2).using(_.map(converter))))
+      .modify(_.arguments.each).using(converter)
+      .modify(_.context.constraints.each.each).using(converter)
       .right[String]
   }
 
@@ -101,11 +128,11 @@ object KotlinSignatureParser {
       case genType: GenericType  =>
         genType
           .modify(_.base).using(converter)
-          .modify(_.params).using(_.map(converter))
+          .modify(_.params.each).using(converter)
       case funType: FunctionType =>
         funType
           .modify(_.receiver.each).using(converter)
-          .modify(_.args).using(_.map(converter))
+          .modify(_.args.each).using(converter)
           .modify(_.result).using(converter)
       case u: Unresolved         =>
         vars.find(_ == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))

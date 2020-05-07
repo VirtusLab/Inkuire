@@ -9,6 +9,7 @@ trait Type {
   def nullable: Boolean
   def ? : Type
 }
+
 case class Unresolved(
   name: String,
   nullable: Boolean = false
@@ -20,6 +21,7 @@ case class Unresolved(
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }
+
 case class ConcreteType(
   name: String,
   nullable: Boolean = false
@@ -31,6 +33,7 @@ case class ConcreteType(
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }
+
 case class GenericType(
   base: Type,
   params: Seq[Type]
@@ -44,6 +47,7 @@ case class GenericType(
 
   override def ? : Type = this.modify(_.base).using(_.?)
 }
+
 case class TypeVariable(
   name: String,
   nullable: Boolean = false
@@ -55,6 +59,7 @@ case class TypeVariable(
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }
+
 case class FunctionType(
   receiver: Option[Type],
   args: Seq[Type],
@@ -67,6 +72,17 @@ case class FunctionType(
   override def asConcrete: Type = this
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
+}
+
+case object StarProjection extends Type {
+
+  override def asVariable: Type = throw new RuntimeException("Operation not allowed!")
+
+  override def asConcrete: Type = throw new RuntimeException("Operation not allowed!")
+
+  override def nullable: Boolean = throw new RuntimeException("Operation not allowed!")
+
+  override def ? : Type = throw new RuntimeException("Operation not allowed!")
 }
 
 object Type {
