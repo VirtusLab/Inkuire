@@ -47,17 +47,15 @@ object Main extends App with IOHelpers {
   }
 
   def handleCommands: Engine[Unit] = {
-    StateT.get[IO, Env] >>= { env: Env =>
-      IO {
-        println(s"inkuire [${env.dbPath}]> ")
-        readLine()
-      }.liftApp >>= { command: String =>
-        if (command.toLowerCase == "exit") {
-          IO.unit.liftApp
-        } else {
-          handleCommand(command) >>
-            handleCommands
-        }
+    IO {
+      print(s"inkuire> ")
+      readLine()
+    }.liftApp >>= { command: String =>
+      if (command.toLowerCase == "exit") {
+        IO { println("bye") }.liftApp
+      } else {
+        handleCommand(command) >>
+          handleCommands
       }
     }
   }
