@@ -1,8 +1,13 @@
 package org.virtuslab.inkuire.plugin
 
+import org.virtuslab.inkuire.model.util.CustomGsonFactory
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.pages.ContentNode
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.dokka.base.renderers.FileWriter
+import org.jetbrains.dokka.pages.ContentText
 import org.jetbrains.dokka.pages.ModulePageNode
 import org.jetbrains.dokka.pages.RootPageNode
 import org.jetbrains.dokka.plugability.DokkaContext
@@ -14,15 +19,17 @@ import org.virtuslab.inkuire.plugin.content.InkuireContentNode
 class InkuireRenderer(val context: DokkaContext) : Renderer {
     protected val outputWriter = context.plugin<DokkaBase>().querySingle { outputWriter }
     override fun render(root: RootPageNode) = when(root){
-        is ModulePageNode -> outputWriter.write(
-                context.configuration.outputDir,
-                convertToJson(root.content),
-                ".json")
+        is ModulePageNode -> runBlocking(Dispatchers.Default) {
+            outputWriter.write(
+                    context.configuration.outputDir,
+                    convertToJson(root.content),
+                    ".json")
+        }
         else -> throw UnsupportedOperationException("Root page node is not module page node")
     }
 
     private fun convertToJson(content: ContentNode) = when(content) {
-        is InkuireContentNode -> Gson().toJson(content.inkuireModelRoot)
+        is InkuireContentNode -> CustomGsonFactory().getInstance().toJson(content.inkuireModelRoot)
         else -> throw UnsupportedOperationException("Content node is not Inkuiry content node")
     }
 }

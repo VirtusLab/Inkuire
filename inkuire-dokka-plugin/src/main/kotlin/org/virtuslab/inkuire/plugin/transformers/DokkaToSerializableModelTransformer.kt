@@ -1,10 +1,12 @@
 package org.virtuslab.inkuire.plugin.transformers
 
+import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.*
-import org.virtuslab.inkuire.plugin.model.*
+import org.virtuslab.inkuire.model.*
 
 abstract class DokkaToSerializableModelTransformer {
     fun transform(root: DModule) : SDModule = root.toSerializable()
+    abstract fun DRI.toSerializable() : SDRI
     abstract fun DModule.toSerializable() : SDModule
     abstract fun DPackage.toSerializable() : SDPackage
     abstract fun DClass.toSerializable() : SDClass
@@ -19,4 +21,7 @@ abstract class DokkaToSerializableModelTransformer {
     abstract fun DTypeParameter.toSerializable() : SDTypeParameter
     abstract fun DTypeAlias.toSerializable() : SDTypeAlias
     abstract fun DClasslike.toSerializable() : SDClasslike
+    abstract fun Bound.toSerializable() : SBound
+    abstract fun Projection.toSerializable() : SProjection
+    abstract fun FunctionModifiers.toSerializable() : SFunctionModifiers
 }

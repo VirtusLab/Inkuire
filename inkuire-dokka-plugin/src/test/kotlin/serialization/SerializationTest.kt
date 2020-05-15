@@ -16,24 +16,24 @@ class SerializationTest : AbstractCoreTest() {
         }
         format = "inkuire"
     }
-    @Test
-    fun singleFunctionTest() {
-        val outputWriter = TestOutputWriterPlugin()
-        testInline(
-        """
-            |/src/main/kotlin/basic/Test.kt
-            |package test
-            |
-            |fun test(a: Int){
-            |    return 2
-            |}
-        """.trimMargin(),
-                configuration,
-                pluginOverrides = listOf(InkuireDokkaPlugin(), outputWriter)
-        ) {
-            fun TypeReference() : TypeReference = SelfType
-            renderingStage = { root, context -> //TODO: Find some nice assertions.
-            }
-        }
-    }
+//    @Test
+//    fun singleFunctionTest() {
+//        val outputWriter = TestOutputWriterPlugin()
+//        testInline(
+//        """
+//            |/src/main/kotlin/basic/Test.kt
+//            |package test
+//            |
+//            |fun test(a: Int){
+//            |    return 2
+//            |}
+//        """.trimMargin(),
+//                configuration,
+//                pluginOverrides = listOf(InkuireDokkaPlugin(), outputWriter)
+//        ) {
+//            fun TypeReference() : TypeReference = SelfType
+//            renderingStage = { root, context -> //TODO: Find some nice assertions.
+//            }
+//        }
+//    }
 }
