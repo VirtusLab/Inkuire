@@ -32,7 +32,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "parse signature with multiple constraints for one variable" in {
@@ -63,7 +63,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "parse signature with multiple constraints" in {
@@ -100,7 +100,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "parse signature with generic constraint" in {
@@ -137,7 +137,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "parse signature with constraints overkill" in {
@@ -197,7 +197,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "return error when a constraint is defined for a non variable type" in {
@@ -257,7 +257,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]](expectedRes)
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 
   it should "return error when function with receiver is used as upper bound" in {
@@ -269,5 +269,85 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
 
     //then
     res should be(Symbol("left"))
+  }
+
+  it should "parse type variable with single constraint syntactic sugar" in {
+    //given
+    val str = "<A: Array<Int>> A.(Int) -> String"
+
+    //when
+    val res = KotlinSignatureParser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "A".typeVariable.some,
+          Seq(
+            "Int".concreteType
+          ),
+          "String".concreteType,
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map(
+              "A" -> Seq(
+                GenericType(
+                  "Array".concreteType,
+                  Seq(
+                    "Int".concreteType
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]] (expectedRes)
+  }
+
+  it should "parse type variable with single constraint syntactic sugar and additional constraint" in {
+    //given
+    val str = "<A: Array<Int>> A.(Int) -> String where A : Collection<Int>"
+
+    //when
+    val res = KotlinSignatureParser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "A".typeVariable.some,
+          Seq(
+            "Int".concreteType
+          ),
+          "String".concreteType,
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map(
+              "A" -> Seq(
+                GenericType(
+                  "Collection".concreteType,
+                  Seq(
+                    "Int".concreteType
+                  )
+                ),
+                GenericType(
+                  "Array".concreteType,
+                  Seq(
+                    "Int".concreteType
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]] (expectedRes)
   }
 }

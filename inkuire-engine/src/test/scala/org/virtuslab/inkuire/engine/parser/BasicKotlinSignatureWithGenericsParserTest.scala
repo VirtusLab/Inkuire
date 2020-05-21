@@ -4,6 +4,7 @@ import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.utils.syntax._
+import org.virtuslab.inkuire.engine.model.StarProjection
 
 class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
 
@@ -168,6 +169,35 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
               "Map".concreteType,
               Seq(
                 "Double".concreteType,
+                "Float".concreteType
+              )
+            )
+          ),
+          "String".concreteType,
+          SignatureContext.empty
+        )
+      )
+
+    res should matchTo[Either[String, Signature]] (expectedRes)
+  }
+
+  it should "parse signature with generic with star projection" in {
+    //given
+    val str = "Float.(Map<*, Float>) -> String"
+
+    //when
+    val res = KotlinSignatureParser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "Float".concreteType.some,
+          Seq(
+            GenericType(
+              "Map".concreteType,
+              Seq(
+                StarProjection,
                 "Float".concreteType
               )
             )
