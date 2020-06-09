@@ -101,7 +101,7 @@ object ExactMatchServiceTest {
       SignatureContext.empty
     )
     val toStringExternalSignature: ExternalSignature = ExternalSignature(
-      equalsSignature,
+      toStringSignature,
       "toString",
       "/Int/toString"
     )

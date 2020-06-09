@@ -1,61 +1,53 @@
 package org.virtuslab.inkuire.engine.parser
 
-import cats.Monoid
-import cats.data.{Validated, ValidatedNec}
 import org.virtuslab.inkuire.engine.model.Type._
-
-import scala.util.parsing.combinator.RegexParsers
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.model.{ConcreteType, FunctionType, GenericType, Signature, SignatureContext, Type, TypeVariable, Unresolved}
+import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.engine.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
-import org.virtuslab.inkuire.engine.model.StarProjection
 
-class KotlinSignatureParser extends RegexParsers {
+class KotlinSignatureParser extends BaseSignatureParser {
 
-  def identifier: Parser[String] = """[A-Za-z]\w*""".r
-
-  def nullability: Parser[Boolean] = "?" ^^^ true | "" ^^^ false
+  def concreteType: Parser[Type] =
+    identifier ^^ (Unresolved(_))
 
   def typ: Parser[Type] =
     genericType |
-      identifier ~ nullability ^^ { case id ~ nullable => Unresolved(id, nullable) }
+      nullable(concreteType)
 
   def starProjection: Parser[Type] = "*" ^^^ StarProjection
+
+  def nullable(typ: Parser[Type]): Parser[Type] =
+    typ ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ }
 
   def singleType: Parser[Type] =
     functionType |
       typ |
-      ("(" ~> singleType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ }
+      nullable("(" ~> singleType <~ ")")
 
   def receiverType: Parser[Type] =
-    ("(" ~> functionType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ } |
+    nullable("(" ~> functionType <~ ")") |
       ("(" ~> functionType <~ ")") |
       typ |
-      ("(" ~> receiverType <~ ")") ~ nullability ^^ { case typ ~ nullable => if(nullable) typ.? else typ }
+      nullable("(" ~> receiverType <~ ")")
 
   def functionType: Parser[FunctionType] =
     receiver ~ ("(" ~> types <~ ")") ~ ("->" ~> singleType) ^^ { case rcvr ~ args ~ result => FunctionType(rcvr, args, result) }
 
-  def genericType: Parser[GenericType] =
-    identifier ~ ("<" ~> typeArguments <~ ">") ~ nullability ^^ { case genType ~ types ~ nullable => GenericType(Unresolved(genType, nullable), types) }
+  def genericType: Parser[Type] =
+    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ { case baseType ~ types => GenericType(baseType, types) })
 
-  def types: Parser[Seq[Type]] =
-    (singleType <~ ",") ~ types ^^ { case typ ~ types => typ +: types } |
-      singleType ^^ (Seq(_)) |
-      "" ^^^ Seq.empty
+  def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
   def typeArgument: Parser[Type] = singleType | starProjection
 
-  def typeArguments: Parser[Seq[Type]] =
-    (typeArgument <~ ",") ~ typeArguments ^^ { case typ ~ types => typ +: types } |
-      typeArgument ^^ (Seq(_)) |
-      "" ^^^ Seq.empty
+  def typeArguments: Parser[Seq[Type]] = list(typeArgument) | empty[List[Type]]
 
-  def constraints: Parser[Seq[(String, Type)]] =
-    (identifier <~ ":") ~ singleType ~ ("," ~> constraints) ^^ { case id ~ typ ~ consts => (id, typ) +: consts } |
-    (identifier <~ ":") ~ singleType ^^ { case id ~ typ => Seq((id, typ)) }
+  def constraint: Parser[(String, Type)] =
+    (identifier <~ ":") ~ singleType ^^ { case id ~ typ => (id, typ) }
+
+  def constraints: Parser[Seq[(String, Type)]] = list(constraint)
 
   def whereClause: Parser[Map[String, Seq[Type]]] =
     "where" ~> constraints ^^ (_.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }) |

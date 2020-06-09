@@ -7,7 +7,7 @@ case class CliContext(
 )
 
 object CliContext {
-  def empty: CliContext = CliContext("db.inkuire")
+  def empty: CliContext = CliContext("inkuire.json")
   def create(args: List[CliParam]): CliContext = {
     args.foldLeft(empty) {
       case (agg, SetDbPath(path)) => agg.modify(_.dbPath).setTo(path)
