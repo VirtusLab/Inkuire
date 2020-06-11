@@ -1,7 +1,6 @@
 package org.virtuslab.inkuire.engine.model
 
 import com.softwaremill.quicklens._
-import io.scalaland.chimney.dsl._
 
 trait Type {
   def asVariable: Type
@@ -14,6 +13,7 @@ case class Unresolved(
   name: String,
   nullable: Boolean = false
 ) extends Type {
+  import io.scalaland.chimney.dsl._
 
   override def asVariable: Type = this.transformInto[TypeVariable]
 
@@ -26,6 +26,7 @@ case class ConcreteType(
   name: String,
   nullable: Boolean = false
 ) extends Type {
+  import io.scalaland.chimney.dsl._
 
   override def asVariable: Type = this.transformInto[TypeVariable]
 
@@ -52,6 +53,7 @@ case class TypeVariable(
   name: String,
   nullable: Boolean = false
 ) extends Type {
+  import io.scalaland.chimney.dsl._
 
   override def asVariable: Type = this
 
