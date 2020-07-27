@@ -27,7 +27,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         dri = dri.toSerializable(),
         name = name,
         type = type.toSerializable(),
-        underlyingType = underlyingType.allValues.first().toSerializable()
+        underlyingType = underlyingType.values.first().toSerializable()
     )
 
     override fun DTypeParameter.toSerializable() = SDTypeParameter(
@@ -68,7 +68,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         functions = functions.map { it.toSerializable() },
         properties = properties.map { it.toSerializable() },
         classlikes = classlikes.mapNotNull { it.toSerializable() },
-        supertypes = supertypes.allValues.toList().flatten().map { it.toString() }
+        supertypes = supertypes.values.toList().flatten().map { it.toString() }
     )
 
     override fun DInterface.toSerializable() = SDInterface(
@@ -79,7 +79,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         classlikes = classlikes.map { it.toSerializable() },
         companion = companion?.toSerializable(),
         generics = generics.map { it.toSerializable() },
-        supertypes = supertypes.allValues.toList().flatten().map { it.toString() }
+        supertypes = supertypes.values.toList().flatten().map { it.toString() }
     )
 
     override fun DFunction.toSerializable() = SDFunction(
@@ -109,7 +109,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         properties = properties.map { it.toSerializable() },
         classlikes = classlikes.map { it.toSerializable() },
         companion = companion?.toSerializable(),
-        supertypes = supertypes.allValues.toList().flatten().map { it.toString() }
+        supertypes = supertypes.values.toList().flatten().map { it.toString() }
     )
 
     override fun DClass.toSerializable() = SDClass(
@@ -121,7 +121,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         classlikes = classlikes.map { it.toSerializable() }.filterNotNull(),
         companion = companion?.toSerializable(),
         generics = generics.map { it.toSerializable() },
-        supertypes = supertypes.allValues.toList().flatten().map { it.toString() }
+        supertypes = supertypes.values.toList().flatten().map { it.toString() }
     )
 
     override fun DPackage.toSerializable() = SDPackage(
@@ -147,7 +147,7 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
 
     override fun FunctionModifiers.toSerializable(): SFunctionModifiers = SFunctionModifiers.valueOf(this.name)
 
-    override fun Bound.toSerializable() : SBound = when(this){
+    override fun Bound.toSerializable() : SBound = when(this) {
         is OtherParameter -> SOtherParameter(this.name)
         is TypeConstructor -> STypeConstructor(
             dri.toSerializable(),
@@ -157,6 +157,8 @@ class DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTrans
         is PrimitiveJavaType -> SPrimitiveJavaType(this.name)
         is Void -> SVoid
         is JavaObject -> SJavaObject
+        is Dynamic -> SDynamic
+        is UnresolvedBound -> SUnresolvedBound
     }
 
 }

@@ -9,8 +9,8 @@ import utils.TestOutputWriterPlugin
 
 class SerializationTest : AbstractCoreTest() {
     private val configuration = dokkaConfiguration {
-        passes {
-            pass {
+        sourceSets {
+            sourceSet {
                 sourceRoots = listOf("src/")
             }
         }

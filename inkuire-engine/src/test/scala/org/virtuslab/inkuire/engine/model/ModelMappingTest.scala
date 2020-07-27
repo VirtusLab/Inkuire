@@ -7,10 +7,10 @@ import org.virtuslab.inkuire.engine.BaseInkuireTest
 class ModelMappingTest extends BaseInkuireTest {
   it should "map global function" in {
     //given
-    val source = Paths.get("src/test", "resources", "modelTestData","1.json")
+    val source = Paths.get("src/test", "resources", "modelTestData","1.json").toAbsolutePath.toString
 
     //when
-    val inkuire = InkuireDb.read(source)
+    val inkuire = InkuireDb.readFromPath(source)
 
     //then
     val expected = Seq(
@@ -22,10 +22,10 @@ class ModelMappingTest extends BaseInkuireTest {
 
   it should "map method" in {
     //given
-    val source = Paths.get("src/test", "resources", "modelTestData","2.json")
+    val source = Paths.get("src/test", "resources", "modelTestData","2.json").toAbsolutePath.toString
 
     //when
-    val inkuire = InkuireDb.read(source)
+    val inkuire = InkuireDb.readFromPath(source)
 
     //then
     val expected = Seq(

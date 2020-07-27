@@ -12,6 +12,7 @@ import scala.io.Source
 import util._
 
 import scala.annotation.tailrec
+import scala.tools.nsc.io.File
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
@@ -23,13 +24,15 @@ object InkuireDb {
 
   @tailrec
   private def parseBound(b: SBound): String = {
-    b match{
+    b match {
       case t: STypeConstructor => t.getDri.getClassName
       case o: SOtherParameter => o.getName
       case n: SNullable => parseBound(n.getInner)
       case j: SPrimitiveJavaType => j.getName
-      case v: SVoid => "void"
+      case _: SVoid => "void"
       case p: SPrimitiveJavaType => p.getName
+      case _: SDynamic => "dynamic"
+      case _: SJavaObject => "Object"
     }
   }
 
@@ -53,8 +56,8 @@ object InkuireDb {
     f.getDri.getOriginal
   )
 
-  def read(path: Path): InkuireDb = {
-    val source = Source.fromFile(path.toFile)
+  def readFromPath(path: String): InkuireDb = {
+    val source = Source.fromFile(path)
     val db = parseSource(source.getLines().mkString("\n"))
     source.close()
     db
