@@ -54,8 +54,10 @@ object InkuireDb {
   )
 
   def read(path: Path): InkuireDb = {
-    val source = Files.readString(path)
-    parseSource(source)
+    val source = Source.fromFile(path.toFile)
+    val db = parseSource(source.getLines().mkString("\n"))
+    source.close()
+    db
   }
 
   def read(text: String): InkuireDb = parseSource(text)
