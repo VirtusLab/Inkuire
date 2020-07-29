@@ -2,6 +2,7 @@ package org.virtuslab.inkuire.engine.cli
 
 import cats.Id
 import cats.data.{EitherT, StateT}
+import cats.data.StateT
 import cats.instances.all._
 import cats.syntax.all._
 import cats.effect.IO
@@ -74,11 +75,10 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
       .map(CliContext.create)
       .traverse { context =>
         IO {
-          InkuireDb.readFromPath(context.dbPath)
+          InkuireDb.readFromPath(List(context.dbPath), List.empty)
         }
       }
       .pure[Id]
       .fmap(new EitherT(_))
   }
-
 }

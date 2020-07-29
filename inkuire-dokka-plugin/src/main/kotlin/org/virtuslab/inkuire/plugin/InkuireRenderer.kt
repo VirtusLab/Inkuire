@@ -1,32 +1,52 @@
 package org.virtuslab.inkuire.plugin
 
-import org.virtuslab.inkuire.model.util.CustomGsonFactory
+import org.virtuslab.inkuire.model.util.CustomGson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.pages.ContentNode
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.dokka.pages.ModulePageNode
+import org.jetbrains.dokka.pages.PageNode
 import org.jetbrains.dokka.pages.RootPageNode
 import org.jetbrains.dokka.plugability.DokkaContext
 import org.jetbrains.dokka.plugability.plugin
 import org.jetbrains.dokka.plugability.querySingle
 import org.jetbrains.dokka.renderers.Renderer
-import org.virtuslab.inkuire.plugin.content.InkuireContentNode
+import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 
-class InkuireRenderer(val context: DokkaContext) : Renderer {
-    protected val outputWriter = context.plugin<DokkaBase>().querySingle { outputWriter }
-    override fun render(root: RootPageNode) = when(root){
+class InkuireRenderer(context: DokkaContext) : Renderer {
+    private val outputWriter = context.plugin<DokkaBase>().querySingle { outputWriter }
+
+    override fun render(root: RootPageNode) = when(root) {
         is ModulePageNode -> runBlocking(Dispatchers.Default) {
-            outputWriter.write(
-                    context.configuration.outputDir,
-                    convertToJson(root.content),
-                    ".json")
+            root.children.forEach {
+                launch {
+                    outputWriter.write(
+                        "functions${it.name}",
+                        it.toFunctionsJson(),
+                        ".json"
+                    )
+                }
+                launch {
+                    outputWriter.write(
+                        "ancestryGraph${it.name}",
+                        it.toAncestryGraphJson(),
+                        ".json"
+                    )
+                }
+            }
         }
         else -> throw UnsupportedOperationException("Root page node is not module page node")
     }
 
-    private fun convertToJson(content: ContentNode) = when(content) {
-        is InkuireContentNode -> CustomGsonFactory().getInstance().toJson(content.inkuireModelRoot)
+    private fun PageNode.toFunctionsJson() = when(this) {
+        is InkuireContentPage -> CustomGson.withSDocumentableAdapters.toJson(functions)
         else -> throw UnsupportedOperationException("Content node is not Inkuiry content node")
     }
+
+    private fun PageNode.toAncestryGraphJson() = when(this) {
+        is InkuireContentPage -> CustomGson.withAncestryGraphAdapters.toJson(ancestryGraph)
+        else -> throw UnsupportedOperationException("Content node is not Inkuiry content node")
+    }
+
 }
