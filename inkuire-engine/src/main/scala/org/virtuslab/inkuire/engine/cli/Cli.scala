@@ -1,27 +1,26 @@
 package org.virtuslab.inkuire.engine.cli
 
-import java.nio.file.Paths
-
-import cats.data.StateT
+import cats.Id
+import cats.data.{EitherT, StateT}
 import cats.instances.all._
 import cats.syntax.all._
 import cats.effect.IO
+import org.virtuslab.inkuire.engine.api.{InputHandler, OutputHandler}
 import org.virtuslab.inkuire.engine.utils.syntax._
 import org.virtuslab.inkuire.engine.cli.model.{CliContext, CliParam}
 import org.virtuslab.inkuire.engine.model.InkuireDb
-import org.virtuslab.inkuire.engine.cli.model.Engine._
+import org.virtuslab.inkuire.engine.model.Engine._
 import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 import org.virtuslab.inkuire.engine.parser.KotlinSignatureParser
-import org.virtuslab.inkuire.engine.service.ExactMatchService
 import org.virtuslab.inkuire.engine.utils.helpers.IOHelpers
 
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
 
-object Main extends App with IOHelpers {
+class Cli extends InputHandler with OutputHandler with IOHelpers {
 
   @tailrec
-  def parseArgs(args: List[String], agg: Either[String, List[CliParam]] = List.empty.right): Either[String, List[CliParam]] = {
+  private def parseArgs(args: List[String], agg: Either[String, List[CliParam]] = List.empty.right): Either[String, List[CliParam]] = {
     args match {
       case Nil => agg
       case opt :: v :: tail =>
@@ -38,14 +37,14 @@ object Main extends App with IOHelpers {
     }
   }
 
-  def handleSyntaxError(err: String): Engine[Unit] = {
+  private def handleSyntaxError(err: String): Engine[Unit] = {
     IO {
       println("Syntax error:")
       println(err)
     }.liftApp
   }
 
-  def handleCommand(input: String): Engine[Unit] = {
+  private def handleCommand(input: String): Engine[Unit] = {
     StateT.get[IO, Env] >>= { env =>
       KotlinSignatureParser
         .parse(input)
@@ -56,7 +55,7 @@ object Main extends App with IOHelpers {
     }
   }
 
-  def handleCommands: Engine[Unit] = {
+  def serveOutput: Engine[Unit] = {
     IO {
       print(s"inkuire> ")
       readLine()
@@ -65,17 +64,21 @@ object Main extends App with IOHelpers {
         IO { println("bye") }.liftApp
       } else {
         handleCommand(command) >>
-          handleCommands
+          serveOutput
       }
     }
   }
 
-  def startConsole(data: CliContext): IO[Unit] =
-    IO { InkuireDb.readFromPath(data.dbPath) } >>= { db =>
-      handleCommands.runA(Env(db, data.dbPath, new ExactMatchService(db)))
-    }
+  def readInput(args: Seq[String]): EitherT[IO, String, InkuireDb] = {
+    parseArgs(args.toList)
+      .map(CliContext.create)
+      .traverse { context =>
+        IO {
+          InkuireDb.readFromPath(context.dbPath)
+        }
+      }
+      .pure[Id]
+      .fmap(new EitherT(_))
+  }
 
-  val cli = parseArgs(args.toList).map(CliContext.create).fold(printlnIO, startConsole)
-
-  cli.unsafeRunSync()
 }

@@ -38,7 +38,7 @@ dependencies{
 }
 
 task("runCli", JavaExec::class) {
-    main = "org.virtuslab.inkuire.engine.cli.Main"
+    main = "org.virtuslab.inkuire.engine.Main"
     classpath = sourceSets["main"].runtimeClasspath
     standardInput = System.`in`
 }
