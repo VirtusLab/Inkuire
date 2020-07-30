@@ -2,6 +2,7 @@ package org.virtuslab.inkuire.model.util
 
 import com.google.gson.*
 import org.virtuslab.inkuire.model.*
+import java.lang.IllegalStateException
 import java.lang.reflect.Type
 
 class ClasslikeSerializer : JsonDeserializer<SDClasslike>, JsonSerializer<SDClasslike> {
@@ -9,15 +10,16 @@ class ClasslikeSerializer : JsonDeserializer<SDClasslike>, JsonSerializer<SDClas
         return if (json != null && context != null) {
             val obj = json.asJsonObject
             val toDeserialize = obj.deepCopy().also { it.remove("kind") }
-            when(obj.get("kind").asString){
-                "class" -> context.deserialize(toDeserialize, SDClass::class.java)
-                "annotation" -> context.deserialize(toDeserialize, SDAnnotation::class.java)
-                "interface" -> context.deserialize(toDeserialize, SDInterface::class.java)
-                "enum" -> context.deserialize(toDeserialize, SDEnum::class.java)
-                "object" -> context.deserialize(toDeserialize, SDObject::class.java)
-                else -> NullClasslike()
+            when(val name = obj.get("kind").asString){ // Casts are there to bypass problems with implicits casts
+                "class" -> context.deserialize(toDeserialize, SDClass::class.java) as SDClass
+                "annotation" -> context.deserialize(toDeserialize, SDAnnotation::class.java) as SDAnnotation
+                "interface" -> context.deserialize(toDeserialize, SDInterface::class.java) as SDInterface
+                "enum" -> context.deserialize(toDeserialize, SDEnum::class.java) as SDEnum
+                "object" -> context.deserialize(toDeserialize, SDObject::class.java) as SDObject
+                "null" -> NullClasslike
+                else -> throw IllegalStateException("Cannot deserialize classlike typed as $name")
             }
-        } else NullClasslike()
+        } else NullClasslike
     }
 
     override fun serialize(src: SDClasslike?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
@@ -27,20 +29,20 @@ class ClasslikeSerializer : JsonDeserializer<SDClasslike>, JsonSerializer<SDClas
                     context.serialize(it).asJsonObject.also { it.addProperty("kind", "class") }
                 }
                 is SDAnnotation -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("kind", "annotation") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "annotation") }
                 }
                 is SDInterface -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("kind", "interface") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "interface") }
                 }
                 is SDEnum -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("kind", "enum") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "enum") }
                 }
                 is SDObject -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("kind", "object") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "object") }
                 }
                 is NullClasslike -> JsonObject().also { it.addProperty("kind", "null") }
             }
-        } else return JsonObject().also { it.addProperty("kind", "null") }
+        } else JsonObject().also { it.addProperty("kind", "null") }
     }
 }
 
@@ -52,54 +54,63 @@ class BoundSerializer : JsonSerializer<SBound>, JsonDeserializer<SBound>{
                     context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "typeconstructor") }
                 }
                 is SNullable -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "nullable") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "nullable") }
                 }
                 is SJavaObject -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "object") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "object") }
                 }
                 is SVoid -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "void") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "void") }
                 }
                 is SPrimitiveJavaType -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "primitive") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "primitive") }
                 }
                 is SOtherParameter -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "other") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "other") }
                 }
-                else -> src.let {
-                    context?.serialize(it).asJsonObject.also { it.addProperty("boundkind", "null") }
+                is SNullBound -> src.let {
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "null") }
+                }
+                is SDynamic -> src.let {
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "dynamic") }
+                }
+                is SUnresolvedBound -> src.let {
+                    context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "unresolvedBound") }
                 }
             }
-        } else return JsonObject().also { it.addProperty("boundkind", "null") }
+        } else JsonObject().also { it.addProperty("boundkind", "null") }
     }
 
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): SBound {
         return if (json != null && context != null) {
             val obj = json.asJsonObject
             val toDeserialize = obj.deepCopy().also { it.remove("boundkind") }
-            when(obj.get("boundkind").asString){
-                "typeconstructor" -> context.deserialize(toDeserialize, STypeConstructor::class.java)
-                "nullable" -> context.deserialize(toDeserialize, SNullable::class.java)
-                "primitive" -> context.deserialize(toDeserialize, SPrimitiveJavaType::class.java)
-                "other" -> context.deserialize(toDeserialize, SOtherParameter::class.java)
-                "void" -> context.deserialize(toDeserialize, SVoid::class.java)
-                "object" -> context.deserialize(toDeserialize, SJavaObject::class.java)
-                else -> NullBound()
+            when(val name = obj.get("boundkind").asString){ // Casts are there to bypass problems with implicits casts
+                "typeconstructor" -> context.deserialize(toDeserialize, STypeConstructor::class.java) as STypeConstructor
+                "nullable" -> context.deserialize(toDeserialize, SNullable::class.java) as SNullable
+                "primitive" -> context.deserialize(toDeserialize, SPrimitiveJavaType::class.java) as SPrimitiveJavaType
+                "other" -> context.deserialize(toDeserialize, SOtherParameter::class.java) as SOtherParameter
+                "void" -> context.deserialize(toDeserialize, SVoid::class.java) as SVoid
+                "object" -> context.deserialize(toDeserialize, SJavaObject::class.java) as SJavaObject
+                "null" -> context.deserialize(toDeserialize, SNullable::class.java) as SNullable
+                "dynamic" -> context.deserialize(toDeserialize, SDynamic::class.java) as SDynamic
+                "unresolvedBound" -> context.deserialize(toDeserialize, SUnresolvedBound::class.java) as SUnresolvedBound
+                else -> throw IllegalStateException("Cannot deserialize bound named $name")
             }
-        } else NullBound()
+        } else SNullBound
     }
 }
 
 class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProjection>{
     //TODO: Get rid of this ext. function. Currently GSON doesn't add bound field when serializing projection idk why
     // and we need to do it explicitly
-    private fun SBound.boundKind() = when(this){
+    private fun SBound.boundKind() = when(this) {
         is STypeConstructor -> "typeconstructor"
         is SNullable -> "nullable"
         is SJavaObject -> "object"
         is SVoid -> "void"
         is SPrimitiveJavaType -> "primitive"
-        is SOtherParameter ->  "other"
+        is SOtherParameter -> "other"
         else -> "null"
     }
 
@@ -107,13 +118,14 @@ class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProje
         return if (json != null && context != null) {
             val obj = json.asJsonObject
             val toDeserialize = obj.deepCopy().also { it.remove("kind") }
-            when(obj.get("kind").asString){
-                "star" -> context.deserialize(toDeserialize, SStar::class.java)
-                "bound" -> context.deserialize(toDeserialize, SBound::class.java)
-                "variance" -> context.deserialize(toDeserialize, SVariance::class.java)
-                else -> NullProjection()
+            when(val name = obj.get("kind").asString) { // Casts are there to bypass problems with implicits casts
+                "star" -> context.deserialize(toDeserialize, SStar::class.java) as SStar
+                "bound" -> context.deserialize(toDeserialize, SBound::class.java) as SBound
+                "variance" -> context.deserialize(toDeserialize, SVariance::class.java) as SVariance
+                "null" -> context.deserialize(toDeserialize, SNullProjection::class.java) as SNullProjection
+                else -> throw IllegalStateException("Cannot deserialize kind named $name")
             }
-        } else NullProjection()
+        } else SNullProjection
     }
 
     override fun serialize(src: SProjection?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
@@ -132,10 +144,10 @@ class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProje
                 is SVariance -> src.let {
                     context.serialize(it).asJsonObject.also { it.addProperty("kind", "variance") }
                 }
-                else -> src.let {
+                is SNullProjection -> src.let {
                     context.serialize(it).asJsonObject.also { it.addProperty("kind", "null") }
                 }
             }
-        } else return JsonObject().also { it.addProperty("kind", "null") }
+        } else JsonObject().also { it.addProperty("kind", "null") }
     }
 }

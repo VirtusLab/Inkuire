@@ -17,7 +17,7 @@ object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
             content = InkuireContentNode(
                     inkuireModelRoot = transformer.transform(module),
                     dci = DCI(emptySet(), ContentKind.Main),
-                    platforms = emptySet()
+                    sourceSets = emptySet()
             ),
             children = emptyList(),
             documentable = module

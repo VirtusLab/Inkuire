@@ -9,6 +9,8 @@ data class SDRI(
     override fun toString(): String = original
 }
 
+sealed class SDClasslike
+
 data class SDModule(
     val dri: SDRI,
     val name: String,
@@ -124,41 +126,40 @@ data class SDTypeAlias(
     val underlyingType: SBound
 )
 
-sealed class SDClasslike
-
 //Placeholder for deserialization
-class NullClasslike : SDClasslike()
-
-class NullBound : SBound()
-
-class NullProjection : SProjection()
+object NullClasslike : SDClasslike()
 
 sealed class SProjection
 
+object SStar : SProjection()
+object SNullProjection : SProjection()
+data class SVariance(val kind: Kind, val inner: SBound) : SProjection() {
+    enum class Kind { In, Out }
+}
+
 sealed class SBound : SProjection()
 
+object SVoid : SBound()
+object SJavaObject : SBound()
+object SDynamic : SBound()
+object SUnresolvedBound : SBound()
+object SNullBound : SBound()
 data class SOtherParameter(val name: String) : SBound()
-
-object SStar : SProjection()
-
+data class SNullable(val inner: SBound) : SBound()
+data class SPrimitiveJavaType(val name: String) : SBound()
 data class STypeConstructor(
-        val dri: SDRI,
-        val projections: List<SProjection>,
-        val modifier: SFunctionModifiers = SFunctionModifiers.NONE
+    val dri: SDRI,
+    val projections: List<SProjection>,
+    val modifier: SFunctionModifiers = SFunctionModifiers.NONE
 ) : SBound()
 
 enum class SFunctionModifiers {
     NONE, FUNCTION, EXTENSION
 }
 
-data class SNullable(val inner: SBound) : SBound()
 
-data class SVariance(val kind: Kind, val inner: SBound) : SProjection() {
-    enum class Kind { In, Out }
-}
 
-data class SPrimitiveJavaType(val name: String) : SBound()
 
-object SVoid : SBound()
 
-object SJavaObject : SBound()
+
+

@@ -1,5 +1,7 @@
 package org.virtuslab.inkuire.engine.cli
 
+import java.nio.file.Paths
+
 import cats.data.StateT
 import cats.instances.all._
 import cats.syntax.all._
@@ -69,7 +71,7 @@ object Main extends App with IOHelpers {
   }
 
   def startConsole(data: CliContext): IO[Unit] =
-    IO { InkuireDb.read(data.dbPath) } >>= { db =>
+    IO { InkuireDb.readFromPath(data.dbPath) } >>= { db =>
       handleCommands.runA(Env(db, data.dbPath, new ExactMatchService(db)))
     }
 
