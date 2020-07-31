@@ -5,11 +5,17 @@ import org.virtuslab.inkuire.model.SBound
 import org.virtuslab.inkuire.model.SDClasslike
 import org.virtuslab.inkuire.model.SProjection
 
-class CustomGsonFactory {
-        fun getInstance() = Gson()
-                .newBuilder()
-                .registerTypeAdapter(SBound::class.java, BoundSerializer())
-                .registerTypeAdapter(SProjection::class.java, ProjectionSerializer())
-                .registerTypeAdapter(SDClasslike::class.java, ClasslikeSerializer())
-                .create()
+object CustomGson {
+
+    val withSDocumentableAdapters by lazy {
+        Gson().newBuilder()
+            .registerTypeAdapter(SBound::class.java, BoundSerializer())
+            .registerTypeAdapter(SProjection::class.java, ProjectionSerializer())
+            .registerTypeAdapter(SDClasslike::class.java, ClasslikeSerializer())
+            .create()
+    }
+
+    val withAncestryGraphAdapters by lazy {
+        Gson()
+    }
 }

@@ -1,60 +1,25 @@
-{
-   "dri":{
-      "original":"/////"
-   },
-   "name":"example",
-   "packages":[
-      {
-         "dri":{
-            "packageName":"example",
-            "original":"example/////"
-         },
-         "name":"example",
-         "functions":[],
-         "properties":[],
-         "classlikes":[
-            {
-               "dri":{
-                  "packageName":"example",
-                  "className":"Clock",
-                  "original":"example/Clock////"
-               },
-               "name":"Clock",
-               "constructors":[],
-               "functions":[
-                  {
-                     "dri":{
-                        "packageName":"example",
-                        "className":"Clock",
-                        "callableName":"getTime",
-                        "original":"example/Clock/getTime/#//"
-                     },
-                     "name":"getTime",
-                     "isConstructor":false,
-                     "parameters":[
-
-                     ],
-                     "type":{
-                        "dri":{
-                           "packageName":"kotlin",
-                           "className":"String",
-                           "original":"kotlin/String////"
-                        },
-                        "projections":[],
-                        "modifier":"NONE",
-                        "boundkind":"typeconstructor"
-                     },
-                     "generics":[]
-                  }
-               ],
-               "properties":[],
-               "classlikes":[],
-               "generics":[],
-               "supertypes":[],
-               "kind":"class"
-            }
-         ],
-         "typealiases":[]
-      }
-   ]
-}
+[
+  {
+    "dri": {
+      "packageName": "example",
+      "className": "Clock",
+      "callableName": "getTime",
+      "original": "example/Clock/getTime/#//"
+    },
+    "name": "getTime",
+    "isConstructor": false,
+    "parameters": [
+    ],
+    "type": {
+      "dri": {
+        "packageName": "kotlin",
+        "className": "String",
+        "original": "kotlin/String////"
+      },
+      "projections": [],
+      "modifier": "NONE",
+      "boundkind": "typeconstructor"
+    },
+    "generics": []
+  }
+]

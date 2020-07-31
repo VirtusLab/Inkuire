@@ -10,7 +10,7 @@ class ModelMappingTest extends BaseInkuireTest {
     val source = Paths.get("src/test", "resources", "modelTestData","1.json").toAbsolutePath.toString
 
     //when
-    val inkuire = InkuireDb.readFromPath(source)
+    val inkuire = InkuireDb.readFromPath(List(source), List.empty) // TODO: Fix this plug
 
     //then
     val expected = Seq(
@@ -25,7 +25,7 @@ class ModelMappingTest extends BaseInkuireTest {
     val source = Paths.get("src/test", "resources", "modelTestData","2.json").toAbsolutePath.toString
 
     //when
-    val inkuire = InkuireDb.readFromPath(source)
+    val inkuire = InkuireDb.readFromPath(List(source), List.empty) // TODO: Fix this plug
 
     //then
     val expected = Seq(

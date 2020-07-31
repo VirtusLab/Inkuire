@@ -1,47 +1,28 @@
-{
-   "dri":{
-      "original":"/////"
-   },
-   "name":"example",
-   "packages":[
-      {
-         "dri":{
-            "packageName":"example",
-            "original":"example/////"
-         },
-         "name":"example",
-         "functions":[
-            {
-               "dri":{
-                  "packageName":"example",
-                  "callableName":"main",
-                  "original":"example//main/#//"
-               },
-               "name":"main",
-               "isConstructor":false,
-               "parameters":[
+[
+  {
+    "dri": {
+      "packageName": "example",
+      "callableName": "main",
+      "original": "example//main/#//"
+    },
+    "name": "main",
+    "isConstructor": false,
+    "parameters": [
+    ],
+    "type": {
+      "dri": {
+        "packageName": "kotlin",
+        "className": "Unit",
+        "original": "kotlin/Unit////"
+      },
+      "projections": [
+      ],
+      "modifier": "NONE",
+      "boundkind": "typeconstructor"
+    },
+    "generics": [
+    ]
+  }
+]
 
-               ],
-               "type":{
-                  "dri":{
-                     "packageName":"kotlin",
-                     "className":"Unit",
-                     "original":"kotlin/Unit////"
-                  },
-                  "projections":[
 
-                  ],
-                  "modifier":"NONE",
-                  "boundkind":"typeconstructor"
-               },
-               "generics":[
-
-                  ]
-               }
-            ],
-         "properties":[],
-         "classlikes":[],
-         "typealiases":[]
-      }
-   ]
-}
