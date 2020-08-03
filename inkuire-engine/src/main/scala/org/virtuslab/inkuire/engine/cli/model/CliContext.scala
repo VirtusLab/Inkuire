@@ -1,16 +1,22 @@
 package org.virtuslab.inkuire.engine.cli.model
 
-import com.softwaremill.quicklens._
+import java.io.File
+import java.nio.file.Paths
 
 case class CliContext(
-  dbPath: String
+  dbFiles: List[File],
+  ancestryFiles: List[File]
 )
 
 object CliContext {
-  def empty: CliContext = CliContext("inkuire.json")
+
+  private def toFile(path: String) = Paths.get(path).toFile
+  def empty: CliContext = CliContext(List.empty, List.empty)
   def create(args: List[CliParam]): CliContext = {
-    args.foldLeft(empty) {
-      case (agg, SetDbPath(path)) => agg.modify(_.dbPath).setTo(path)
-    }
+
+    val dbFiles = args.collect { case DbPath(path) => toFile(path) }
+    val ancestryGraphFiles = args.collect { case AncestryGraphPath(path) => toFile(path) }
+
+    CliContext(dbFiles, ancestryGraphFiles)
   }
 }

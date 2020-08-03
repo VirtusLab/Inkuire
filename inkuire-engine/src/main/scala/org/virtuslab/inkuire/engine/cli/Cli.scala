@@ -75,7 +75,7 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
       .map(CliContext.create)
       .traverse { context =>
         IO {
-          InkuireDb.readFromPath(List(context.dbPath), List.empty)
+          InkuireDb.read(context.dbFiles, context.ancestryFiles)
         }
       }
       .pure[Id]

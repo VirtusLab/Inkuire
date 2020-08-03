@@ -1,10 +1,13 @@
 package org.virtuslab.inkuire.engine.model
 
+import java.io.{File, FileReader}
+
+import com.google.gson.reflect.TypeToken
 import org.virtuslab.inkuire.model._
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.model.util.CustomGson
+
 import scala.jdk.CollectionConverters._
-import scala.io.Source
 import scala.annotation.tailrec
 
 case class InkuireDb(
@@ -49,22 +52,27 @@ object InkuireDb {
     f.getDri.getOriginal
   )
 
-  def readFromPath(functionsPaths: List[String], inheritancePaths: List[String]): InkuireDb = {
-    val source = Source.fromFile(functionsPaths.head) // TODO: Fix this plug
-    val db = parseSource(source.getLines().mkString("\n"))
-    source.close()
-    db
-  }
+  private def generateTypeBound(s: SDRI): Type = ConcreteType(s.getOriginal)
 
-  def read(text: String): InkuireDb = parseSource(text)
+  def read(functionFiles: List[File], ancestryFiles: List[File]): InkuireDb = {
 
-  private def parseSource(source: String): InkuireDb = {
-    val functions = CustomGson.INSTANCE.getWithSDocumentableAdapters.fromJson(source, classOf[Array[SDFunction]]) // Workaround for Gson cannot deserialize directly to Scala List
-    unwrapToInkuireDb(functions.toList)
-  }
+    val functions = functionFiles.flatMap { file =>
+      CustomGson.INSTANCE.getWithSDocumentableAdapters.fromJson(
+        new FileReader(file),
+        new TypeToken[Array[SDFunction]] {}.getType
+      ).asInstanceOf[Array[SDFunction]].toList
+    }.map(generateFunctionSignature)
 
-  def unwrapToInkuireDb(functions: List[SDFunction]): InkuireDb = {
-    new InkuireDb(functions.map(generateFunctionSignature), Map.empty)
+    val ancestryGraph = ancestryFiles.flatMap { file =>
+      CustomGson.INSTANCE.getWithAncestryGraphAdapters.fromJson(
+        new FileReader(file),
+        new TypeToken[java.util.Map[SDRI, Array[SDRI]]] {}.getType
+      ).asInstanceOf[java.util.Map[SDRI, Array[SDRI]]].asScala.map { case (sdri, sdris) => sdri -> sdris.toList }
+    }.map {
+      case (sdri, listOfSdris) => generateTypeBound(sdri) -> listOfSdris.map(generateTypeBound).toSet
+    }.toMap
+
+    new InkuireDb(functions, ancestryGraph)
   }
 }
 

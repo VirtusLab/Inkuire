@@ -16,6 +16,8 @@ object CustomGson {
     }
 
     val withAncestryGraphAdapters by lazy {
-        Gson()
+        Gson().newBuilder()
+            .enableComplexMapKeySerialization()
+            .create()
     }
 }

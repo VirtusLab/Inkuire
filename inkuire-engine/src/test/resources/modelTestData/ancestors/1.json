@@ -1,0 +1,21 @@
+[
+  [
+    {
+      "packageName": "example",
+      "className": "ParticularClock",
+      "original": "example/ParticularClock///PointingToDeclaration/"
+    },
+    [
+      {
+        "packageName": "example",
+        "className": "Clock",
+        "original": "example/Clock///PointingToDeclaration/"
+      },
+      {
+        "packageName": "example",
+        "className": "InterfaceToInheritFrom",
+        "original": "example/InterfaceToInheritFrom///PointingToDeclaration/"
+      }
+    ]
+  ]
+]
