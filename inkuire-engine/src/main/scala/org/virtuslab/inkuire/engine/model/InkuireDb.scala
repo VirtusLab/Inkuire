@@ -18,12 +18,36 @@ case class InkuireDb(
 object InkuireDb {
   implicit def listAsScala[T](list: java.util.List[T]): Iterable[T] = list.asScala
 
-  @tailrec
-  private def parseBound(b: SBound): String = {
+  private def parseProjection(p: SProjection): Type = p match {
+    case _: SStar => StarProjection
+    case s: SVariance => parseBound(s.getInner)
+    case b: SBound => parseBound(b)
+  }
+
+  private def parseGenerics(f: SDFunction): SignatureContext = {
+    val generics = f.getGenerics.map(p => (p.getName, p.getBounds.map(parseBound).toSeq)).toMap
+    SignatureContext(
+      generics.keys.toSet,
+      generics
+    )
+  }
+
+  private def parseBound(b: SBound): Type = {
+    b match {
+      case n: SNullable => parseBound(n.getInner).?
+      case t: STypeConstructor => t match{
+        case t if !t.getProjections.isEmpty => GenericType(getTypeName(t).concreteType, t.getProjections.map(parseProjection).toSeq)
+        case t => getTypeName(t).concreteType
+      }
+      case o: SOtherParameter => TypeVariable(getTypeName(o))
+      case default => getTypeName(default).concreteType
+    }
+  }
+
+  private def getTypeName(b: SBound): String = {
     b match {
       case t: STypeConstructor => t.getDri.getClassName
       case o: SOtherParameter => o.getName
-      case n: SNullable => parseBound(n.getInner)
       case j: SPrimitiveJavaType => j.getName
       case _: SVoid => "void"
       case p: SPrimitiveJavaType => p.getName
@@ -32,21 +56,21 @@ object InkuireDb {
     }
   }
 
-  private def receiver(f: SDFunction) = {
-    val receiver = f.getReceiver
-    val className = f.getDri.getClassName
-    if (receiver == null) {
-      if (className == null) None
-      else Some(className.concreteType)
-    } else Some(receiver.getName.concreteType)
+  private def receiver(f: SDFunction): Option[Type] = {
+    Option
+      .when(f.getReceiver != null)(parseBound(f.getReceiver.getType))
+      .orElse(
+        Option
+          .when(f.getDri.getClassName != null)(f.getDri.getClassName.concreteType)
+      )
   }
 
   private def generateFunctionSignature(f: SDFunction) = ExternalSignature(
     Signature(
       receiver(f),
-      f.getParameters.map(s => s.getName.concreteType).toSeq,
-      parseBound(f.getType).concreteType,
-      SignatureContext.empty
+      f.getParameters.map(s => parseBound(s.getType)).toSeq,
+      parseBound(f.getType),
+      parseGenerics(f)
     ),
     f.getName,
     f.getDri.getOriginal

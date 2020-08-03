@@ -10,7 +10,14 @@ case class Signature(
 case class SignatureContext(
   vars: Set[String],
   constraints: Map[String, Seq[Type]]
-)
+) {
+  override def equals(obj: Any): Boolean = obj match {
+    case other: SignatureContext if this.vars.size == other.vars.size =>
+      val varMap = this.vars.zip(other.vars).toMap
+      this.vars.forall(key => this.constraints(key) == other.constraints(varMap(key)))
+    case _ => false
+  }
+}
 
 object SignatureContext {
 

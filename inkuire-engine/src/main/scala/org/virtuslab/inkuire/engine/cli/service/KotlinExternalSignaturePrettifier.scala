@@ -1,12 +1,6 @@
 package org.virtuslab.inkuire.engine.cli.service
 
-import org.virtuslab.inkuire.engine.model.Signature
-import org.virtuslab.inkuire.engine.model.ExternalSignature
-import org.virtuslab.inkuire.engine.model.ConcreteType
-import org.virtuslab.inkuire.engine.model.GenericType
-import org.virtuslab.inkuire.engine.model.Type
-import org.virtuslab.inkuire.engine.model.FunctionType
-import org.virtuslab.inkuire.engine.model.TypeVariable
+import org.virtuslab.inkuire.engine.model.{ConcreteType, ExternalSignature, FunctionType, GenericType, Signature, SignatureContext, Type, TypeVariable}
 
 class KotlinExternalSignaturePrettifier {
 
@@ -19,7 +13,17 @@ class KotlinExternalSignaturePrettifier {
   }
 
   private def prettifySignature(sgn: Signature): String = {
-    s"${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}"
+    s"${prettifyGenerics(sgn.context)}${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}"
+  }
+
+  private def prettifyGenerics(context: SignatureContext): String = {
+    if(context.vars.isEmpty) ""
+    else {
+      val consSeq = context.constraints.flatMap{
+        case (key,value) => value.map(v => s"$key: ${prettifyType(v)}")
+      }
+      s"<${consSeq.mkString(", ")}> "
+    }
   }
 
   private def prettifyReceiver(receiver: Option[Type]): String = {

@@ -60,6 +60,11 @@ case class TypeVariable(
   override def asConcrete: Type = this.transformInto[ConcreteType]
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
+
+  override def equals(obj: Any): Boolean = obj match {
+    case t: TypeVariable => t.nullable == this.nullable
+    case _ => false
+  }
 }
 
 case class FunctionType(
