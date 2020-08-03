@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.cli.service
 
-import org.virtuslab.inkuire.engine.model.{ConcreteType, ExternalSignature, FunctionType, GenericType, Signature, SignatureContext, Type, TypeVariable}
+import org.virtuslab.inkuire.engine.model._
 
 class KotlinExternalSignaturePrettifier {
 
@@ -13,16 +13,25 @@ class KotlinExternalSignaturePrettifier {
   }
 
   private def prettifySignature(sgn: Signature): String = {
-    s"${prettifyGenerics(sgn.context)}${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}"
+    s"${prettifyTypeVariables(sgn.context)}" +
+      s"${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}" +
+      s"${prettifyTypeVariableConstraints(sgn.context)}"
   }
 
-  private def prettifyGenerics(context: SignatureContext): String = {
+  private def prettifyTypeVariables(context: SignatureContext): String = {
     if(context.vars.isEmpty) ""
     else {
-      val consSeq = context.constraints.flatMap{
+      s"<${context.vars.mkString(", ")}> "
+    }
+  }
+
+  private def prettifyTypeVariableConstraints(context: SignatureContext): String = {
+    if(context.constraints.isEmpty) ""
+    else {
+      val constraints = context.constraints.flatMap{
         case (key,value) => value.map(v => s"$key: ${prettifyType(v)}")
       }
-      s"<${consSeq.mkString(", ")}> "
+      s" where ${constraints.mkString(", ")}"
     }
   }
 
