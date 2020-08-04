@@ -1,5 +1,6 @@
 rootProject.name = "Inkuire"
 include("inkuire-dokka-plugin")
+include("inkuire-integration-tests")
 include("inkuire-engine")
 include("inkuire-common")
 

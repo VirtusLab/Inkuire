@@ -22,7 +22,7 @@ object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
                 with(DefaultDokkaToSerializableModelTransformer) {
                     InkuireContentPage(
                             name = sourceSet.sourceSetID.sourceSetName,
-                            functions = functions.filter { sourceSet in it.sourceSets }.map { it.toSerializable() },
+                            functions = functions.filter { sourceSet in it.sourceSets }.map { it.toSerializable() }.distinct(),
                             ancestryGraph = typesAncestryGraph(module, sourceSet)
                     )
                 }
