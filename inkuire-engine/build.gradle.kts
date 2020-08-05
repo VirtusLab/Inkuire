@@ -4,7 +4,7 @@ version = "1.0-SNAPSHOT"
 plugins {
     scala
     id("com.github.maiflai.scalatest") version "0.26"
-
+    application
 }
 
 repositories {
@@ -16,7 +16,6 @@ repositories {
 }
 
 dependencies {
-
     val scalaVersion: String by project
     val scalaLibraryVersion: String by project
 
@@ -39,6 +38,17 @@ dependencies {
     implementation("org.scala-lang.modules:scala-parser-combinators_$scalaVersion:1.1.2")
     implementation("com.google.code.gson:gson:2.8.6")
 
+    val http4sVersion = "0.21.0"
+
+    implementation("org.http4s:http4s-dsl_$scalaVersion:$http4sVersion")
+    implementation("org.http4s:http4s-server_$scalaVersion:$http4sVersion")
+    implementation("org.http4s:http4s-client_$scalaVersion:$http4sVersion")
+    implementation("org.http4s:http4s-circe_$scalaVersion:$http4sVersion")
+    implementation("org.http4s:http4s-blaze-server_$scalaVersion:$http4sVersion")
+    implementation("org.slf4j:slf4j-simple:1.7.30")
+
+    implementation("com.lihaoyi:scalatags_2.13:0.9.1")
+
     implementation(project(":inkuire-common"))
 }
 
@@ -47,3 +57,5 @@ task("runCli", JavaExec::class) {
     classpath = sourceSets["main"].runtimeClasspath
     standardInput = System.`in`
 }
+
+application.mainClassName = "org.virtuslab.inkuire.http.server.HttpServer"
