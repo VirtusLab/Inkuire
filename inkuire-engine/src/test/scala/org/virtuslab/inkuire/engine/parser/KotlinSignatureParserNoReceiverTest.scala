@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserNoReceiverTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse signature without receiver" in {
     //given
     val str = "() -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -25,7 +27,7 @@ class KotlinSignatureParserNoReceiverTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse main" in {
@@ -33,7 +35,7 @@ class KotlinSignatureParserNoReceiverTest extends BaseInkuireTest {
     val str = "(Array<String>) -> Unit"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -53,6 +55,6 @@ class KotlinSignatureParserNoReceiverTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }

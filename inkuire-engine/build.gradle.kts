@@ -52,10 +52,4 @@ dependencies {
     implementation(project(":inkuire-common"))
 }
 
-task("runCli", JavaExec::class) {
-    main = "org.virtuslab.inkuire.engine.Main"
-    classpath = sourceSets["main"].runtimeClasspath
-    standardInput = System.`in`
-}
-
-application.mainClassName = "org.virtuslab.inkuire.http.server.HttpServer"
+application.mainClassName = "org.virtuslab.inkuire.engine.Main"

@@ -77,7 +77,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
             "functions" in it.name
         }
 
-        val inkuireDb = InkuireDb.read(asScala(functions).toList(), asScala(ancestors).toList())
+        val inkuireDb = InkuireDb.read(asScala(functions).toList(), asScala(ancestors).toList()).toOption().get()
 
         assert(inkuireDb.functions().size() > 0)
         assert(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty)

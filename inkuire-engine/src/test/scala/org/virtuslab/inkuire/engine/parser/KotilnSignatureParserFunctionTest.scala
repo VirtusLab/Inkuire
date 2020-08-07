@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse signature with a function receiver in parentheses" in {
     //given
     val str = "((Float) -> Double).(String)->Int"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -41,7 +43,7 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val str = "(()->Int)?.() -> Unit"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -66,7 +68,7 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val str = "Long . (String) -> (Float)->Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -76,13 +78,13 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           Seq(
             "String".concreteType
           ),
-        FunctionType(
-          None,
-          Seq(
-            "Float".concreteType
+          FunctionType(
+            None,
+            Seq(
+              "Float".concreteType
+            ),
+            "Double".concreteType
           ),
-          "Double".concreteType
-        ),
           SignatureContext.empty
         )
       )
@@ -95,7 +97,7 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val str = "Long.(Int.(Float.() -> Long) -> Unit, Double) -> Float"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -130,7 +132,7 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val str = "Long.(String) -> (Float) -> Int.() -> Double.(Float) -> Unit"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =

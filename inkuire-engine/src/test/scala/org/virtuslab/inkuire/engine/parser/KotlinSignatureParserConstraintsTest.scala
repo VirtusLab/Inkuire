@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse basic signature with a constraint" in {
     //given
     val str = "<A> A.() -> Int where A : Collection"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -32,7 +34,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with multiple constraints for one variable" in {
@@ -40,7 +42,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A> A.() -> Int where A : Collection, A : Iterable"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -63,7 +65,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with multiple constraints" in {
@@ -71,7 +73,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A, B> A.(Int) -> B where A : Collection, A : Iterable, B : CharSequence"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -100,7 +102,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic constraint" in {
@@ -108,7 +110,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A> A.(Int) -> String where A : Collection<Int>"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -137,15 +139,16 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with constraints overkill" in {
     //given
-    val str = "<A, B, C> A.(B) -> List<C> where A : Any, A : Collection<Float>, A : List<C>, B : Any?, B : Collection<Int>"
+    val str =
+      "<A, B, C> A.(B) -> List<C> where A : Any, A : Collection<Float>, A : List<C>, B : Any?, B : Collection<Int>"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -197,7 +200,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "return error when a constraint is defined for a non variable type" in {
@@ -205,7 +208,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "A.(Int) -> String where A : Collection"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     res should be(Symbol("left"))
@@ -216,7 +219,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A, B> A.(Int) -> String where A : B<Int>"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     res should be(Symbol("left"))
@@ -227,7 +230,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A> A.(Int) -> String where A : (Int) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -257,7 +260,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "return error when function with receiver is used as upper bound" in {
@@ -265,7 +268,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A> A.(Int) -> String where A : Int.() -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     res should be(Symbol("left"))
@@ -276,7 +279,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A: Array<Int>> A.(Int) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -305,7 +308,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse type variable with single constraint syntactic sugar and additional constraint" in {
@@ -313,7 +316,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     val str = "<A: Array<Int>> A.(Int) -> String where A : Collection<Int>"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -348,6 +351,6 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }

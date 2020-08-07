@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse basic signature with many unnecessary parentheses" in {
     //given
     val str = "(Int).((String), Double) -> (Unit)"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -36,7 +38,7 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
     val str = "<A> (((A?))?).( (((String) ) ), Double?) -> (Array<((A))>)"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -70,7 +72,7 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
     val str = "( (((String) ).(Byte) -> (((String)))?  ), Double? ) -> (Array<((Short))>?)"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -105,7 +107,7 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
     val str = "((<B>B.(List<Byte>)->Double))"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -130,6 +132,6 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }

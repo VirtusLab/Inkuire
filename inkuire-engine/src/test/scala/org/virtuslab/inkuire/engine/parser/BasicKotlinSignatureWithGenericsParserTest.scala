@@ -8,12 +8,14 @@ import org.virtuslab.inkuire.engine.model.StarProjection
 
 class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse signature with generic return type" in {
     //given
     val str = "String.(Int) -> List<String>"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -31,7 +33,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic receiver" in {
@@ -39,7 +41,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Array<Double>.(Int) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -59,7 +61,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic receiver v2137" in {
@@ -67,7 +69,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Array < Double > . (Int) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -87,7 +89,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic argument" in {
@@ -95,7 +97,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Float.(List<Double>) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -115,7 +117,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic arguments" in {
@@ -123,7 +125,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Float.(List<Double>, Array<Int>) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -149,7 +151,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic argument with multiple type params" in {
@@ -157,7 +159,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Float.(Map<Double, Float>) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -178,7 +180,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic with star projection" in {
@@ -186,7 +188,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
     val str = "Float.(Map<*, Float>) -> String"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -207,6 +209,6 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }

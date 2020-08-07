@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.http.templates
+package org.virtuslab.inkuire.engine.http
 
 import scalatags.Text.all._
 
@@ -6,7 +6,7 @@ object Templates {
   def formTemplate(): String = {
     html(
       body(
-        form(method := "post") (
+        form(method := "post")(
           input(name := "query"),
           input(`type` := "submit", value := "Send")
         )
