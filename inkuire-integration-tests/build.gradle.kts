@@ -23,8 +23,9 @@ dependencies {
     testImplementation("org.jetbrains.dokka:dokka-test-api:$dokkaVersion")
 
     val scalaVersion: String by project
+    val scalaLibraryVersion: String by project
 
-    implementation("org.scala-lang:scala-library:$scalaVersion.1")
+    implementation("org.scala-lang:scala-library:$scalaLibraryVersion")
 
     testImplementation("junit:junit:4.13")
     testImplementation("org.scalatest:scalatest_$scalaVersion:3.1.1")

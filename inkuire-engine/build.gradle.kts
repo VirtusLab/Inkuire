@@ -18,8 +18,9 @@ repositories {
 dependencies {
 
     val scalaVersion: String by project
+    val scalaLibraryVersion: String by project
 
-    implementation("org.scala-lang:scala-library:$scalaVersion.1")
+    implementation("org.scala-lang:scala-library:$scalaLibraryVersion")
 
     implementation("org.typelevel:cats-core_$scalaVersion:2.1.1")
     implementation("org.typelevel:cats-effect_$scalaVersion:2.1.1")
