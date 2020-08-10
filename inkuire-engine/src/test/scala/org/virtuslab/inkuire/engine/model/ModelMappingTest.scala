@@ -13,10 +13,13 @@ class ModelMappingTest extends BaseInkuireTest {
 
     //then
     val expected = Seq(
-      ExternalSignature(Signature(
-        None, Seq.empty, ConcreteType("Unit"), SignatureContext(Set.empty, Map.empty)), "main", "example//main/#//")
+      ExternalSignature(
+        Signature(None, Seq.empty, ConcreteType("Unit"), SignatureContext(Set.empty, Map.empty)),
+        "main",
+        "example//main/#//"
+      )
     )
-    inkuire.functions should matchTo(expected)
+    inkuire.toOption.get.functions should matchTo(expected)
   }
 
   it should "map method" in {
@@ -30,13 +33,16 @@ class ModelMappingTest extends BaseInkuireTest {
     val expected = Seq(
       ExternalSignature(
         Signature(
-          Some(ConcreteType("Clock")), Seq.empty, ConcreteType("String"), SignatureContext(Set.empty, Map.empty)
+          Some(ConcreteType("Clock")),
+          Seq.empty,
+          ConcreteType("String"),
+          SignatureContext(Set.empty, Map.empty)
         ),
         "getTime",
         "example/Clock/getTime/#//"
       )
     )
-    inkuire.functions should matchTo(expected)
+    inkuire.toOption.get.functions should matchTo(expected)
   }
 
   it should "load ancestors" in {
@@ -53,6 +59,6 @@ class ModelMappingTest extends BaseInkuireTest {
         ConcreteType("example/InterfaceToInheritFrom///PointingToDeclaration/")
       )
     )
-    inkuire.types should matchTo(expected)
+    inkuire.toOption.get.types should matchTo(expected)
   }
 }

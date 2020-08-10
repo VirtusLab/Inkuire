@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.cli
 
 import cats.Id
-import cats.data.{EitherT, StateT}
+import cats.data.EitherT
 import cats.data.StateT
 import cats.instances.all._
 import cats.syntax.all._
@@ -11,8 +11,6 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 import org.virtuslab.inkuire.engine.cli.model.{CliContext, CliParam}
 import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Engine._
-import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
-import org.virtuslab.inkuire.engine.parser.KotlinSignatureParser
 import org.virtuslab.inkuire.engine.utils.helpers.IOHelpers
 
 import scala.io.StdIn.readLine
@@ -21,7 +19,10 @@ import scala.annotation.tailrec
 class Cli extends InputHandler with OutputHandler with IOHelpers {
 
   @tailrec
-  private def parseArgs(args: List[String], agg: Either[String, List[CliParam]] = List.empty.right): Either[String, List[CliParam]] = {
+  private def parseArgs(
+    args: List[String],
+    agg:  Either[String, List[CliParam]] = List.empty.right
+  ): Either[String, List[CliParam]] = {
     args match {
       case Nil => agg
       case opt :: v :: tail =>
@@ -47,16 +48,16 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
 
   private def handleCommand(input: String): Engine[Unit] = {
     StateT.get[IO, Env] >>= { env =>
-      KotlinSignatureParser
+      env.parser
         .parse(input)
         .fold(
           handleSyntaxError,
-          s => printlnIO(KotlinExternalSignaturePrettifier.prettify(env.matcher |??| s)).liftApp
+          s => printlnIO(env.prettifier.prettify(env.matcher |??| s)).liftApp
         )
     }
   }
 
-  def serveOutput: Engine[Unit] = {
+  override def serveOutput(): Engine[Unit] = {
     IO {
       print(s"inkuire> ")
       readLine()
@@ -73,11 +74,8 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
   def readInput(args: Seq[String]): EitherT[IO, String, InkuireDb] = {
     parseArgs(args.toList)
       .map(CliContext.create)
-      .traverse { context =>
-        IO {
-          InkuireDb.read(context.dbFiles, context.ancestryFiles)
-        }
-      }
+      .flatMap(ctx => InkuireDb.read(ctx.dbFiles, ctx.ancestryFiles))
+      .traverse(value => IO { value })
       .pure[Id]
       .fmap(new EitherT(_))
   }

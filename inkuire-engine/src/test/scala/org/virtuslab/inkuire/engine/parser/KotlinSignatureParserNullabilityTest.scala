@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse signature with nullable receiver" in {
     //given
     val str = "Int?.() -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -25,7 +27,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with nullable result" in {
@@ -33,7 +35,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "Int?.() -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -46,7 +48,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with nullable argument" in {
@@ -54,7 +56,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "Int.(String?, Double) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -70,7 +72,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with nullable generic result" in {
@@ -78,7 +80,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "Short.(Double) -> Array<Float>?"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -98,7 +100,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with nullable generic receiver" in {
@@ -106,7 +108,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "Array<Short>?.(Double) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -126,7 +128,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with generic argument with nullable parameter" in {
@@ -134,7 +136,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "Array<Short?>.(Double) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -154,7 +156,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with nullable variable" in {
@@ -162,7 +164,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "<A> Array<Short>.(Double) -> A?"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -187,7 +189,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "null result in function type if there are no parentheses" in {
@@ -195,7 +197,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "<A> Byte.( ()->Int? ) -> A?"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -219,7 +221,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "null function type if it is in parentheses" in {
@@ -227,7 +229,7 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     val str = "<A> Byte.( (()->Int)? ) -> Array<A>?"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -256,6 +258,6 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }

@@ -7,12 +7,14 @@ import org.virtuslab.inkuire.engine.utils.syntax._
 
 class BasicKotlinSignatureParserTest extends BaseInkuireTest {
 
+  val parser = new KotlinSignatureParserService
+
   it should "parse simple signature" in {
     //given
     val str = "Int.(String) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -22,11 +24,12 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
           Seq(
             "String".concreteType
           ),
-          "Double".concreteType, SignatureContext.empty
+          "Double".concreteType,
+          SignatureContext.empty
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse simple signature with spacings" in {
@@ -34,7 +37,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val str = "Int . ( String ) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -44,11 +47,12 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
           Seq(
             "String".concreteType
           ),
-          "Double".concreteType, SignatureContext.empty
+          "Double".concreteType,
+          SignatureContext.empty
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse simple signature v2137" in {
@@ -56,7 +60,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val str = "Int . (String) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -71,7 +75,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse simple signature without spacings" in {
@@ -79,7 +83,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val str = "Int.(String)->Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -94,7 +98,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature with multiple arguments" in {
@@ -102,7 +106,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val str = "Int.(String, Long, Float) -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -119,7 +123,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 
   it should "parse signature without arguments" in {
@@ -127,7 +131,7 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
     val str = "Int.() -> Double"
 
     //when
-    val res = KotlinSignatureParser.parse(str)
+    val res = parser.parse(str)
 
     //then
     val expectedRes =
@@ -140,6 +144,6 @@ class BasicKotlinSignatureParserTest extends BaseInkuireTest {
         )
       )
 
-    res should matchTo[Either[String, Signature]] (expectedRes)
+    res should matchTo[Either[String, Signature]](expectedRes)
   }
 }
