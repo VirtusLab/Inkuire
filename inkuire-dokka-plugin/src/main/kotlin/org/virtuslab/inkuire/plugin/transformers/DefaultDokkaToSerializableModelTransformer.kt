@@ -1,11 +1,19 @@
 package org.virtuslab.inkuire.plugin.transformers
 
 import org.jetbrains.dokka.links.DRI
+import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.model.TypeConstructor
 import org.virtuslab.inkuire.model.*
 
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {
+
+    private val uselessBound = Nullable(
+            TypeConstructor(
+                    DriOfAny,
+                    emptyList()
+            )
+    )
 
     override fun DRI.toSerializable(): SDRI = SDRI(
         packageName = this.packageName,
@@ -31,7 +39,11 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         name = name,
         isConstructor = isConstructor,
         parameters = parameters.map { it.toSerializable() },
-        generics = generics.map { it.toSerializable() },
+        generics = generics
+                .map { p -> p.copy(
+                        bounds = p.bounds.filter { it != uselessBound }
+                )}
+                .map { it.toSerializable() },
         receiver = receiver?.toSerializable(),
         type = type.toSerializable()
     )

@@ -1,12 +1,6 @@
 package org.virtuslab.inkuire.engine.cli.service
 
-import org.virtuslab.inkuire.engine.model.Signature
-import org.virtuslab.inkuire.engine.model.ExternalSignature
-import org.virtuslab.inkuire.engine.model.ConcreteType
-import org.virtuslab.inkuire.engine.model.GenericType
-import org.virtuslab.inkuire.engine.model.Type
-import org.virtuslab.inkuire.engine.model.FunctionType
-import org.virtuslab.inkuire.engine.model.TypeVariable
+import org.virtuslab.inkuire.engine.model._
 
 class KotlinExternalSignaturePrettifier {
 
@@ -19,7 +13,26 @@ class KotlinExternalSignaturePrettifier {
   }
 
   private def prettifySignature(sgn: Signature): String = {
-    s"${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}"
+    s"${prettifyTypeVariables(sgn.context)}" +
+      s"${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) -> ${prettifyType(sgn.result)}" +
+      s"${prettifyTypeVariableConstraints(sgn.context)}"
+  }
+
+  private def prettifyTypeVariables(context: SignatureContext): String = {
+    if(context.vars.isEmpty) ""
+    else {
+      s"<${context.vars.mkString(", ")}> "
+    }
+  }
+
+  private def prettifyTypeVariableConstraints(context: SignatureContext): String = {
+    if(context.constraints.isEmpty) ""
+    else {
+      val constraints = context.constraints.flatMap{
+        case (key,value) => value.map(v => s"$key: ${prettifyType(v)}")
+      }
+      s" where ${constraints.mkString(", ")}"
+    }
   }
 
   private def prettifyReceiver(receiver: Option[Type]): String = {
