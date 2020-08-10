@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{FunctionType, GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
 
@@ -225,54 +225,54 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     res should be(Symbol("left"))
   }
 
-  it should "parse function as upper bound" in {
-    //given
-    val str = "<A> A.(Int) -> String where A : (Int) -> String"
+//  it should "parse function as upper bound" in {
+//    //given
+//    val str = "<A> A.(Int) -> String where A : (Int) -> String"
+//
+//    //when
+//    val res = parser.parse(str)
+//
+//    //then
+//    val expectedRes =
+//      Right(
+//        Signature(
+//          "A".typeVariable.some,
+//          Seq(
+//            "Int".concreteType
+//          ),
+//          "String".concreteType,
+//          SignatureContext(
+//            Set(
+//              "A"
+//            ),
+//            Map(
+//              "A" -> Seq(
+//                FunctionType(
+//                  None,
+//                  Seq(
+//                    "Int".concreteType
+//                  ),
+//                  "String".concreteType
+//                )
+//              )
+//            )
+//          )
+//        )
+//      )
+//
+//    res should matchTo[Either[String, Signature]](expectedRes)
+//  }
 
-    //when
-    val res = parser.parse(str)
-
-    //then
-    val expectedRes =
-      Right(
-        Signature(
-          "A".typeVariable.some,
-          Seq(
-            "Int".concreteType
-          ),
-          "String".concreteType,
-          SignatureContext(
-            Set(
-              "A"
-            ),
-            Map(
-              "A" -> Seq(
-                FunctionType(
-                  None,
-                  Seq(
-                    "Int".concreteType
-                  ),
-                  "String".concreteType
-                )
-              )
-            )
-          )
-        )
-      )
-
-    res should matchTo[Either[String, Signature]](expectedRes)
-  }
-
-  it should "return error when function with receiver is used as upper bound" in {
-    //given
-    val str = "<A> A.(Int) -> String where A : Int.() -> String"
-
-    //when
-    val res = parser.parse(str)
-
-    //then
-    res should be(Symbol("left"))
-  }
+//  it should "return error when function with receiver is used as upper bound" in {
+//    //given
+//    val str = "<A> A.(Int) -> String where A : Int.() -> String"
+//
+//    //when
+//    val res = parser.parse(str)
+//
+//    //then
+//    res should be(Symbol("left"))
+//  }
 
   it should "parse type variable with single constraint syntactic sugar" in {
     //given

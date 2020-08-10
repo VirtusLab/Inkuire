@@ -32,20 +32,18 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
         case t => getTypeName(t).concreteType
       }
       case o: SOtherParameter => TypeVariable(getTypeName(o))
-      case default => getTypeName(default).concreteType
+      case _ => getTypeName(b).concreteType
     }
   }
 
-  private def getTypeName(b: SBound): String = {
-    b match {
-      case t: STypeConstructor => t.getDri.getClassName
-      case o: SOtherParameter => o.getName
-      case j: SPrimitiveJavaType => j.getName
-      case _: SVoid => "void"
-      case p: SPrimitiveJavaType => p.getName
-      case _: SDynamic => "dynamic"
-      case _: SJavaObject => "Object"
-    }
+  private def getTypeName: PartialFunction[SBound, String] = {
+    case t: STypeConstructor => t.getDri.getClassName
+    case o: SOtherParameter => o.getName
+    case j: SPrimitiveJavaType => j.getName
+    case _: SVoid => "void"
+    case p: SPrimitiveJavaType => p.getName
+    case _: SDynamic => "dynamic"
+    case _: SJavaObject => "Object"
   }
 
   private def getReceiver(f: SDFunction): Option[Type] = {

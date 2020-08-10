@@ -32,10 +32,18 @@ class KotlinSignatureParser extends BaseSignatureParser {
       typ |
       nullable("(" ~> receiverType <~ ")")
 
-  def functionType: Parser[FunctionType] =
+  def functionType: Parser[GenericType] =
     receiver ~ ("(" ~> types <~ ")") ~ ("->" ~> singleType) ^^ {
-      case rcvr ~ args ~ result => FunctionType(rcvr, args, result)
+      case rcvr ~ args ~ result => mapToGenericFunctionType(rcvr, args, result)
     }
+
+  private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): GenericType = {
+    val params = receiver.fold(args :+ result)(_ +: args :+ result)
+    GenericType(
+      ConcreteType(s"Function${params.size - 1}"),
+      params
+    )
+  }
 
   def genericType: Parser[Type] =
     nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ { case baseType ~ types => GenericType(baseType, types) })
@@ -133,14 +141,6 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
           .using(converter)
           .modify(_.params.each)
           .using(converter)
-      case funType: FunctionType =>
-        funType
-          .modify(_.receiver.each)
-          .using(converter)
-          .modify(_.args.each)
-          .using(converter)
-          .modify(_.result)
-          .using(converter)
       case u: Unresolved =>
         vars.find(_ == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
       case _ => t
@@ -151,7 +151,6 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
     for {
       _ <- validateConstraintsForNonVariables(sgn)
       _ <- validateTypeParamsArgs(sgn)
-      _ <- validateUpperBounds(sgn)
     } yield sgn
   }
 
@@ -177,34 +176,7 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
         Either.cond(!base.isInstanceOf[TypeVariable], (), "Type arguments are not allowed for type parameters") >>
           doValidateTypeParamsArgs(base) >>
           params.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _)
-      case FunctionType(receiver, args, result, _) =>
-        receiver.map(doValidateTypeParamsArgs).getOrElse(().right) >>
-          args.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
-          doValidateTypeParamsArgs(result)
       case _ => ().right
     }
-  }
-
-  private def validateUpperBounds(sgn: Signature): Either[String, Unit] = {
-    Either.cond(
-      sgn.context.constraints.values.toSeq.flatten
-        .collect {
-          case t: FunctionType => t.receiver.isEmpty
-        }
-        .forall(identity),
-      (),
-      "Extension function cannot be used as upper bound"
-    )
-  }
-
-  //TODO actually, I am not sure if THIS should be a strategy for defaults, so not used for now
-  private def fallToDefault(sgn: Signature): Either[String, Signature] = {
-    val default = Seq("Any".concreteType.?)
-    sgn
-      .modify(_.context.constraints)
-      .using { consts =>
-        sgn.context.vars.map(v => (v, consts.getOrElse(v, default))).toMap
-      }
-      .right[String]
   }
 }
