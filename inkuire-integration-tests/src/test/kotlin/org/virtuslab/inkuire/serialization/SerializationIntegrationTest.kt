@@ -96,7 +96,16 @@ class SerializationIntegrationTest : AbstractCoreTest() {
             assert(receiver().isEmpty)
             assert((result() as ConcreteType).name().contains("String"))
             assert(arguments().size() == 1)
-            assert((arguments().head() as ConcreteType).name().contains("s")) // TODO: FIX THIS TO STRING AFTER pikinier20 PR get merged
+            assert((arguments().head() as ConcreteType).name().contains("String"))
+        }
+
+        val sig3 = inkuireDb.functions().findSignature("String·(String) → String")
+        assert(sig3.isDefined)
+        sig3.get().signature().run {
+            assert((receiver().get() as ConcreteType).name().contains("String"))
+            assert((result() as ConcreteType).name().contains("String"))
+            assert(arguments().size() == 1)
+            assert((arguments().head() as ConcreteType).name().contains("String"))
         }
 
         assert(inkuireDb.types().size() > 0)
