@@ -19,3 +19,12 @@ fun String.`String·(String, Int, Boolean) → Float`(s: String, i: Int, b: Bool
 fun String.`String·(String, Int = 1, Boolean = true) → Float`(s: String, i: Int = 1, b: Boolean = true): Float {
     return i.toFloat()
 }
+
+fun `((String) → Int) → Unit`(s: (String) -> Int): Unit {
+    println(s("Even the smallest person can change the course of the future."))
+}
+
+fun `(String·(String) → Int) → Unit`(s: String.(String) -> Int): Unit {
+    println("Galadriela said: ".s("Even the smallest person can change the course of the future."))
+    println(s("Galadriela said: ", "Even the smallest person can change the course of the future."))
+}

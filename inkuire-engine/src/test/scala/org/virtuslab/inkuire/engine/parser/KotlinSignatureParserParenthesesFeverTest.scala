@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{ConcreteType, GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
@@ -67,40 +67,41 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]](expectedRes)
   }
 
-//  it should "parse signature with function type and many unnecessary parentheses" in {
-//    //given
-//    val str = "( (((String) ).(Byte) -> (((String)))?  ), Double? ) -> (Array<((Short))>?)"
-//
-//    //when
-//    val res = parser.parse(str)
-//
-//    //then
-//    val expectedRes =
-//      Right(
-//        Signature(
-//          None,
-//          Seq(
-//            FunctionType(
-//              "String".concreteType.some,
-//              Seq(
-//                "Byte".concreteType
-//              ),
-//              "String".concreteType.?
-//            ),
-//            "Double".concreteType.?
-//          ),
-//          GenericType(
-//            "Array".concreteType.?,
-//            Seq(
-//              "Short".concreteType
-//            )
-//          ),
-//          SignatureContext.empty
-//        )
-//      )
-//
-//    res should matchTo[Either[String, Signature]](expectedRes)
-//  }
+  it should "parse signature with function type and many unnecessary parentheses" in {
+    //given
+    val str = "( (((String) ).(Byte) -> (((String)))?  ), Double? ) -> (Array<((Short))>?)"
+
+    //when
+    val res = parser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          None,
+          Seq(
+            GenericType(
+              "Function2".concreteType,
+              Seq(
+                "String".concreteType,
+                "Byte".concreteType,
+                "String".concreteType.?
+              )
+            ),
+            "Double".concreteType.?
+          ),
+          GenericType(
+            "Array".concreteType.?,
+            Seq(
+              "Short".concreteType
+            )
+          ),
+          SignatureContext.empty
+        )
+      )
+
+    res should matchTo[Either[String, Signature]](expectedRes)
+  }
 
   it should "parse signature in parentheses" in {
     //given

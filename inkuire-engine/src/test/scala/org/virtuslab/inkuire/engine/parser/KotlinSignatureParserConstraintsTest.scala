@@ -225,54 +225,54 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     res should be(Symbol("left"))
   }
 
-//  it should "parse function as upper bound" in {
-//    //given
-//    val str = "<A> A.(Int) -> String where A : (Int) -> String"
-//
-//    //when
-//    val res = parser.parse(str)
-//
-//    //then
-//    val expectedRes =
-//      Right(
-//        Signature(
-//          "A".typeVariable.some,
-//          Seq(
-//            "Int".concreteType
-//          ),
-//          "String".concreteType,
-//          SignatureContext(
-//            Set(
-//              "A"
-//            ),
-//            Map(
-//              "A" -> Seq(
-//                FunctionType(
-//                  None,
-//                  Seq(
-//                    "Int".concreteType
-//                  ),
-//                  "String".concreteType
-//                )
-//              )
-//            )
-//          )
-//        )
-//      )
-//
-//    res should matchTo[Either[String, Signature]](expectedRes)
-//  }
+  it should "parse function as upper bound" in {
+    //given
+    val str = "<A> A.(Int) -> String where A : (Int) -> String"
 
-//  it should "return error when function with receiver is used as upper bound" in {
-//    //given
-//    val str = "<A> A.(Int) -> String where A : Int.() -> String"
-//
-//    //when
-//    val res = parser.parse(str)
-//
-//    //then
-//    res should be(Symbol("left"))
-//  }
+    //when
+    val res = parser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "A".typeVariable.some,
+          Seq(
+            "Int".concreteType
+          ),
+          "String".concreteType,
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map(
+              "A" -> Seq(
+                GenericType(
+                  "Function1".concreteType,
+                  Seq(
+                    "Int".concreteType,
+                    "String".concreteType
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]](expectedRes)
+  }
+
+  ignore should "return error when function with receiver is used as upper bound" in {
+    //given
+    val str = "<A> A.(Int) -> String where A : Int.() -> String"
+
+    //when
+    val res = parser.parse(str)
+
+    //then
+    res should be(Symbol("left"))
+  }
 
   it should "parse type variable with single constraint syntactic sugar" in {
     //given

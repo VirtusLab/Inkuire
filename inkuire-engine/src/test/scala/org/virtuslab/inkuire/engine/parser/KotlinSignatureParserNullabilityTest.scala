@@ -192,72 +192,74 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]](expectedRes)
   }
 
-//  it should "null result in function type if there are no parentheses" in {
-//    //given
-//    val str = "<A> Byte.( ()->Int? ) -> A?"
-//
-//    //when
-//    val res = parser.parse(str)
-//
-//    //then
-//    val expectedRes =
-//      Right(
-//        Signature(
-//          "Byte".concreteType.some,
-//          Seq(
-//            FunctionType(
-//              None,
-//              Seq.empty,
-//              "Int".concreteType.?
-//            )
-//          ),
-//          "A".typeVariable.?,
-//          SignatureContext(
-//            Set(
-//              "A"
-//            ),
-//            Map.empty
-//          )
-//        )
-//      )
-//
-//    res should matchTo[Either[String, Signature]](expectedRes)
-//  }
+  it should "null result in function type if there are no parentheses" in {
+    //given
+    val str = "<A> Byte.( ()->Int? ) -> A?"
 
-//  it should "null function type if it is in parentheses" in {
-//    //given
-//    val str = "<A> Byte.( (()->Int)? ) -> Array<A>?"
-//
-//    //when
-//    val res = parser.parse(str)
-//
-//    //then
-//    val expectedRes =
-//      Right(
-//        Signature(
-//          "Byte".concreteType.some,
-//          Seq(
-//            FunctionType(
-//              None,
-//              Seq.empty,
-//              "Int".concreteType
-//            ).?
-//          ),
-//          GenericType(
-//            "Array".concreteType.?,
-//            Seq(
-//              "A".typeVariable
-//            )
-//          ),
-//          SignatureContext(
-//            Set(
-//              "A"
-//            ),
-//            Map.empty
-//          )
-//        )
-//      )
-//
-//    res should matchTo[Either[String, Signature]](expectedRes)
-//  }
+    //when
+    val res = parser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "Byte".concreteType.some,
+          Seq(
+            GenericType(
+              "Function0".concreteType,
+              Seq(
+                "Int".concreteType.?
+              )
+            )
+          ),
+          "A".typeVariable.?,
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map.empty
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]](expectedRes)
+  }
+
+  it should "null function type if it is in parentheses" in {
+    //given
+    val str = "<A> Byte.( (()->Int)? ) -> Array<A>?"
+
+    //when
+    val res = parser.parse(str)
+
+    //then
+    val expectedRes =
+      Right(
+        Signature(
+          "Byte".concreteType.some,
+          Seq(
+            GenericType(
+              "Function0".concreteType,
+              Seq(
+                "Int".concreteType
+              )
+            ).?
+          ),
+          GenericType(
+            "Array".concreteType.?,
+            Seq(
+              "A".typeVariable
+            )
+          ),
+          SignatureContext(
+            Set(
+              "A"
+            ),
+            Map.empty
+          )
+        )
+      )
+
+    res should matchTo[Either[String, Signature]](expectedRes)
+  }
 }
