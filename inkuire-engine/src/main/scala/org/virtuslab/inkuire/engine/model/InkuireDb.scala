@@ -28,7 +28,7 @@ object InkuireDb {
           new FileReader(file),
           new TypeToken[Array[SDFunction]] {}.getType
         ).asInstanceOf[Array[SDFunction]].toList
-      }.map(translationService.translateFunction)
+      }.flatMap(translationService.translateFunction)
 
       val ancestryGraph = ancestryFiles.flatMap { file =>
         CustomGson.INSTANCE.getWithAncestryGraphAdapters.fromJson(
