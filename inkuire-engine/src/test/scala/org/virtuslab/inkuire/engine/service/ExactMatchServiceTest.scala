@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.service
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
 import org.virtuslab.inkuire.engine.model.{ExternalSignature, GenericType, InkuireDb, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.service.ExactMatchServiceTest.Fixture
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 class ExactMatchServiceTest extends BaseInkuireTest {
 

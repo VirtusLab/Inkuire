@@ -1,10 +1,12 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{FunctionType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.utils.syntax._
 
+//TODO fix
 class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
 
   val parser = new KotlinSignatureParserService
@@ -20,12 +22,12 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          FunctionType(
-            None,
+          GenericType(
+            "Function1".concreteType,
             Seq(
-              "Float".concreteType
-            ),
-            "Double".concreteType
+              "Float".concreteType,
+              "Double".concreteType
+            )
           ).some,
           Seq(
             "String".concreteType
@@ -49,10 +51,11 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
     val expectedRes =
       Right(
         Signature(
-          FunctionType(
-            None,
-            Seq.empty,
-            "Int".concreteType
+          GenericType(
+            "Function0".concreteType,
+            Seq(
+              "Int".concreteType
+            )
           ).?.some,
           Seq.empty,
           "Unit".concreteType,
@@ -78,12 +81,12 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           Seq(
             "String".concreteType
           ),
-          FunctionType(
-            None,
+          GenericType(
+            "Function1".concreteType,
             Seq(
-              "Float".concreteType
-            ),
-            "Double".concreteType
+              "Float".concreteType,
+              "Double".concreteType
+            )
           ),
           SignatureContext.empty
         )
@@ -105,16 +108,19 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
         Signature(
           "Long".concreteType.some,
           Seq(
-            FunctionType(
-              "Int".concreteType.some,
+            GenericType(
+              "Function2".concreteType,
               Seq(
-                FunctionType(
-                  "Float".concreteType.some,
-                  Seq.empty,
-                  "Long".concreteType
-                )
-              ),
-              "Unit".concreteType
+                "Int".concreteType,
+                GenericType(
+                  "Function1".concreteType,
+                  Seq(
+                    "Float".concreteType,
+                    "Long".concreteType
+                  )
+                ),
+                "Unit".concreteType
+              )
             ),
             "Double".concreteType
           ),
@@ -142,20 +148,23 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           Seq(
             "String".concreteType
           ),
-          FunctionType(
-            None,
+          GenericType(
+            "Function1".concreteType,
             Seq(
-              "Float".concreteType
-            ),
-            FunctionType(
-              "Int".concreteType.some,
-              Seq.empty,
-              FunctionType(
-                "Double".concreteType.some,
+              "Float".concreteType,
+              GenericType(
+                "Function1".concreteType,
                 Seq(
-                  "Float".concreteType
-                ),
-                "Unit".concreteType
+                  "Int".concreteType,
+                  GenericType(
+                    "Function2".concreteType,
+                    Seq(
+                      "Double".concreteType,
+                      "Float".concreteType,
+                      "Unit".concreteType
+                    )
+                  )
+                )
               )
             )
           ),

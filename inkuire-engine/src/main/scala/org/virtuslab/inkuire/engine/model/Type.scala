@@ -5,12 +5,14 @@ import com.softwaremill.quicklens._
 trait Type {
   def asVariable: Type
   def asConcrete: Type
-  def nullable: Boolean
-  def ? : Type
+  def name:       String
+  def nullable:   Boolean
+  def ?         : Type
+  def dri:        Option[DRI]
 }
 
 case class Unresolved(
-  name: String,
+  name:     String,
   nullable: Boolean = false
 ) extends Type {
   import io.scalaland.chimney.dsl._
@@ -19,12 +21,15 @@ case class Unresolved(
 
   override def asConcrete: Type = this.transformInto[ConcreteType]
 
+  override def dri: Option[DRI] = None
+
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }
 
 case class ConcreteType(
-  name: String,
-  nullable: Boolean = false
+  name:     String,
+  nullable: Boolean = false,
+  dri:      Option[DRI] = None
 ) extends Type {
   import io.scalaland.chimney.dsl._
 
@@ -36,7 +41,7 @@ case class ConcreteType(
 }
 
 case class GenericType(
-  base: Type,
+  base:   Type,
   params: Seq[Type]
 ) extends Type {
 
@@ -46,12 +51,17 @@ case class GenericType(
 
   override def nullable: Boolean = base.nullable
 
+  override def name: String = base.name
+
+  override def dri: Option[DRI] = base.dri
+
   override def ? : Type = this.modify(_.base).using(_.?)
 }
 
 case class TypeVariable(
-  name: String,
-  nullable: Boolean = false
+  name:     String,
+  nullable: Boolean = false,
+  dri:      Option[DRI] = None
 ) extends Type {
   import io.scalaland.chimney.dsl._
 
@@ -67,20 +77,6 @@ case class TypeVariable(
   }
 }
 
-case class FunctionType(
-  receiver: Option[Type],
-  args: Seq[Type],
-  result: Type,
-  nullable: Boolean = false
-) extends Type {
-
-  override def asVariable: Type = throw new RuntimeException("Operation not allowed!")
-
-  override def asConcrete: Type = this
-
-  override def ? : Type = this.modify(_.nullable).setTo(true)
-}
-
 case object StarProjection extends Type {
 
   override def asVariable: Type = throw new RuntimeException("Operation not allowed!")
@@ -89,6 +85,10 @@ case object StarProjection extends Type {
 
   override def nullable: Boolean = throw new RuntimeException("Operation not allowed!")
 
+  override def name: String = "*"
+
+  override def dri: Option[DRI] = None //TODO not sure
+
   override def ? : Type = throw new RuntimeException("Operation not allowed!")
 }
 
@@ -96,6 +96,6 @@ object Type {
   implicit class StringTypeOps(str: String) {
     def concreteType: ConcreteType = ConcreteType(str)
     def typeVariable: TypeVariable = TypeVariable(str)
-    def unresolved: Unresolved = Unresolved(str)
+    def unresolved:   Unresolved   = Unresolved(str)
   }
 }

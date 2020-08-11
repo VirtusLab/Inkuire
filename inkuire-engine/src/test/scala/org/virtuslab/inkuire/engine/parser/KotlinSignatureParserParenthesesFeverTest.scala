@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{FunctionType, GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{ConcreteType, GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
 
@@ -80,12 +80,13 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
         Signature(
           None,
           Seq(
-            FunctionType(
-              "String".concreteType.some,
+            GenericType(
+              "Function2".concreteType,
               Seq(
-                "Byte".concreteType
-              ),
-              "String".concreteType.?
+                "String".concreteType,
+                "Byte".concreteType,
+                "String".concreteType.?
+              )
             ),
             "Double".concreteType.?
           ),

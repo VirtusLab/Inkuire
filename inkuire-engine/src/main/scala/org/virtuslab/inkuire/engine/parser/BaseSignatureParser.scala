@@ -19,7 +19,7 @@ abstract class BaseSignatureParser extends RegexParsers {
 
   def genericType: Parser[Type]
 
-  def functionType: Parser[FunctionType]
+  def functionType: Parser[Type]
 
   def signature: Parser[Signature]
 

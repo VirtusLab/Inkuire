@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{FunctionType, GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
 
@@ -205,10 +205,11 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         Signature(
           "Byte".concreteType.some,
           Seq(
-            FunctionType(
-              None,
-              Seq.empty,
-              "Int".concreteType.?
+            GenericType(
+              "Function0".concreteType,
+              Seq(
+                "Int".concreteType.?
+              )
             )
           ),
           "A".typeVariable.?,
@@ -237,10 +238,11 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
         Signature(
           "Byte".concreteType.some,
           Seq(
-            FunctionType(
-              None,
-              Seq.empty,
-              "Int".concreteType
+            GenericType(
+              "Function0".concreteType,
+              Seq(
+                "Int".concreteType
+              )
             ).?
           ),
           GenericType(

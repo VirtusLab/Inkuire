@@ -40,18 +40,14 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   private def prettifyArgs(args: Seq[Type]): String =
     args.map(prettifyType).mkString(", ")
 
-  private def prettifyFunction(f: FunctionType): String =
-    s"${prettifyReceiver(f.receiver)}(${prettifyArgs(f.args)}) -> ${prettifyType(f.result)}"
-
   private def prettifyType(t: Type): String = {
     t match {
-      case ConcreteType(name, nullable) => s"$name${if (nullable) "?" else ""}"
-      case TypeVariable(name, nullable) => s"$name${if (nullable) "?" else ""}"
-      case GenericType(ConcreteType(name, nullable), params) =>
+      case ConcreteType(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
+      case TypeVariable(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
+      case GenericType(ConcreteType(name, nullable, _), params) =>
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
-      case GenericType(TypeVariable(name, nullable), params) =>
+      case GenericType(TypeVariable(name, nullable, _), params) =>
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
-      case f: FunctionType => prettifyFunction(f)
       case _ => t.toString
     }
   }

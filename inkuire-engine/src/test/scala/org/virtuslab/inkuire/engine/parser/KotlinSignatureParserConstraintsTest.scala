@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.engine.parser
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{FunctionType, GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
 
@@ -247,12 +247,12 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
             ),
             Map(
               "A" -> Seq(
-                FunctionType(
-                  None,
+                GenericType(
+                  "Function1".concreteType,
                   Seq(
-                    "Int".concreteType
-                  ),
-                  "String".concreteType
+                    "Int".concreteType,
+                    "String".concreteType
+                  )
                 )
               )
             )
@@ -263,7 +263,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]](expectedRes)
   }
 
-  it should "return error when function with receiver is used as upper bound" in {
+  ignore should "return error when function with receiver is used as upper bound" in {
     //given
     val str = "<A> A.(Int) -> String where A : Int.() -> String"
 

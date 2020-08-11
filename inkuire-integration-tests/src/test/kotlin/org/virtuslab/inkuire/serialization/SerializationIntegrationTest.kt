@@ -1,15 +1,13 @@
 package org.virtuslab.inkuire.serialization
 
 import org.jetbrains.dokka.testApi.testRunner.AbstractCoreTest
-import org.jetbrains.kotlin.idea.debugger.readAction
 import org.junit.Before
-import org.junit.FixMethodOrder
 import org.junit.Test
-import org.junit.runners.MethodSorters
 import org.virtuslab.inkuire.engine.model.ConcreteType
 import org.virtuslab.inkuire.engine.model.ExternalSignature
 import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
+import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.plugin.InkuireDokkaPlugin
 import scala.collection.Seq
 import scala.jdk.javaapi.CollectionConverters.asJava
@@ -153,6 +151,39 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         val microSig = sig.singleOrNull { it.signature().arguments().size() == 1 }
         assert(microSig != null)
+    }
+
+    @Test
+    fun `deserialize ((String) → Int) → Unit`() {
+        val sig = inkuireDb.functions().findSignature("((String) → Int) → Unit").single()
+
+        val res = sig.signature().result()
+        assert(res.name() == "Unit")
+
+        val args = sig.signature().arguments()
+        assert(args.size() == 1)
+        assert(args.head().name() == "Function1")
+
+        assert((args.head() as GenericType).params().size() == 2)
+        assert((args.head() as GenericType).params().apply(0).name() == "String")
+        assert((args.head() as GenericType).params().apply(1).name() == "Int")
+    }
+
+    @Test
+    fun `deserialize (String·(String) → Int) → Unit`() {
+        val sig = inkuireDb.functions().findSignature("(String·(String) → Int) → Unit").single()
+
+        val res = sig.signature().result()
+        assert(res.name() == "Unit")
+
+        val args = sig.signature().arguments()
+        assert(args.size() == 1)
+        assert(args.head().name() == "Function2")
+
+        assert((args.head() as GenericType).params().size() == 3)
+        assert((args.head() as GenericType).params().apply(0).name() == "String")
+        assert((args.head() as GenericType).params().apply(1).name() == "String")
+        assert((args.head() as GenericType).params().apply(2).name() == "Int")
     }
 
     private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(filter {
