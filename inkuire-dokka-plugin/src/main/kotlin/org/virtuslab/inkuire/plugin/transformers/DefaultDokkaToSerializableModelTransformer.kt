@@ -1,10 +1,19 @@
 package org.virtuslab.inkuire.plugin.transformers
 
+import com.intellij.psi.PsiMethod
+import org.jetbrains.dokka.DokkaConfiguration
+import org.jetbrains.dokka.analysis.DescriptorDocumentableSource
+import org.jetbrains.dokka.analysis.PsiDocumentableSource
+import org.jetbrains.dokka.base.translators.descriptors.DRIWithPlatformInfo
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.model.TypeConstructor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.model.*
+import java.lang.IllegalStateException
 
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {
 
@@ -34,11 +43,12 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         type = type.toSerializable()
     )
 
-    override fun DFunction.toSerializable() = SDFunction(
+    override fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet) = SDFunction(
         dri = dri.toSerializable(),
         name = name,
         isConstructor = isConstructor,
         parameters = parameters.map { it.toSerializable() },
+        areParametersDefault = this.alternativeParametersLists(source),
         generics = generics
                 .map { p -> p.copy(
                         bounds = p.bounds.filter { it != uselessBound }
@@ -70,4 +80,15 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         is UnresolvedBound -> SUnresolvedBound
     }
 
+    private fun DFunction.alternativeParametersLists(source: DokkaConfiguration.DokkaSourceSet): List<Boolean> {
+        return when(val elem = this.sources[source]) {
+            is DescriptorDocumentableSource -> (elem.descriptor as FunctionDescriptor).valueParameters.map {
+                it.hasDefaultValue()
+            }
+            is PsiDocumentableSource -> (elem.psi as PsiMethod).parameterList.parameters.map {
+                false
+            }
+            else -> throw IllegalStateException("Unknown translator. Please provide custom implementation for obtaining default values.")
+        }
+    }
 }

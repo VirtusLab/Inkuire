@@ -63,6 +63,7 @@ data class SDFunction(
     val name: String,
     val isConstructor: Boolean,
     val parameters: List<SDParameter>,
+    val areParametersDefault: List<Boolean>,
     val type: SBound,
     val generics: List<SDTypeParameter>,
     val receiver: SDParameter?

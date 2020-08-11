@@ -10,6 +10,8 @@
     "isConstructor": false,
     "parameters": [
     ],
+    "areParametersDefault": [
+    ],
     "type": {
       "dri": {
         "packageName": "kotlin",

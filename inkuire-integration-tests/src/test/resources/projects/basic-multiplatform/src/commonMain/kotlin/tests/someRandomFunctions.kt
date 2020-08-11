@@ -16,4 +16,6 @@ fun String.`String·(String, Int, Boolean) → Float`(s: String, i: Int, b: Bool
     return i.toFloat()
 }
 
-
+fun String.`String·(String, Int = 1, Boolean = true) → Float`(s: String, i: Int = 1, b: Boolean = true): Float {
+    return i.toFloat()
+}

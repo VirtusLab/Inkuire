@@ -59,15 +59,29 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
 
   def translateTypeBound(s: SDRI): Type = ConcreteType(s.getOriginal)
 
-  def translateFunction(f: SDFunction): ExternalSignature = ExternalSignature(
-    Signature(
-      getReceiver(f),
-      f.getParameters.map(s => translateBound(s.getType)).toSeq,
-      translateBound(f.getType),
-      translateTypeVariables(f)
-    ),
-    f.getName,
-    f.getDri.getOriginal
-  )
+  def translateFunction(f: SDFunction): List[ExternalSignature] = {
 
+    val parametersCombinations = f.getAreParametersDefault.zip(f.getParameters.map(s => translateBound(s.getType)).toSeq)
+      .foldLeft[List[List[Type]]](List(List.empty)) {
+      case (acc, elem) => if (!elem._1) {
+        acc.map(_ :+ elem._2)
+      } else {
+        acc.map(_ :+ elem._2) ++ acc
+      }
+    }
+
+    parametersCombinations.map {
+      case params =>
+        ExternalSignature(
+          Signature(
+            getReceiver(f),
+            params,
+            translateBound(f.getType),
+            translateTypeVariables(f)
+          ),
+          f.getName,
+          f.getDri.getOriginal
+        )
+    }
+  }
 }
