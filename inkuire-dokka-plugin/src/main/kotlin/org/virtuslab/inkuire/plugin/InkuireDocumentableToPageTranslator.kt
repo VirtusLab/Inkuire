@@ -4,9 +4,10 @@ import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.pages.*
 import org.jetbrains.dokka.transformers.documentation.DocumentableToPageTranslator
-import org.virtuslab.inkuire.model.SDRI
+import org.virtuslab.inkuire.model.*
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer
+import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
 
 object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
 
@@ -31,16 +32,32 @@ object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
         )
     }
 
-    private fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): Map<SDRI, List<SDRI>> {
-        with(DefaultDokkaToSerializableModelTransformer) {
-            return documentable.children.fold(emptyMap<SDRI, List<SDRI>>()) { acc, elem ->
+    private fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
+            return documentable.children.filter { sourceSet in it.sourceSets }.fold(emptyList<AncestryGraph>()) { acc, elem ->
                 acc + typesAncestryGraph(elem, sourceSet)
-            } + if (documentable is WithSupertypes)
-                listOf(documentable.dri.toSerializable() to (documentable.supertypes[sourceSet]?.map { it.dri.toSerializable() }
-                        ?: emptyList())).toMap()
-            else
-                emptyMap()
+            } + documentable.toAncestryEntry(sourceSet)
+    }
+
+
+    private fun Documentable.toAncestryEntry(sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> = when(this) {
+        is DClasslike -> if (this is WithSupertypes) {
+            listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), (supertypes[sourceSet]?.map { it.typeConstructor.toSerializable() } ?: emptyList())))
+        } else {
+            listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), emptyList()))
+        } + if (this is WithGenerics) generics.flatMap { it.toAncestryEntry(sourceSet) } else emptyList()
+        is DTypeParameter ->
+            listOf(AncestryGraph(dri.toSerializable(), (STypeParameter(dri.toSerializable(), name)), bounds.map { it.toSerializable() }))
+        is DTypeAlias ->
+            listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable())))
+        else -> emptyList()
+    }
+
+    private fun Documentable.getPossibleGenerics() = if(this is WithGenerics) {
+        this.generics.map {
+            STypeParameter(it.dri.toSerializable(), it.name)
         }
+    } else {
+        emptyList()
     }
 
     private fun DClasslike.getFunctions(): List<DFunction> = functions + classlikes.flatMap { it.getFunctions() }

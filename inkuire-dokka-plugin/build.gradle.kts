@@ -12,6 +12,7 @@ repositories {
         url = uri("http://dl.bintray.com/kotlin/kotlin-dev")
     }
     maven { url = uri("https://repo.spring.io/libs-release") }
+    mavenLocal()
 }
 
 dependencies {

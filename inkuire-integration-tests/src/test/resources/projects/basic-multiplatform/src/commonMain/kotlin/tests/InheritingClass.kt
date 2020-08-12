@@ -1,6 +1,10 @@
 package tests
 
-class InheritingClass : Runnable {
+interface ToInheritFrom {
+    fun run()
+}
+
+class InheritingClass : ToInheritFrom {
 
     override fun run() {
         println("Well, the years start coming")

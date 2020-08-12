@@ -11,6 +11,7 @@ repositories {
     maven("https://dl.bintray.com/kotlin/kotlin-eap")
     mavenCentral()
     jcenter()
+    mavenLocal()
 }
 
 dependencies {
