@@ -58,7 +58,7 @@ object InkuireDb {
             translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList.map(translationService.translateProjection))
         }
         .toMap
-      Right(new InkuireDb(functions, ancestryGraph))
+      Right(new InkuireDb(functions, ???))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
       case m: JsonIOException     => Left(m.getMessage)
