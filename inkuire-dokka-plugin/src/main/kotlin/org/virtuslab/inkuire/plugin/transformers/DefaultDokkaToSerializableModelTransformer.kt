@@ -4,13 +4,11 @@ import com.intellij.psi.PsiMethod
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.analysis.DescriptorDocumentableSource
 import org.jetbrains.dokka.analysis.PsiDocumentableSource
-import org.jetbrains.dokka.base.translators.descriptors.DRIWithPlatformInfo
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.model.TypeConstructor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.model.*
 import java.lang.IllegalStateException
@@ -65,19 +63,18 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
     }
 
     override fun FunctionModifiers.toSerializable(): SFunctionModifiers = SFunctionModifiers.valueOf(this.name)
-
     override fun Bound.toSerializable() : SBound = when(this) {
-        is OtherParameter -> SOtherParameter(this.name)
+        is TypeParameter -> STypeParameter(declarationDRI.toSerializable(), name)
         is TypeConstructor -> STypeConstructor(
             dri.toSerializable(),
             projections.map { it.toSerializable() },
             modifier.toSerializable())
-        is Nullable -> SNullable(this.inner.toSerializable())
-        is PrimitiveJavaType -> SPrimitiveJavaType(this.name)
+        is Nullable -> SNullable(inner.toSerializable())
+        is PrimitiveJavaType -> SPrimitiveJavaType(name)
         is Void -> SVoid
         is JavaObject -> SJavaObject
         is Dynamic -> SDynamic
-        is UnresolvedBound -> SUnresolvedBound
+        is UnresolvedBound -> SUnresolvedBound(name)
     }
 
     private fun DFunction.alternativeParametersLists(source: DokkaConfiguration.DokkaSourceSet): List<Boolean> {

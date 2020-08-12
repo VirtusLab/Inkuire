@@ -9,6 +9,7 @@ import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
 import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.plugin.InkuireDokkaPlugin
+import scala.Tuple2
 import scala.collection.Seq
 import scala.jdk.javaapi.CollectionConverters.asJava
 import java.io.File
@@ -36,7 +37,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 displayName = "js"
                 name = "js"
                 analysisPlatform = "js"
-                sourceRoots = listOf("jsMain", "commonMain").map {
+                sourceRoots = listOf("jsMain").map {
                     Paths.get("$testDataDir/$it/kotlin").toString()
                 }
                 dependentSourceSets = setOf(common.sourceSetID)
@@ -46,8 +47,10 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 displayName = "jvm"
                 name = "jvm"
                 analysisPlatform = "jvm"
-                sourceRoots = listOf("jvmMain", "commonMain").map {
+                sourceRoots = listOf("jvmMain").map {
                     Paths.get("$testDataDir/$it/kotlin").toString()
+                } + listOf("jvmMain").map {
+                    Paths.get("$testDataDir/$it/java").toString()
                 }
                 dependentSourceSets = setOf(common.sourceSetID)
             }
@@ -72,7 +75,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         parent = File(outputDir)
 
         val (functions, ancestors) = parent.walkTopDown().filter {
-            "jvm" in it.name
+            "jvm" in it.name || "common" in it.name
         }.partition {
             "functions" in it.name
         }
@@ -92,6 +95,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         assert(inkuireDb.functions().size() > 0)
         assert(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
+
+        assert(inkuireDb.types().size() > 0)
     }
 
     @Test
@@ -128,15 +133,10 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize InheritingClass`() {
-        assert(inkuireDb.types().size() > 0)
-        assert(inkuireDb.types().findType("InheritingClass").let {
-            if (it.isDefined) {
-                it.get()._2.size() == 1
-            } else {
-                false
-            }
-        })
+
+        assert(inkuireDb.types().findType("InheritingClass")._2._2.size() == 1)
     }
+
 
     @Test
     fun `deserialize String·(String, Int = 1, Boolean = true) → Float`() {
@@ -190,7 +190,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         it.name() == name
     })
 
-    private fun scala.collection.immutable.Map<Type, scala.collection.immutable.Set<Type>>.findType(name: String) = find {
-        (it._1 as ConcreteType).name().contains(name)
-    }
+    private fun scala.collection.immutable.Map<DRI, Tuple2<Type, scala.collection.immutable.Seq<Type>>>.findType(name: String) = this.find {
+        it._1.className().get() == name
+    }.get()
 }
+
+

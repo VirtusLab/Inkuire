@@ -4,18 +4,25 @@ import java.io.{File, FileReader}
 
 import com.google.gson.{JsonIOException, JsonSyntaxException}
 import com.google.gson.reflect.TypeToken
+import org.virtuslab.inkuire.engine.service.DefaultDokkaModelTranslationService.translateDRI
 import org.virtuslab.inkuire.model._
 import org.virtuslab.inkuire.engine.service.{DefaultDokkaModelTranslationService, DokkaModelTranslationService}
 import org.virtuslab.inkuire.model.util.CustomGson
-
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
   types:     Map[DRI, (Type, Seq[Type])]
 )
 
-case class DRI(dri: String)
+case class DRI( // This mirror class of SDRI is done on purpose, to eliminate any future inconveniences when accessing Kotlin code from Scala
+  packageName: Option[String],
+  className: Option[String],
+  callableName: Option[String],
+  original: String
+) {
+  override def toString(): String = original
+}
 
 object InkuireDb {
 
@@ -25,7 +32,7 @@ object InkuireDb {
     try {
       val functions = functionFiles
         .flatMap { file =>
-          CustomGson.INSTANCE.getWithSDocumentableAdapters
+          CustomGson.INSTANCE.getInstance
             .fromJson(
               new FileReader(file),
               new TypeToken[Array[SDFunction]] {}.getType
@@ -35,20 +42,20 @@ object InkuireDb {
         }
         .flatMap(translationService.translateFunction)
 
+      case class Pair[T, R](first: T, second: R)
+
       val ancestryGraph = ancestryFiles
         .flatMap { file =>
-          CustomGson.INSTANCE.getWithAncestryGraphAdapters
+          CustomGson.INSTANCE.getInstance
             .fromJson(
               new FileReader(file),
-              new TypeToken[java.util.Map[SDRI, Array[SDRI]]] {}.getType
+              new TypeToken[Array[AncestryGraph]] {}.getType
             )
-            .asInstanceOf[java.util.Map[SDRI, Array[SDRI]]]
-            .asScala
-            .map { case (sdri, sdris) => sdri -> sdris.toList }
+            .asInstanceOf[Array[AncestryGraph]]
         }
         .map {
-          case (sdri, listOfSdris) =>
-            translationService.translateTypeBound(sdri) -> listOfSdris.map(translationService.translateTypeBound).toSet
+          case x: AncestryGraph =>
+            translateDRI(x.getDri) -> (translationService.translateTypeBound(x.getType) -> x.getProjections.asScala.toList.map(translationService.translateTypeBound))
         }
         .toMap
       Right(new InkuireDb(functions, ???))

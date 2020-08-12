@@ -1,21 +1,45 @@
 [
-  [
-    {
+  {
+    "dri": {
       "packageName": "example",
       "className": "ParticularClock",
       "original": "example/ParticularClock///PointingToDeclaration/"
     },
-    [
-      {
+    "type": {
+      "dri": {
         "packageName": "example",
-        "className": "Clock",
-        "original": "example/Clock///PointingToDeclaration/"
+        "className": "ParticularClock",
+        "original": "example/ParticularClock///PointingToDeclaration/"
+      },
+      "projections": [],
+      "modifier": "NONE",
+      "boundkind": "typeconstructor"
+    },
+    "projections": [
+      {
+        "dri": {
+          "packageName": "example",
+          "className": "InterfaceToInheritFrom",
+          "original": "example/InterfaceToInheritFrom///PointingToDeclaration/"
+        },
+        "name": "InterfaceToInheritFrom",
+        "boundkind": "typeconstructor",
+        "kind": "bound",
+        "projections": [],
+        "modifier": "NONE"
       },
       {
-        "packageName": "example",
-        "className": "InterfaceToInheritFrom",
-        "original": "example/InterfaceToInheritFrom///PointingToDeclaration/"
+        "dri": {
+          "packageName": "example",
+          "className": "Clock",
+          "original": "example/Clock///PointingToDeclaration/"
+        },
+        "name": "Clock",
+        "boundkind": "typeconstructor",
+        "kind": "bound",
+        "projections": [],
+        "modifier": "NONE"
       }
     ]
-  ]
+  }
 ]
