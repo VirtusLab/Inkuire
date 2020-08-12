@@ -7,8 +7,12 @@ object Templates {
     html(
       body(
         form(method := "post")(
-          input(name := "query"),
-          input(`type` := "submit", value := "Send")
+          div(style := "text-align: center")(
+            input(name := "query")
+          ),
+          div(style := "text-align: center")(
+            input(`type` := "submit", value := "Send")
+          )
         )
       )
     ).toString()
@@ -17,7 +21,9 @@ object Templates {
   def result(results: List[String]): String = {
     html(
       body(
-        for (res <- results) yield p(res)
+        div(style := "text-align: center")(
+          for (res <- results) yield p(res)
+        )
       )
     ).toString()
   }

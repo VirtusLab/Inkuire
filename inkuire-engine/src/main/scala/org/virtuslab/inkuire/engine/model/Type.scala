@@ -7,8 +7,9 @@ trait Type {
   def asConcrete: Type
   def name:       String
   def nullable:   Boolean
-  def ?         : Type
+  def params:     Seq[Type]
   def dri:        Option[DRI]
+  def ?         : Type
 }
 
 case class Unresolved(
@@ -20,6 +21,8 @@ case class Unresolved(
   override def asVariable: Type = this.transformInto[TypeVariable]
 
   override def asConcrete: Type = this.transformInto[ConcreteType]
+
+  override def params: Seq[Type] = Seq.empty
 
   override def dri: Option[DRI] = None
 
@@ -36,6 +39,8 @@ case class ConcreteType(
   override def asVariable: Type = this.transformInto[TypeVariable]
 
   override def asConcrete: Type = this
+
+  override def params: Seq[Type] = Seq.empty
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 }
@@ -69,6 +74,8 @@ case class TypeVariable(
 
   override def asConcrete: Type = this.transformInto[ConcreteType]
 
+  override def params: Seq[Type] = Seq.empty
+
   override def ? : Type = this.modify(_.nullable).setTo(true)
   // TODO: Issue #28
   override def equals(obj: Any): Boolean = obj match {
@@ -86,6 +93,8 @@ case object StarProjection extends Type {
   override def nullable: Boolean = throw new RuntimeException("Operation not allowed!")
 
   override def name: String = "*"
+
+  override def params: Seq[Type] = Seq.empty
 
   override def dri: Option[DRI] = None //TODO not sure
 

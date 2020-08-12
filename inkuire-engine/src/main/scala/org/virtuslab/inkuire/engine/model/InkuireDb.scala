@@ -12,8 +12,7 @@ import scala.jdk.CollectionConverters._
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
-  types:     Map[Type, Set[Type]]
-//    types:     Map[DRI, (Type, Seq[Type])]
+  types:     Map[DRI, (Type, Seq[Type])]
 )
 
 case class DRI(dri: String)
@@ -52,7 +51,7 @@ object InkuireDb {
             translationService.translateTypeBound(sdri) -> listOfSdris.map(translationService.translateTypeBound).toSet
         }
         .toMap
-      Right(new InkuireDb(functions, ancestryGraph))
+      Right(new InkuireDb(functions, ???))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
       case m: JsonIOException     => Left(m.getMessage)
