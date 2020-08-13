@@ -4,7 +4,7 @@ import org.virtuslab.inkuire.engine.cli.Cli
 import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 import org.virtuslab.inkuire.engine.http.HttpServer
 import org.virtuslab.inkuire.engine.model.Engine.Env
-import org.virtuslab.inkuire.engine.model.InkuireDb
+import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.engine.parser.KotlinSignatureParserService
 import org.virtuslab.inkuire.engine.service.ExactMatchService
 

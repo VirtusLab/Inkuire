@@ -15,4 +15,4 @@ pluginManagement {
         maven ("https://dl.bintray.com/kotlin/kotlin-eap")
     }
 }
-
+include("inkuire-intellij-plugin")

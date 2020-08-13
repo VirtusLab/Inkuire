@@ -1,0 +1,30 @@
+<idea-plugin>
+    <id>org.virtuslab.inkuire-intellij-plugin</id>
+    <name>Inkuire Search</name>
+    <vendor email="info@virtuslab.com" url="http://www.virtuslab.com">VirtusLab</vendor>
+
+    <description><![CDATA[
+    Inkuire search plugin.
+    Inkuire search plugin.
+    Inkuire search plugin.
+    Inkuire search plugin.
+    Inkuire search plugin.
+    Inkuire search plugin.
+    ]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
+
+    <actions>
+        <action class="org.virtuslab.inkuire.intellij.plugin.actions.QueryAction" id="searchInkuire"
+                text="Search Inkuire">
+            <keyboard-shortcut first-keystroke="alt shift K" keymap="$default"/>
+            <add-to-group group-id="ToolsMenu"/>
+        </action>
+    </actions>
+</idea-plugin>
