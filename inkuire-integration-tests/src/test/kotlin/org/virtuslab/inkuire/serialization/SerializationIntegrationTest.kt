@@ -10,6 +10,8 @@ import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
 import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.plugin.InkuireDokkaPlugin
+import scala.Option
+import scala.Some
 import scala.Tuple2
 import scala.collection.Seq
 import scala.jdk.javaapi.CollectionConverters.asJava
@@ -205,6 +207,19 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
 
         assertTrue(input._2._2.apply(0).name() == "Comparable")
+    }
+
+    @Test
+    fun `deserialize ClassWithFunctions·() → Unit`() {
+        val sig = inkuireDb.functions().findSignature("ClassWithFunctions·() → Unit").single()
+
+        val receiver = sig.signature().receiver()
+        assert(receiver.get().dri().get() == DRI(
+            Some("tests"),
+            Some("ClassWithFunctions"),
+            Option.apply(null),
+            "tests/ClassWithFunctions//#/PointingToDeclaration/"
+        ))
     }
 
     private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(filter {

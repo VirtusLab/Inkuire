@@ -44,7 +44,15 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       .when(f.getReceiver != null)(translateBound(f.getReceiver.getType))
       .orElse(
         Option
-          .when(f.getDri.getClassName != null)(f.getDri.getClassName.concreteType)
+          .when(f.getDri.getClassName != null) {
+            ConcreteType(
+              f.getDri.getClassName,
+              dri = translateDRI(f.getDri).copy(
+                callableName = None,
+                original = f.getDri.getOriginal.split("/").patch(2, "", 1).mkString(sep = "/")
+              ).some
+            )
+          }
       )
   }
 
