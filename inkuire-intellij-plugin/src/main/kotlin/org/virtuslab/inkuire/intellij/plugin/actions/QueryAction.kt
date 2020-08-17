@@ -3,6 +3,7 @@ package org.virtuslab.inkuire.intellij.plugin.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.ui.components.JBList
 import org.apache.http.client.utils.URIBuilder
 import org.jdesktop.swingx.prompt.PromptSupport
 import org.jetbrains.annotations.NotNull
@@ -16,24 +17,18 @@ import javax.swing.*
 
 
 class QueryAction : AnAction() {
-    override fun actionPerformed(@NotNull e: AnActionEvent) {
+    override fun actionPerformed(e: AnActionEvent) {
         val client = HttpClient.newHttpClient()
 
-        val db = DialogBuilder()
+        val input = JTextField().apply {
+            preferredSize = Dimension(500, 30)
+            PromptSupport.setPrompt("List<String>.() -> Int", this)
+        }
 
-        val dialogPanel = JPanel()
-        dialogPanel.preferredSize = Dimension(700, 350)
-
-        val input = JTextField()
-        input.preferredSize = Dimension(500, 30)
-        PromptSupport.setPrompt("List<String>.() -> Int", input)
-        dialogPanel.add(input)
-
-        val resultArea = JList(emptyArray<String>())
-        resultArea.border = BorderFactory.createLineBorder(Color.GRAY)
-        resultArea.preferredSize = Dimension(600, 300)
-
-        val searchButton = JButton("Search")
+        val resultArea = JBList<String>().apply {
+            border = BorderFactory.createLineBorder(Color.GRAY)
+            preferredSize = Dimension(600, 300)
+        }
 
         val searchListener = {
             val txt = input.text
@@ -52,14 +47,24 @@ class QueryAction : AnAction() {
 
             resultArea.setListData(array)
         }
-        searchButton.addActionListener { searchListener() }
-        dialogPanel.add(searchButton)
 
-        dialogPanel.add(resultArea)
+        val searchButton = JButton("Search").apply {
+            addActionListener { searchListener() }
+        }
 
-        db.setOkOperation(searchListener)
 
-        db.setCenterPanel(dialogPanel)
+        val dialogPanel = JPanel().apply {
+            preferredSize = Dimension(700, 350)
+            add(searchButton)
+            add(resultArea)
+            add(input)
+        }
+
+        val db = DialogBuilder().apply {
+            setOkOperation(searchListener)
+            setCenterPanel(dialogPanel)
+        }
+
         db.show()
     }
 
