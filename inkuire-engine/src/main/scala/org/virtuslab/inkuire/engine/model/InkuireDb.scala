@@ -8,7 +8,10 @@ import org.virtuslab.inkuire.engine.service.DefaultDokkaModelTranslationService.
 import org.virtuslab.inkuire.model._
 import org.virtuslab.inkuire.engine.service.{DefaultDokkaModelTranslationService, DokkaModelTranslationService}
 import org.virtuslab.inkuire.model.util.CustomGson
+
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
@@ -16,10 +19,10 @@ case class InkuireDb(
 )
 
 case class DRI( // This mirror class of SDRI is done on purpose, to eliminate any future inconveniences when accessing Kotlin code from Scala
-  packageName: Option[String],
-  className: Option[String],
+  packageName:  Option[String],
+  className:    Option[String],
   callableName: Option[String],
-  original: String
+  original:     String
 ) {
   override def toString(): String = original
 }
@@ -42,8 +45,6 @@ object InkuireDb {
         }
         .flatMap(translationService.translateFunction)
 
-      case class Pair[T, R](first: T, second: R)
-
       val ancestryGraph = ancestryFiles
         .flatMap { file =>
           CustomGson.INSTANCE.getInstance
@@ -53,12 +54,32 @@ object InkuireDb {
             )
             .asInstanceOf[Array[AncestryGraph]]
         }
-        .map {
-          case x: AncestryGraph =>
-            translateDRI(x.getDri) -> (translationService.translateTypeBound(x.getType) -> x.getProjections.asScala.toList.map(translationService.translateTypeBound))
+        .map { x: AncestryGraph =>
+          translateDRI(x.getDri) -> (translationService.translateTypeBound(x.getType) -> x.getProjections.asScala.toList
+            .map(translationService.translateTypeBound))
         }
         .toMap
-      Right(new InkuireDb(functions, ???))
+      val any = ancestryGraph.values.map(_._1).filter(_.name == TypeName("Any")).head
+      val formattedAncestryGraph = ancestryGraph.toSeq
+        .modify(_.each._2)
+        .using {
+          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
+        }
+        .toMap
+      ancestryGraph.values.map(_._1).filter(_.dri.isEmpty).foreach(println)
+      val xd = new KotlinExternalSignaturePrettifier
+      functions
+        .filter(s => (s.signature.receiver.toSeq ++ s.signature.arguments :+ s.signature.result).exists(_.dri.isEmpty))
+        .foreach(
+          s =>
+            println(
+              xd.prettify(Seq(s)) + "    " + (s.signature.receiver.toSeq ++ s.signature.arguments :+ s.signature.result)
+                .filter(_.dri.isEmpty)
+                .map(_.name)
+                .mkString(", ")
+          )
+        )
+      Right(new InkuireDb(functions, formattedAncestryGraph))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
       case m: JsonIOException     => Left(m.getMessage)
