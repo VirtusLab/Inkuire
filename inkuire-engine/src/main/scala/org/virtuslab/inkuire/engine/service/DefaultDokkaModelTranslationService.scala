@@ -40,19 +40,20 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
   }
 
   private def getReceiver(f: SDFunction): Option[Type] = {
-    Option
-      .when(f.getReceiver != null)(translateBound(f.getReceiver.getType))
+    Option(f.getReceiver)
+      .map(receiver => translateBound(receiver.getType))
       .orElse(
-        Option
-          .when(f.getDri.getClassName != null) {
-            ConcreteType(
-              f.getDri.getClassName,
-              dri = translateDRI(f.getDri).copy(
+        Option(f.getDri.getClassName).map { className =>
+          ConcreteType(
+            className,
+            dri = translateDRI(f.getDri)
+              .copy(
                 callableName = None,
-                original = f.getDri.getOriginal.split("/").patch(2, "", 1).mkString(sep = "/")
-              ).some
-            )
-          }
+                original     = f.getDri.getOriginal.split("/").patch(2, "", 1).mkString(sep = "/")
+              )
+              .some
+          )
+        }
       )
   }
 
