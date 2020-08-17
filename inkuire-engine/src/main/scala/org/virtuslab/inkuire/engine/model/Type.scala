@@ -1,36 +1,20 @@
 package org.virtuslab.inkuire.engine.model
 
 import com.softwaremill.quicklens._
+import TypeName._
 
 trait Type {
   def asVariable: Type
   def asConcrete: Type
-  def name:       String
+  def name:       TypeName
   def nullable:   Boolean
   def params:     Seq[Type]
   def dri:        Option[DRI]
   def ?         : Type
 }
 
-case class Unresolved(
-  name:     String,
-  nullable: Boolean = false
-) extends Type {
-  import io.scalaland.chimney.dsl._
-
-  override def asVariable: Type = this.transformInto[TypeVariable]
-
-  override def asConcrete: Type = this.transformInto[ConcreteType]
-
-  override def params: Seq[Type] = Seq.empty
-
-  override def dri: Option[DRI] = None
-
-  override def ? : Type = this.modify(_.nullable).setTo(true)
-}
-
 case class ConcreteType(
-  name:     String,
+  name:     TypeName,
   nullable: Boolean = false,
   dri:      Option[DRI] = None
 ) extends Type {
@@ -56,7 +40,7 @@ case class GenericType(
 
   override def nullable: Boolean = base.nullable
 
-  override def name: String = base.name
+  override def name: TypeName = base.name
 
   override def dri: Option[DRI] = base.dri
 
@@ -64,7 +48,7 @@ case class GenericType(
 }
 
 case class TypeVariable(
-  name:     String,
+  name:     TypeName,
   nullable: Boolean = false,
   dri:      Option[DRI] = None
 ) extends Type {
@@ -92,7 +76,7 @@ case object StarProjection extends Type {
 
   override def nullable: Boolean = throw new RuntimeException("Operation not allowed!")
 
-  override def name: String = "*"
+  override def name: TypeName = "*"
 
   override def params: Seq[Type] = Seq.empty
 
@@ -105,6 +89,5 @@ object Type {
   implicit class StringTypeOps(str: String) {
     def concreteType: ConcreteType = ConcreteType(str)
     def typeVariable: TypeVariable = TypeVariable(str)
-    def unresolved:   Unresolved   = Unresolved(str)
   }
 }

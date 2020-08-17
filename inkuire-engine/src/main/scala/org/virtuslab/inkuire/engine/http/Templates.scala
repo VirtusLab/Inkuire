@@ -5,13 +5,15 @@ import scalatags.Text.all._
 object Templates {
   def formTemplate(): String = {
     html(
-      body(
-        form(method := "post")(
-          div(style := "text-align: center")(
-            input(name := "query")
-          ),
-          div(style := "text-align: center")(
-            input(`type` := "submit", value := "Send")
+      body(style := "display: flex; justify-content: center; align-items: center;")(
+        div(style := "vertical-align: middle;text-align: center")(
+          form(method := "post")(
+            div(
+              input(name := "query")
+            ),
+            div(
+              input(`type` := "submit", value := "Send")
+            )
           )
         )
       )

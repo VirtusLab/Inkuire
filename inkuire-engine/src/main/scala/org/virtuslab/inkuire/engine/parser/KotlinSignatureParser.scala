@@ -6,6 +6,7 @@ import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.engine.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
+import TypeName._
 
 class KotlinSignatureParser extends BaseSignatureParser {
 
@@ -142,7 +143,7 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
           .modify(_.params.each)
           .using(converter)
       case u: Unresolved =>
-        vars.find(_ == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
+        vars.find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
       case _ => t
     }
   }
