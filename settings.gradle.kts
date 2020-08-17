@@ -3,6 +3,7 @@ include("inkuire-dokka-plugin")
 include("inkuire-integration-tests")
 include("inkuire-engine")
 include("inkuire-common")
+include("inkuire-intellij-plugin")
 
 pluginManagement {
     plugins {
@@ -15,4 +16,3 @@ pluginManagement {
         maven ("https://dl.bintray.com/kotlin/kotlin-eap")
     }
 }
-
