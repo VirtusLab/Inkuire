@@ -44,13 +44,13 @@ object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
             listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), (supertypes[sourceSet]?.map { it.typeConstructor.toSerializable() } ?: emptyList())))
         } else {
             listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), emptyList()))
-        } + if (this is WithGenerics) generics.flatMap { it.toAncestryEntry(sourceSet) } else emptyList()
+        }
         is DTypeParameter ->
             listOf(AncestryGraph(dri.toSerializable(), (STypeParameter(dri.toSerializable(), name)), bounds.map { it.toSerializable() }))
         is DTypeAlias ->
             listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable())))
         else -> emptyList()
-    }
+    } + if (this is WithGenerics) generics.flatMap { it.toAncestryEntry(sourceSet) } else emptyList()
 
     private fun Documentable.getPossibleGenerics() = if(this is WithGenerics) {
         this.generics.map {

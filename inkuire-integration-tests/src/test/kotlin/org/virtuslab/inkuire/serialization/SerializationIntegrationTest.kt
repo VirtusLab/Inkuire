@@ -65,15 +65,11 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     @Before
     fun setupTest() {
 
-        lateinit var outputDir: String
-
         testFromData(configuration, pluginOverrides = listOf(InkuireDokkaPlugin())) {
             renderingStage = { _, context ->
-                outputDir = context.configuration.outputDir
+                parent = context.configuration.outputDir
             }
         }
-
-        parent = File(outputDir)
 
         val (functions, ancestors) = parent.walkTopDown().filter {
             "jvm" in it.name || "common" in it.name
@@ -182,7 +178,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize InheritingClass`() {
-        assertTrue(inkuireDb.types().findType("InheritingClass")._2._2.size() == 1)
+        assertTrue(inkuireDb.types().findType("tests/InheritingClass///PointingToDeclaration/")._2._2.size() == 1)
     }
 
     @Test

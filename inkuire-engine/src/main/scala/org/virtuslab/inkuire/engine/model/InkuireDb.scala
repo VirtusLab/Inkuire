@@ -55,7 +55,7 @@ object InkuireDb {
         }
         .map {
           case x: AncestryGraph =>
-            translateDRI(x.getDri) -> (translationService.translateTypeBound(x.getType) -> x.getProjections.asScala.toList.map(translationService.translateTypeBound))
+            translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList.map(translationService.translateProjection))
         }
         .toMap
       Right(new InkuireDb(functions, ancestryGraph))

@@ -11,12 +11,6 @@ import scala.jdk.CollectionConverters._
 object DefaultDokkaModelTranslationService extends DokkaModelTranslationService {
   implicit def listAsScala[T](list: java.util.List[T]): Iterable[T] = list.asScala
 
-  private def translateProjection(p: SProjection): Type = p match {
-    case _: SStar => StarProjection
-    case s: SVariance => translateBound(s.getInner)
-    case b: SBound => translateBound(b)
-  }
-
   private def translateTypeVariables(f: SDFunction): SignatureContext = {
     val generics = f.getGenerics.map(p => (p.getName, p.getBounds.map(translateBound).toSeq)).toMap
     SignatureContext(
@@ -56,7 +50,11 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       )
   }
 
-  def translateTypeBound(projection: SProjection): Type = translateBound(projection.asInstanceOf[SBound])
+  def translateProjection(projection: SProjection): Type = projection match {
+    case _: SStar => StarProjection
+    case s: SVariance => translateBound(s.getInner)
+    case b: SBound => translateBound(b)
+  }
 
   def translateDRI(sdri: SDRI): DRI = DRI(
     if(sdri.getPackageName != null) sdri.getPackageName.some else None,

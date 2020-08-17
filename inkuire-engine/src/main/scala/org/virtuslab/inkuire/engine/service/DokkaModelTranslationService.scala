@@ -6,7 +6,7 @@ import org.virtuslab.inkuire.model.{SDFunction, SDRI, SProjection}
 trait DokkaModelTranslationService {
   def translateFunction(f: SDFunction): List[ExternalSignature]
 
-  def translateTypeBound(projection: SProjection): Type
+  def translateProjection(projection: SProjection): Type
 
   def translateDRI(SDRI: SDRI): DRI
 }
