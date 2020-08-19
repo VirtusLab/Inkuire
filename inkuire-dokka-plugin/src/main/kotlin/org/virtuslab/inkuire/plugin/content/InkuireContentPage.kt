@@ -3,13 +3,12 @@ package org.virtuslab.inkuire.plugin.content
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.Documentable
 import org.jetbrains.dokka.pages.*
-import org.virtuslab.inkuire.model.SDFunction
-import org.virtuslab.inkuire.model.SDRI
+import org.virtuslab.inkuire.model.*
 
 data class InkuireContentPage(
         override val name: String,
         val functions: List<SDFunction>,
-        val ancestryGraph: Map<SDRI, List<SDRI>>,
+        val ancestryGraph: List<AncestryGraph>,
         override val content: ContentNode = ContentText("", DCI(emptySet(), ContentKind.Empty), emptySet()),
         override val children: List<PageNode> = emptyList(),
         override val documentable: Documentable? = null,

@@ -1,20 +1,15 @@
 package org.virtuslab.inkuire.engine.service
 
 
+import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
-import org.virtuslab.inkuire.model._
+import org.virtuslab.inkuire.model.{SNullable, SPrimitiveJavaType, STypeConstructor, STypeParameter, SVariance, _}
 import org.virtuslab.inkuire.engine.model.Type._
 
 import scala.jdk.CollectionConverters._
 
 object DefaultDokkaModelTranslationService extends DokkaModelTranslationService {
   implicit def listAsScala[T](list: java.util.List[T]): Iterable[T] = list.asScala
-
-  private def translateProjection(p: SProjection): Type = p match {
-    case _: SStar => StarProjection
-    case s: SVariance => translateBound(s.getInner)
-    case b: SBound => translateBound(b)
-  }
 
   private def translateTypeVariables(f: SDFunction): SignatureContext = {
     val generics = f.getGenerics.map(p => (p.getName, p.getBounds.map(translateBound).toSeq)).toMap
@@ -27,18 +22,18 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
   private def translateBound(b: SBound): Type = {
     b match {
       case n: SNullable => translateBound(n.getInner).?
-      case t: STypeConstructor => t match{
-        case t if !t.getProjections.isEmpty => GenericType(getTypeName(t).concreteType, t.getProjections.map(translateProjection).toSeq)
-        case t => getTypeName(t).concreteType
+      case t: STypeConstructor => {
+        val core = ConcreteType(t.getDri.getClassName, dri = translateDRI(t.getDri).some)
+        if (t.getProjections.isEmpty) core else GenericType(core, t.getProjections.map(translateProjection).toSeq)
       }
-      case o: SOtherParameter => TypeVariable(getTypeName(o))
+      case t: STypeParameter => TypeVariable(getTypeName(t), dri = translateDRI(t.getDri).some)
       case _ => getTypeName(b).concreteType
     }
   }
 
   private def getTypeName: PartialFunction[SBound, String] = {
     case t: STypeConstructor => t.getDri.getClassName
-    case o: SOtherParameter => o.getName
+    case o: STypeParameter => o.getName
     case j: SPrimitiveJavaType => j.getName
     case _: SVoid => "void"
     case p: SPrimitiveJavaType => p.getName
@@ -55,7 +50,18 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       )
   }
 
-  def translateTypeBound(s: SDRI): Type = ConcreteType(s.getOriginal)
+  def translateProjection(projection: SProjection): Type = projection match {
+    case _: SStar => StarProjection
+    case s: SVariance => translateBound(s.getInner)
+    case b: SBound => translateBound(b)
+  }
+
+  def translateDRI(sdri: SDRI): DRI = DRI(
+    if(sdri.getPackageName != null) sdri.getPackageName.some else None,
+    if(sdri.getClassName != null) sdri.getClassName.some else None,
+    if(sdri.getCallableName != null) sdri.getCallableName.some else None,
+    sdri.getOriginal
+  )
 
   def translateFunction(f: SDFunction): List[ExternalSignature] = {
 

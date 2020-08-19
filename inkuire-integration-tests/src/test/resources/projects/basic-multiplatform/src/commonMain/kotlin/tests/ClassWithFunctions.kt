@@ -20,5 +20,4 @@ class ClassWithFunctions(i: Int) {
         return i.toFloat()
     }
 
-
 }
