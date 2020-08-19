@@ -7,11 +7,9 @@ plugins {
 }
 
 repositories {
-    maven("https://dl.bintray.com/kotlin/kotlin-dev")
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
     jcenter()
-    mavenLocal()
 }
 
 dependencies {

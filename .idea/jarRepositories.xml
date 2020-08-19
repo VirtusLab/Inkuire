@@ -22,11 +22,6 @@
       <option name="url" value="https://jcenter.bintray.com/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="maven2" />
-      <option name="name" value="maven2" />
-      <option name="url" value="https://repo.spring.io/libs-release" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="maven" />
       <option name="name" value="maven" />
       <option name="url" value="http://dl.bintray.com/kotlin/kotlin-dev" />
@@ -39,17 +34,17 @@
     <remote-repository>
       <option name="id" value="maven" />
       <option name="name" value="maven" />
-      <option name="url" value="https://dl.bintray.com/kotlin/kotlin-dev" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="maven" />
-      <option name="name" value="maven" />
       <option name="url" value="https://cache-redirector.jetbrains.com/www.jetbrains.com/intellij-repository/releases" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="MavenLocal" />
       <option name="name" value="MavenLocal" />
       <option name="url" value="file:$MAVEN_REPOSITORY$/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven" />
+      <option name="name" value="maven" />
+      <option name="url" value="https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev" />
     </remote-repository>
   </component>
 </project>

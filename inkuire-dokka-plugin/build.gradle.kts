@@ -8,11 +8,8 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("http://dl.bintray.com/kotlin/kotlin-dev")
-    }
-    maven { url = uri("https://repo.spring.io/libs-release") }
-    mavenLocal()
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
+    jcenter()
 }
 
 dependencies {

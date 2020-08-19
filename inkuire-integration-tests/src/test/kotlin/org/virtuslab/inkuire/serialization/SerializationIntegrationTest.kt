@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.serialization
 
 import org.jetbrains.dokka.testApi.testRunner.AbstractCoreTest
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.virtuslab.inkuire.engine.model.ConcreteType
 import org.virtuslab.inkuire.engine.model.ExternalSignature
@@ -19,86 +19,88 @@ import scala.jdk.javaapi.CollectionConverters.asScala
 
 class SerializationIntegrationTest : AbstractCoreTest() {
 
-    private val testDataDir = getTestDataDir("projects/basic-multiplatform/src").toAbsolutePath()
+    companion object : AbstractCoreTest() {
 
-    val configuration = dokkaConfiguration {
+        private val testDataDir = getTestDataDir("projects/basic-multiplatform/src").toAbsolutePath()
 
-        sourceSets {
-            val common = sourceSet {
-                moduleName = "example"
-                displayName = "common"
-                name = "common"
-                analysisPlatform = "common"
-                sourceRoots = listOf("commonMain").map {
-                    Paths.get("$testDataDir/$it/kotlin").toString()
+        val configuration = dokkaConfiguration {
+
+            sourceSets {
+                val common = sourceSet {
+                    moduleName = "example"
+                    displayName = "common"
+                    name = "common"
+                    analysisPlatform = "common"
+                    sourceRoots = listOf("commonMain").map {
+                        Paths.get("$testDataDir/$it/kotlin").toString()
+                    }
+                }
+                sourceSet {
+                    moduleName = "example"
+                    displayName = "js"
+                    name = "js"
+                    analysisPlatform = "js"
+                    sourceRoots = listOf("jsMain").map {
+                        Paths.get("$testDataDir/$it/kotlin").toString()
+                    }
+                    dependentSourceSets = setOf(common.sourceSetID)
+                }
+                sourceSet {
+                    moduleName = "example"
+                    displayName = "jvm"
+                    name = "jvm"
+                    analysisPlatform = "jvm"
+                    sourceRoots = listOf("jvmMain").map {
+                        Paths.get("$testDataDir/$it/kotlin").toString()
+                    } + listOf("jvmMain").map {
+                        Paths.get("$testDataDir/$it/java").toString()
+                    }
+                    dependentSourceSets = setOf(common.sourceSetID)
                 }
             }
-            sourceSet {
-                moduleName = "example"
-                displayName = "js"
-                name = "js"
-                analysisPlatform = "js"
-                sourceRoots = listOf("jsMain").map {
-                    Paths.get("$testDataDir/$it/kotlin").toString()
+        }
+
+        lateinit var parent: File
+        lateinit var inkuireDb: InkuireDb
+
+        @BeforeClass
+        @JvmStatic
+        fun setupTest() {
+
+            testFromData(configuration, pluginOverrides = listOf(InkuireDokkaPlugin())) {
+                renderingStage = { _, context ->
+                    parent = context.configuration.outputDir
                 }
-                dependentSourceSets = setOf(common.sourceSetID)
-            }
-            sourceSet {
-                moduleName = "example"
-                displayName = "jvm"
-                name = "jvm"
-                analysisPlatform = "jvm"
-                sourceRoots = listOf("jvmMain").map {
-                    Paths.get("$testDataDir/$it/kotlin").toString()
-                } + listOf("jvmMain").map {
-                    Paths.get("$testDataDir/$it/java").toString()
-                }
-                dependentSourceSets = setOf(common.sourceSetID)
             }
 
+            val (functions, ancestors) = parent.walkTopDown().filter {
+                "jvm" in it.name || "common" in it.name
+            }.partition {
+                "functions" in it.name
+            }
+
+            SerializationIntegrationTest.inkuireDb = InkuireDb.read(asScala(functions).toList(), asScala(ancestors).toList()).toOption().get()
         }
     }
-
-    lateinit var parent: File
-    lateinit var inkuireDb: InkuireDb
-
-    @Before
-    fun setupTest() {
-
-        testFromData(configuration, pluginOverrides = listOf(InkuireDokkaPlugin())) {
-            renderingStage = { _, context ->
-                parent = context.configuration.outputDir
-            }
-        }
-
-        val (functions, ancestors) = parent.walkTopDown().filter {
-            "jvm" in it.name || "common" in it.name
-        }.partition {
-            "functions" in it.name
-        }
-
-        inkuireDb = InkuireDb.read(asScala(functions).toList(), asScala(ancestors).toList()).toOption().get()
-    }
-
 
     @Test
     fun `serialize and deserialize`() {
         val expectedSources = listOf("common", "js", "jvm").let {
             it.map { "ancestryGraph$it.json" } + it.map { "functions$it.json" }
         }
-        assertTrue(parent.walkTopDown().map { it.name }.toList().containsAll(expectedSources))
-        assertTrue(inkuireDb.functions().size() > 0)
-        assertTrue(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
+        assertTrue(SerializationIntegrationTest.parent.walkTopDown().map { it.name }.toList().containsAll(expectedSources))
+        assertTrue(SerializationIntegrationTest.inkuireDb.functions().size() > 0)
+        assertTrue(SerializationIntegrationTest.inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
 
-        assertTrue(inkuireDb.functions().size() > 0)
-        assertTrue(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
+        assertTrue(SerializationIntegrationTest.inkuireDb.functions().size() > 0)
+        assertTrue(SerializationIntegrationTest.inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
 
-        assertTrue(inkuireDb.types().size() > 0)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().size() > 0)
     }
 
     @Test
     fun `deserialize ClassWithFunctions·() → String`() {
-        val sig = inkuireDb.functions().findSignature("ClassWithFunctions·() → String").single()
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("ClassWithFunctions·() → String").single()
         sig.signature().run {
             assertTrue((receiver().get() as ConcreteType).name().contains("ClassWithFunctions"))
             assertTrue((result() as ConcreteType).name().contains("String"))
@@ -108,7 +110,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize (String) → String`() {
-        val sig = inkuireDb.functions().findSignature("(String) → String").single()
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("(String) → String").single()
         sig.signature().run {
             assertTrue(receiver().isEmpty)
             assertTrue((result() as ConcreteType).name().contains("String"))
@@ -119,7 +121,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize String·(String) → String`() {
-        val sig = inkuireDb.functions().findSignature("String·(String) → String").single()
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("String·(String) → String").single()
         sig.signature().run {
             assertTrue((receiver().get() as ConcreteType).name().contains("String"))
             assertTrue((result() as ConcreteType).name().contains("String"))
@@ -130,7 +132,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize String·(String, Int = 1, Boolean = true) → Float`() {
-        val sig = inkuireDb.functions().findSignature("String·(String, Int = 1, Boolean = true) → Float")
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("String·(String, Int = 1, Boolean = true) → Float")
         assertTrue(sig.size == 4)
 
         val fullSig = sig.singleOrNull { it.signature().arguments().size() == 3 }
@@ -145,7 +147,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize ((String) → Int) → Unit`() {
-        val sig = inkuireDb.functions().findSignature("((String) → Int) → Unit").single()
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("((String) → Int) → Unit").single()
 
         val res = sig.signature().result()
         assertTrue(res.name() == "Unit")
@@ -161,7 +163,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize (String·(String) → Int) → Unit`() {
-        val sig = inkuireDb.functions().findSignature("(String·(String) → Int) → Unit").single()
+        val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("(String·(String) → Int) → Unit").single()
 
         val res = sig.signature().result()
         assertTrue(res.name() == "Unit")
@@ -178,17 +180,17 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize InheritingClass`() {
-        assertTrue(inkuireDb.types().findType("tests/InheritingClass///PointingToDeclaration/")._2._2.size() == 1)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().findType("tests/InheritingClass///PointingToDeclaration/")._2._2.size() == 1)
     }
 
     @Test
     fun `deserialize InheritingClassFromGenericType`() {
-        val input = inkuireDb.types().findType("tests/InheritingClassFromGenericType///PointingToDeclaration/")
+        val input = SerializationIntegrationTest.inkuireDb.types().findType("tests/InheritingClassFromGenericType///PointingToDeclaration/")
 
         assertTrue(input._2._2.size() == 2)
         assertTrue(input._1 == input._2._1.dri().get())
-        assertTrue(inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
-        assertTrue(inkuireDb.types().get(input._2._1.params().apply(1).dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(1).dri().get()).isDefined)
 
         assertTrue(input._2._2.apply(0).name() == "Comparable")
         assertTrue(input._2._2.apply(1).name() == "Collection")
@@ -196,11 +198,11 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `deserialize TypeAlias`() {
-        val input = inkuireDb.types().findType("tests/TypeAlias///PointingToDeclaration/")
+        val input = SerializationIntegrationTest.inkuireDb.types().findType("tests/TypeAlias///PointingToDeclaration/")
 
         assertTrue(input._2._2.size() == 1)
         assertTrue(input._1 == input._2._1.dri().get())
-        assertTrue(inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
 
         assertTrue(input._2._2.apply(0).name() == "Comparable")
     }
