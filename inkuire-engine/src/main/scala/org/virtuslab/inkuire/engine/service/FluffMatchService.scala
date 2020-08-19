@@ -3,10 +3,10 @@ package org.virtuslab.inkuire.engine.service
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 
 //TODO add support for star projection
 //TODO handle type variables, by binding all occurances to
+//TODO handle case where one variable depends on the other like e.g. <A, B : List<A>> A.() -> B
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
@@ -19,6 +19,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
         val okReceiver = checkReceiver(eSgn, sgn)
         val okParams   = checkArguments(eSgn, sgn)
         val okResult   = checkResult(eSgn, sgn)
+        //TODO check if all bindings for one type variable are equal
         okReceiver && okParams && okResult
       }
     }
@@ -74,13 +75,14 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
   }
 
   private def checkReceiver(eSgn: ExternalSignature, signature: Signature): Boolean = {
-    //TODO check constraints
     (eSgn.signature.receiver, signature.receiver) match {
       case (None, None) => true
       case (Some(eReceiver), Some(receiver)) =>
         ancestryGraph.isSubType(
-          typ  = receiver,
-          supr = eReceiver
+          typ         = receiver,
+          supr        = eReceiver,
+          typContext  = signature.context,
+          suprContext = eSgn.signature.context
         )
       case _ => false
     }
@@ -88,31 +90,44 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
 
   private def checkArguments(eSgn: ExternalSignature, signature: Signature): Boolean = {
     //TODO disregard order (maybe)
-    //TODO check constraints
     eSgn.signature.arguments.size == signature.arguments.size &&
     eSgn.signature.arguments.zip(signature.arguments).forall {
       case (eSgnType, sgnType) =>
-        ancestryGraph.isSubType(typ = sgnType, supr = eSgnType)
+        ancestryGraph.isSubType(
+          typ         = sgnType,
+          supr        = eSgnType,
+          typContext  = signature.context,
+          suprContext = eSgn.signature.context
+        )
     }
   }
 
   private def checkResult(eSgn: ExternalSignature, signature: Signature): Boolean = {
-    //TODO check constraints
     ancestryGraph.isSubType(
-      typ  = eSgn.signature.result,
-      supr = signature.result
+      typ         = eSgn.signature.result,
+      supr        = signature.result,
+      typContext  = eSgn.signature.context,
+      suprContext = signature.context
     )
   }
 }
 
 case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) {
 
-  def isSubType(typ: Type, supr: Type): Boolean = {
+  def isSubType(typ: Type, supr: Type, typContext: SignatureContext, suprContext: SignatureContext): Boolean = {
     (typ, supr) match {
-      case (_, supr: TypeVariable) =>
-        true // TODO && same as below, translate constraints to calls to isSubType, like parents
-      case (typ: TypeVariable, _) =>
-        true // TODO && actually constraints should be checked here, maybe map constraints just like parents
+      case (typ: TypeVariable, supr: TypeVariable) =>
+        val typConstraints  = typContext.constraints.get(typ.name.name).toSeq.flatten
+        val suprConstraints = suprContext.constraints.get(supr.name.name).toSeq.flatten
+        typConstraints == suprConstraints // TODO do sth more clever like checking if one is subtype of other or sth
+      case (typ, supr: TypeVariable) =>
+        suprContext.constraints.get(supr.name.name).toSeq.flatten.forall { t =>
+          isSubType(typ, t, typContext, suprContext)
+        } //TODO check/test correctness
+      case (typ: TypeVariable, supr) =>
+        typContext.constraints.get(typ.name.name).toSeq.flatten.exists { t =>
+          isSubType(t, supr, typContext, suprContext)
+        } // TODO check/test correctness
       case (typ: GenericType, _) if typ.dri.isEmpty =>
         true //TODO this case indicates generic with base as variable, which isn't technically possible in Kotlin, but loosening this constraint should be considered
       case (_, supr: GenericType) if supr.dri.isEmpty =>
@@ -122,9 +137,10 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) {
           typ.dri.fold {
             // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
             val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1))
-            ts.exists(n => isSubType(n, supr))
+            ts.exists(n => isSubType(n, supr, typContext, suprContext))
           } { dri =>
-            if (nodes.contains(dri)) specializeParents(typ, nodes(dri)).exists(isSubType(_, supr))
+            if (nodes.contains(dri))
+              specializeParents(typ, nodes(dri)).exists(isSubType(_, supr, typContext, suprContext))
             else false //TODO remove when everything is correctly resolved
           }
     }
