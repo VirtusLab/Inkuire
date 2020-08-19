@@ -55,8 +55,8 @@ object InkuireDb {
             .asInstanceOf[Array[AncestryGraph]]
         }
         .map { x: AncestryGraph =>
-          translateDRI(x.getDri) -> (translationService.translateTypeBound(x.getType) -> x.getProjections.asScala.toList
-            .map(translationService.translateTypeBound))
+          translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList
+            .map(translationService.translateProjection))
         }
         .toMap
       val any = ancestryGraph.values.map(_._1).filter(_.name == TypeName("Any")).head
