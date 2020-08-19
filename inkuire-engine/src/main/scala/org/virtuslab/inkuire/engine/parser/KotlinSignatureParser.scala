@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.engine.parser
 
-import org.virtuslab.inkuire.engine.model.Type._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.engine.utils.syntax._
@@ -42,12 +41,12 @@ class KotlinSignatureParser extends BaseSignatureParser {
     val params = receiver.fold(args :+ result)(_ +: args :+ result)
     GenericType(
       ConcreteType(s"Function${params.size - 1}"),
-      params
+      params.map(UnresolvedVariance)
     )
   }
 
   def genericType: Parser[Type] =
-    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ { case baseType ~ types => GenericType(baseType, types) })
+    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ { case baseType ~ types => GenericType(baseType, types.map(UnresolvedVariance)) })
 
   def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
@@ -141,7 +140,9 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
           .modify(_.base)
           .using(converter)
           .modify(_.params.each)
-          .using(converter)
+          .using { x =>
+            UnresolvedVariance(converter(x.typ))
+          }
       case u: Unresolved =>
         vars.find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
       case _ => t
@@ -176,7 +177,7 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
       case GenericType(base, params) =>
         Either.cond(!base.isInstanceOf[TypeVariable], (), "Type arguments are not allowed for type parameters") >>
           doValidateTypeParamsArgs(base) >>
-          params.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _)
+          params.map(x => doValidateTypeParamsArgs(x.typ)).foldLeft[Either[String, Unit]](().right)(_ >> _)
       case _ => ().right
     }
   }

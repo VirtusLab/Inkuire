@@ -36,7 +36,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   private def prettifyReceiver(receiver: Option[Type]): String =
     receiver.fold("")(prettifyType(_) ++ ".")
 
-  private def prettifyArgs(args: Seq[Type]): String =
+  private def prettifyArgs(args: Seq[Variance]): String =
     args.map(prettifyType).mkString(", ")
 
   private def prettifyType(t: Type): String = {

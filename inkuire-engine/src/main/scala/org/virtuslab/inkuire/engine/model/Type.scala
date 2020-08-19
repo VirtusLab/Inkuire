@@ -8,7 +8,7 @@ trait Type {
   def asConcrete: Type
   def name:       TypeName
   def nullable:   Boolean
-  def params:     Seq[Type]
+  def params:     Seq[Variance]
   def dri:        Option[DRI]
   def ?         : Type
   def isVariable: Boolean
@@ -25,7 +25,7 @@ case class ConcreteType(
 
   override def asConcrete: Type = this
 
-  override def params: Seq[Type] = Seq.empty
+  override def params: Seq[Variance] = Seq.empty
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 
@@ -34,7 +34,7 @@ case class ConcreteType(
 
 case class GenericType(
   base:   Type,
-  params: Seq[Type]
+  params: Seq[Variance]
 ) extends Type {
 
   override def asVariable: Type = this.modify(_.base).using(_.asVariable)
@@ -63,7 +63,7 @@ case class TypeVariable(
 
   override def asConcrete: Type = this.transformInto[ConcreteType]
 
-  override def params: Seq[Type] = Seq.empty
+  override def params: Seq[Variance] = Seq.empty
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 
@@ -86,7 +86,7 @@ case object StarProjection extends Type {
 
   override def name: TypeName = "*"
 
-  override def params: Seq[Type] = Seq.empty
+  override def params: Seq[Variance] = Seq.empty
 
   override def dri: Option[DRI] = None //TODO not sure
 
