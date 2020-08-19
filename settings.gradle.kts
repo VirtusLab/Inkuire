@@ -7,12 +7,6 @@ include("inkuire-intellij-plugin")
 
 pluginManagement {
     plugins {
-        id("org.jetbrains.kotlin.jvm") version "1.4.0-rc"
-    }
-
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-        maven ("https://dl.bintray.com/kotlin/kotlin-eap")
+        id("org.jetbrains.kotlin.jvm") version "1.4.0"
     }
 }
