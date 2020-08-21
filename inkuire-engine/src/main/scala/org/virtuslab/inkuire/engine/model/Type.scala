@@ -11,6 +11,7 @@ trait Type {
   def params:     Seq[Type]
   def dri:        Option[DRI]
   def ?         : Type
+  def isVariable: Boolean
 }
 
 case class ConcreteType(
@@ -27,6 +28,8 @@ case class ConcreteType(
   override def params: Seq[Type] = Seq.empty
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
+
+  override def isVariable: Boolean = false
 }
 
 case class GenericType(
@@ -45,6 +48,8 @@ case class GenericType(
   override def dri: Option[DRI] = base.dri
 
   override def ? : Type = this.modify(_.base).using(_.?)
+
+  override def isVariable: Boolean = base.isVariable
 }
 
 case class TypeVariable(
@@ -61,6 +66,9 @@ case class TypeVariable(
   override def params: Seq[Type] = Seq.empty
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
+
+  override def isVariable: Boolean = true
+
   // TODO: Issue #28
   override def equals(obj: Any): Boolean = obj match {
     case t: TypeVariable => t.nullable == this.nullable
@@ -83,6 +91,8 @@ case object StarProjection extends Type {
   override def dri: Option[DRI] = None //TODO not sure
 
   override def ? : Type = throw new RuntimeException("Operation not allowed!")
+
+  override def isVariable: Boolean = false
 }
 
 object Type {

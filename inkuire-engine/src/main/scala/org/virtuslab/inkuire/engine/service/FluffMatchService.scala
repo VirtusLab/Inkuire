@@ -1,26 +1,31 @@
 package org.virtuslab.inkuire.engine.service
 
+import cats.data.State
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
 import com.softwaremill.quicklens._
+import cats.implicits._
 
 //TODO add support for star projection
-//TODO handle type variables, by binding all occurances to
 //TODO handle case where one variable depends on the other like e.g. <A, B : List<A>> A.() -> B
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
+
+  val parsedDriPrefix = "iri-"
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
 
   override def |??|(signature: Signature): Seq[ExternalSignature] = {
     val signatures = resolveAllPossibleSignatures(signature)
-    println(signatures.size.toString + "    " + signatures)
     inkuireDb.functions.filter { eSgn =>
       signatures.exists { sgn =>
-        val okReceiver = checkReceiver(eSgn, sgn)
-        val okParams   = checkArguments(eSgn, sgn)
-        val okResult   = checkResult(eSgn, sgn)
-        //TODO check if all bindings for one type variable are equal
-        okReceiver && okParams && okResult
+        val ok = for {
+          okReceiver <- checkReceiver(eSgn, sgn)
+          okParams <- checkArguments(eSgn, sgn)
+          okResult <- checkResult(eSgn, sgn)
+          bindings <- State.get[VariableBindings]
+          okBindings = checkBindings(bindings)
+        } yield okReceiver && okParams && okResult && okBindings
+        ok.runA(VariableBindings.empty).value
       }
     }
   }
@@ -31,6 +36,9 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
         .fold[Seq[Option[Type]]](Seq(None))(resolvePossibleTypes(_).map(_.some))
       args <- resolveMultipleTypes(signature.arguments)
       result <- resolvePossibleTypes(signature.result)
+      constraints = signature.context.constraints.view
+        .mapValues(resolveMultipleTypes(_).head)
+        .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
     } yield
       signature
         .modify(_.receiver)
@@ -39,14 +47,18 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
         .setTo(args)
         .modify(_.result)
         .setTo(result)
+        .modify(_.context.constraints)
+        .setTo(constraints)
   }
 
   private def resolvePossibleTypes(typ: Type): Seq[Type] = {
     typ match {
       case t: TypeVariable =>
-        Seq(t)
+        Seq(
+          t.modify(_.dri)
+            .setTo(DRI(None, None, None, parsedDriPrefix + t.name.name).some)
+        )
       case t: ConcreteType =>
-        println(ancestryGraph.nodes.values.map(_._1).filter(_.name == t.name).toSeq)
         ancestryGraph.nodes.values.map(_._1).filter(_.name == t.name).toSeq
       case t: GenericType =>
         for {
@@ -74,9 +86,9 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
     }
   }
 
-  private def checkReceiver(eSgn: ExternalSignature, signature: Signature): Boolean = {
+  private def checkReceiver(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
     (eSgn.signature.receiver, signature.receiver) match {
-      case (None, None) => true
+      case (None, None) => State.pure(true)
       case (Some(eReceiver), Some(receiver)) =>
         ancestryGraph.isSubType(
           typ         = receiver,
@@ -84,25 +96,28 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
           typContext  = signature.context,
           suprContext = eSgn.signature.context
         )
-      case _ => false
+      case _ => State.pure(false)
     }
   }
 
-  private def checkArguments(eSgn: ExternalSignature, signature: Signature): Boolean = {
-    //TODO disregard order (maybe)
-    eSgn.signature.arguments.size == signature.arguments.size &&
-    eSgn.signature.arguments.zip(signature.arguments).forall {
-      case (eSgnType, sgnType) =>
-        ancestryGraph.isSubType(
-          typ         = sgnType,
-          supr        = eSgnType,
-          typContext  = signature.context,
-          suprContext = eSgn.signature.context
-        )
-    }
+  private def checkArguments(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
+    //TODO #54 Consider disregarding arguments order in FluffMatchService
+    eSgn.signature.arguments
+      .zip(signature.arguments)
+      .toList
+      .traverse {
+        case (eSgnType, sgnType) =>
+          ancestryGraph.isSubType(
+            typ         = sgnType,
+            supr        = eSgnType,
+            typContext  = signature.context,
+            suprContext = eSgn.signature.context
+          )
+      }
+      .map(_.forall(identity) && eSgn.signature.arguments.size == signature.arguments.size)
   }
 
-  private def checkResult(eSgn: ExternalSignature, signature: Signature): Boolean = {
+  private def checkResult(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
     ancestryGraph.isSubType(
       typ         = eSgn.signature.result,
       supr        = signature.result,
@@ -110,39 +125,69 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
       suprContext = signature.context
     )
   }
+
+  private def checkBindings(bindings: VariableBindings): Boolean = {
+    //TODO can be done better
+    bindings.bindings.values.forall { types =>
+      types
+        .sliding(2, 1)
+        .forall {
+          case a :: b :: Nil => a == b
+          case _             => true
+        }
+    }
+  }
 }
 
 case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) {
 
-  def isSubType(typ: Type, supr: Type, typContext: SignatureContext, suprContext: SignatureContext): Boolean = {
+  //TODO #55 Consider making a common context for constraints from both signatures
+  def isSubType(
+    typ:         Type,
+    supr:        Type,
+    typContext:  SignatureContext,
+    suprContext: SignatureContext
+  ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
       case (typ: TypeVariable, supr: TypeVariable) =>
         val typConstraints  = typContext.constraints.get(typ.name.name).toSeq.flatten
         val suprConstraints = suprContext.constraints.get(supr.name.name).toSeq.flatten
-        typConstraints == suprConstraints // TODO do sth more clever like checking if one is subtype of other or sth
+        State.modify[VariableBindings](_.add(typ.dri.get, supr).add(supr.dri.get, typ)) >>
+          State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
       case (typ, supr: TypeVariable) =>
-        suprContext.constraints.get(supr.name.name).toSeq.flatten.forall { t =>
-          isSubType(typ, t, typContext, suprContext)
-        } //TODO check/test correctness
-      case (typ: TypeVariable, supr) =>
-        typContext.constraints.get(typ.name.name).toSeq.flatten.exists { t =>
-          isSubType(t, supr, typContext, suprContext)
-        } // TODO check/test correctness
-      case (typ: GenericType, _) if typ.dri.isEmpty =>
-        true //TODO this case indicates generic with base as variable, which isn't technically possible in Kotlin, but loosening this constraint should be considered
-      case (_, supr: GenericType) if supr.dri.isEmpty =>
-        true //TODO this case indicates generic with base as variable, which isn't technically possible in Kotlin, but loosening this constraint should be considered
-      case (typ, supr) =>
-        (typ.dri == supr.dri && checkTypeParamsByVariance(typ, supr)) ||
-          typ.dri.fold {
-            // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
-            val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1))
-            ts.exists(n => isSubType(n, supr, typContext, suprContext))
-          } { dri =>
-            if (nodes.contains(dri))
-              specializeParents(typ, nodes(dri)).exists(isSubType(_, supr, typContext, suprContext))
-            else false //TODO remove when everything is correctly resolved
+        val constraints = suprContext.constraints.get(supr.name.name).toSeq.flatten.toList
+        for {
+          _ <- State.modify[VariableBindings](_.add(supr.dri.get, typ))
+          checks <- constraints.traverse { t =>
+            isSubType(typ, t, typContext, suprContext)
           }
+        } yield checks.forall(identity)
+      case (typ: TypeVariable, supr) =>
+        val constraints = typContext.constraints.get(typ.name.name).toSeq.flatten.toList
+        for {
+          _ <- State.modify[VariableBindings](_.add(typ.dri.get, supr))
+          checks <- constraints.traverse { t =>
+            isSubType(t, supr, typContext, suprContext)
+          }
+        } yield constraints.isEmpty || checks.exists(identity)
+      case (typ: GenericType, _) if typ.isVariable =>
+        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
+      case (_, supr: GenericType) if supr.isVariable =>
+        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
+      case (typ, supr) if typ.dri == supr.dri =>
+        checkTypeParamsByVariance(typ, supr)
+      case (typ, supr) =>
+        typ.dri.fold {
+          // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
+          val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1)).toList
+          ts.traverse(n => isSubType(n, supr, typContext, suprContext)).map(_.exists(identity))
+        } { dri =>
+          if (nodes.contains(dri))
+            specializeParents(typ, nodes(dri)).toList
+              .traverse(isSubType(_, supr, typContext, suprContext))
+              .map(_.exists(identity))
+          else State.pure(false) //TODO remove when everything is correctly resolved
+        }
     }
   }
 
@@ -163,7 +208,21 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) {
       case _ => possibleMatch
     }
 
-  private def checkTypeParamsByVariance(typ: Type, supr: Type): Boolean =
+  private def checkTypeParamsByVariance(typ: Type, supr: Type): State[VariableBindings, Boolean] =
     //TODO typ.params.zip(supr.params).map(isSubType(??? <- tu kolejnosc parametrów zalezy od wariancji))
-    true
+    State.pure(true)
+}
+
+case class VariableBindings(bindings: Map[DRI, Seq[Type]]) {
+  def add(dri: DRI, typ: Type): VariableBindings = {
+    VariableBindings {
+      val types = bindings.getOrElse(dri, Seq.empty)
+      bindings.updated(dri, types :+ typ)
+    }
+  }
+}
+
+object VariableBindings {
+  def empty: VariableBindings =
+    VariableBindings(Map.empty)
 }

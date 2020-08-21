@@ -2,12 +2,11 @@ package org.virtuslab.inkuire.engine
 
 import org.virtuslab.inkuire.engine.api.StubInputHandler
 import org.virtuslab.inkuire.engine.cli.Cli
-import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 import org.virtuslab.inkuire.engine.http.HttpServer
 import org.virtuslab.inkuire.engine.model.Engine.Env
 import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.engine.parser.KotlinSignatureParserService
-import org.virtuslab.inkuire.engine.service.{ExactMatchService, FluffMatchService}
+import org.virtuslab.inkuire.engine.service.{ExactMatchService, FluffMatchService, KotlinExternalSignaturePrettifier}
 
 object Main extends App {
 

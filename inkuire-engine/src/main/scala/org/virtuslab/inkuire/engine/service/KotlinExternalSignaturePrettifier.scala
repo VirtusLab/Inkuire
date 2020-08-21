@@ -1,7 +1,6 @@
-package org.virtuslab.inkuire.engine.cli.service
+package org.virtuslab.inkuire.engine.service
 
 import org.virtuslab.inkuire.engine.model._
-import org.virtuslab.inkuire.engine.service.SignaturePrettifier
 
 class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
 
@@ -25,7 +24,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   }
 
   private def prettifyTypeVariableConstraints(context: SignatureContext): String = {
-    if (context.constraints.isEmpty) ""
+    if (context.constraints.isEmpty || context.constraints.values.flatten.isEmpty) ""
     else {
       val constraints = context.constraints.flatMap {
         case (key, value) => value.map(v => s"$key: ${prettifyType(v)}")

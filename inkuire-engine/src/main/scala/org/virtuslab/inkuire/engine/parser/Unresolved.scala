@@ -18,4 +18,6 @@ private[parser] case class Unresolved(
   override def dri: Option[DRI] = None
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
+
+  override def isVariable: Boolean = false
 }

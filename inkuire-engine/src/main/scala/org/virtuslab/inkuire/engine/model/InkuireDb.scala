@@ -6,12 +6,15 @@ import com.google.gson.{JsonIOException, JsonSyntaxException}
 import com.google.gson.reflect.TypeToken
 import org.virtuslab.inkuire.engine.service.DefaultDokkaModelTranslationService.translateDRI
 import org.virtuslab.inkuire.model._
-import org.virtuslab.inkuire.engine.service.{DefaultDokkaModelTranslationService, DokkaModelTranslationService}
+import org.virtuslab.inkuire.engine.service.{
+  DefaultDokkaModelTranslationService,
+  DokkaModelTranslationService,
+  KotlinExternalSignaturePrettifier
+}
 import org.virtuslab.inkuire.model.util.CustomGson
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.cli.service.KotlinExternalSignaturePrettifier
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
@@ -59,6 +62,7 @@ object InkuireDb {
             .map(translationService.translateProjection))
         }
         .toMap
+      //TODO #53 Move adding implicit inheritance ancestors to inkuire-dokka-plugin
       val any = ancestryGraph.values.map(_._1).filter(_.name == TypeName("Any")).head
       val formattedAncestryGraph = ancestryGraph.toSeq
         .modify(_.each._2)
@@ -66,19 +70,6 @@ object InkuireDb {
           case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
         }
         .toMap
-      ancestryGraph.values.map(_._1).filter(_.dri.isEmpty).foreach(println)
-      val xd = new KotlinExternalSignaturePrettifier
-      functions
-        .filter(s => (s.signature.receiver.toSeq ++ s.signature.arguments :+ s.signature.result).exists(_.dri.isEmpty))
-        .foreach(
-          s =>
-            println(
-              xd.prettify(Seq(s)) + "    " + (s.signature.receiver.toSeq ++ s.signature.arguments :+ s.signature.result)
-                .filter(_.dri.isEmpty)
-                .map(_.name)
-                .mkString(", ")
-          )
-        )
       Right(new InkuireDb(functions, formattedAncestryGraph))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
