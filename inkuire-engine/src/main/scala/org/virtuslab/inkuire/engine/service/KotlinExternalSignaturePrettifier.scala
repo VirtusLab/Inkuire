@@ -36,7 +36,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   private def prettifyReceiver(receiver: Option[Type]): String =
     receiver.fold("")(prettifyType(_) ++ ".")
 
-  private def prettifyArgs(args: Seq[Variance]): String =
+  private def prettifyArgs(args: Seq[Type]): String =
     args.map(prettifyType).mkString(", ")
 
   private def prettifyType(t: Type): String = {
@@ -44,9 +44,9 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
       case ConcreteType(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
       case TypeVariable(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
       case GenericType(ConcreteType(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
+        s"$name<${prettifyArgs(params.map(_.typ))}>${if (nullable) "?" else ""}"
       case GenericType(TypeVariable(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
+        s"$name<${prettifyArgs(params.map(_.typ))}>${if (nullable) "?" else ""}"
       case _ => t.toString
     }
   }

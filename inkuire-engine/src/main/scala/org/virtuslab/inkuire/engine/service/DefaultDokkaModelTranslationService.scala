@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.model.{SNullable, SPrimitiveJavaType, STypeConstructor, STypeParameter, SVariance, _}
 import org.virtuslab.inkuire.engine.model.Type._
+import org.virtuslab.inkuire.model.SVariance.Kind
 
 import scala.jdk.CollectionConverters._
 
@@ -23,7 +24,8 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       case n: SNullable => translateBound(n.getInner).?
       case t: STypeConstructor =>
         val core = ConcreteType(t.getDri.getClassName, dri = translateDRI(t.getDri).some)
-        if (t.getProjections.isEmpty) core else GenericType(core, t.getProjections.map(translateProjection).toSeq)
+        if (t.getProjections.isEmpty) core
+        else GenericType(core, t.getProjections.map(translateProjectionVariance).toSeq)
       case t: STypeParameter => TypeVariable(getTypeName(t), dri = translateDRI(t.getDri).some)
       case _ => getTypeName(b).concreteType
     }
@@ -55,6 +57,21 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           )
         }
       )
+  }
+
+  private def translateProjectionVariance(projection: SProjection): Variance = projection match {
+    case s: SVariance =>
+      translateVariance(s)(translateBound(s.getInner))
+    case b: SBound => Invariance(translateBound(b))
+    case _: SStar  => Invariance(StarProjection)
+  }
+
+  private def translateVariance(variance: SVariance): Type => Variance = {
+    variance.getKind match {
+      case Kind.In  => Contravariance.apply
+      case Kind.Out => Covariance.apply
+      case _        => Invariance.apply
+    }
   }
 
   def translateProjection(projection: SProjection): Type = projection match {

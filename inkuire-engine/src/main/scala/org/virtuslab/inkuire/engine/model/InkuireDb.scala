@@ -70,6 +70,7 @@ object InkuireDb {
           case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
         }
         .toMap
+
       Right(new InkuireDb(functions, formattedAncestryGraph))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
