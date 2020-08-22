@@ -25,7 +25,7 @@ object Main extends App {
           Env(db, matchService(db), prettifier, parser)
         )
     }
-    .fold(println("Unexpected Error occured!"))(identity)
+    .fold(println("Oooooh man, bad luck. Inkuire encountered an unexpected error :/"))(identity)
     .unsafeRunSync()
 
 }

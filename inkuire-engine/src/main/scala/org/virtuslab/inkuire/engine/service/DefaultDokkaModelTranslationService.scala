@@ -70,7 +70,6 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     variance.getKind match {
       case Kind.In  => Contravariance.apply
       case Kind.Out => Covariance.apply
-      case _        => Invariance.apply
     }
   }
 

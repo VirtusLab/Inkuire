@@ -62,8 +62,8 @@ class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProje
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): SProjection {
         return if (json != null && context != null) {
             val obj = json.asJsonObject
-            val toDeserialize = obj.deepCopy().also { it.remove("kind") }
-            when(val name = obj.get("kind").asString) { // Casts are there to bypass problems with implicits casts
+            val toDeserialize = obj.deepCopy().also { it.remove("projectionkind") }
+            when(val name = obj.get("projectionkind").asString) { // Casts are there to bypass problems with implicits casts
                 "star" -> context.deserialize(toDeserialize, SStar::class.java) as SStar
                 "bound" -> context.deserialize(toDeserialize, SBound::class.java) as SBound
                 "variance" -> context.deserialize(toDeserialize, SVariance::class.java) as SVariance
