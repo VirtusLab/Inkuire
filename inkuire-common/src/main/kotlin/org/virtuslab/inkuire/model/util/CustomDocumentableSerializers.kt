@@ -78,13 +78,13 @@ class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProje
         return if(src != null && context != null) {
             when (src) {
                 is SStar -> src.let {
-                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "star") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("projectionkind", "star") }
                 }
                 is SBound -> src.let {
-                    context.serialize(it, sboundType).asJsonObject.also { it.addProperty("kind", "bound") }
+                    context.serialize(it, sboundType).asJsonObject.also { it.addProperty("projectionkind", "bound") }
                 }
                 is SVariance -> src.let {
-                    context.serialize(it).asJsonObject.also { it.addProperty("kind", "variance") }
+                    context.serialize(it).asJsonObject.also { it.addProperty("projectionkind", "variance") }
                 }
             }
         } else throw IllegalStateException("Cannot serialize projection named ${if (src != null) src::class.simpleName else "null"}")
