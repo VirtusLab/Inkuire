@@ -25,7 +25,7 @@ class CustomSerializationTest {
     fun `type parameter as projection`() {
         val input: SBound = TypeParameter(DRI("package", "Class"), "T").toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"name":"T","boundkind":"typeparameter","kind":"bound"}"""
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"name":"T","boundkind":"typeparameter","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -33,7 +33,7 @@ class CustomSerializationTest {
     fun `star`() {
         val input = Star.toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"kind":"star"}"""
+        val expect = """{"projectionkind":"star"}"""
         assertEquals(expect, actual)
     }
 
@@ -49,7 +49,7 @@ class CustomSerializationTest {
     fun `type constructor as projection`() {
         val input = TypeConstructor(DRI("package", "Class"), emptyList(), FunctionModifiers.NONE).toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"NONE","boundkind":"typeconstructor","kind":"bound"}"""
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"NONE","boundkind":"typeconstructor","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -65,7 +65,7 @@ class CustomSerializationTest {
     fun `nullable as projection`() {
         val input = Nullable(UnresolvedBound("placeholder")).toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"boundkind":"nullable","kind":"bound"}"""
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"boundkind":"nullable","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -73,7 +73,7 @@ class CustomSerializationTest {
     fun `variance`() {
         val input = Variance(Variance.Kind.In, UnresolvedBound("placeholder")).toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"kind":"variance","inner":{"name":"placeholder","boundkind":"unresolvedBound"}}"""
+        val expect = """{"kind":"In","inner":{"name":"placeholder","boundkind":"unresolvedBound"},"projectionkind":"variance"}"""
         assertEquals(expect, actual)
     }
 
@@ -89,7 +89,7 @@ class CustomSerializationTest {
     fun `primitive java type as projection`() {
         val input = PrimitiveJavaType("int").toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"name":"int","boundkind":"primitive","kind":"bound"}"""
+        val expect = """{"name":"int","boundkind":"primitive","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -105,7 +105,7 @@ class CustomSerializationTest {
     fun `void as projection`() {
         val input = Void.toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"boundkind":"void","kind":"bound"}"""
+        val expect = """{"boundkind":"void","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -121,7 +121,7 @@ class CustomSerializationTest {
     fun `java object as projection`() {
         val input = JavaObject.toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"boundkind":"object","kind":"bound"}"""
+        val expect = """{"boundkind":"object","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -137,7 +137,7 @@ class CustomSerializationTest {
     fun `dynamic as projection`() {
         val input = Dynamic.toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"boundkind":"dynamic","kind":"bound"}"""
+        val expect = """{"boundkind":"dynamic","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
@@ -153,7 +153,7 @@ class CustomSerializationTest {
     fun `unresolved bound as projection`() {
         val input = UnresolvedBound("placeholder").toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"name":"placeholder","boundkind":"unresolvedBound","kind":"bound"}"""
+        val expect = """{"name":"placeholder","boundkind":"unresolvedBound","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 }
