@@ -104,8 +104,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     fun `deserialize ClassWithFunctions·() → String`() {
         val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("ClassWithFunctions·() → String").single()
         sig.signature().run {
-            assertTrue((receiver().get() as ConcreteType).name().contains("ClassWithFunctions"))
-            assertTrue((result() as ConcreteType).name().contains("String"))
+            assertTrue((receiver().get() as ConcreteType).name().name().contains("ClassWithFunctions"))
+            assertTrue((result() as ConcreteType).name().name().contains("String"))
             assertTrue(arguments().size() == 0)
         }
     }
@@ -115,9 +115,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("(String) → String").single()
         sig.signature().run {
             assertTrue(receiver().isEmpty)
-            assertTrue((result() as ConcreteType).name().contains("String"))
+            assertTrue((result() as ConcreteType).name().name().contains("String"))
             assertTrue(arguments().size() == 1)
-            assertTrue((arguments().head() as ConcreteType).name().contains("String"))
+            assertTrue((arguments().head() as ConcreteType).name().name().contains("String"))
         }
     }
 
@@ -125,10 +125,10 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     fun `deserialize String·(String) → String`() {
         val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("String·(String) → String").single()
         sig.signature().run {
-            assertTrue((receiver().get() as ConcreteType).name().contains("String"))
-            assertTrue((result() as ConcreteType).name().contains("String"))
+            assertTrue((receiver().get() as ConcreteType).name().name().contains("String"))
+            assertTrue((result() as ConcreteType).name().name().contains("String"))
             assertTrue(arguments().size() == 1)
-            assertTrue((arguments().head() as ConcreteType).name().contains("String"))
+            assertTrue((arguments().head() as ConcreteType).name().name().contains("String"))
         }
     }
 
@@ -152,15 +152,15 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("((String) → Int) → Unit").single()
 
         val res = sig.signature().result()
-        assertTrue(res.name() == "Unit")
+        assertTrue(res.name().name() == "Unit")
 
         val args = sig.signature().arguments()
         assertTrue(args.size() == 1)
-        assertTrue(args.head().name() == "Function1")
+        assertTrue(args.head().name().name() == "Function1")
 
         assertTrue((args.head() as GenericType).params().size() == 2)
-        assertTrue((args.head() as GenericType).params().apply(0).name() == "String")
-        assertTrue((args.head() as GenericType).params().apply(1).name() == "Int")
+        assertTrue((args.head() as GenericType).params().apply(0).typ().name().name() == "String")
+        assertTrue((args.head() as GenericType).params().apply(1).typ().name().name() == "Int")
     }
 
     @Test
@@ -168,16 +168,16 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val sig = SerializationIntegrationTest.inkuireDb.functions().findSignature("(String·(String) → Int) → Unit").single()
 
         val res = sig.signature().result()
-        assertTrue(res.name() == "Unit")
+        assertTrue(res.name().name() == "Unit")
 
         val args = sig.signature().arguments()
         assertTrue(args.size() == 1)
-        assertTrue(args.head().name() == "Function2")
+        assertTrue(args.head().name().name() == "Function2")
 
         assertTrue((args.head() as GenericType).params().size() == 3)
-        assertTrue((args.head() as GenericType).params().apply(0).name() == "String")
-        assertTrue((args.head() as GenericType).params().apply(1).name() == "String")
-        assertTrue((args.head() as GenericType).params().apply(2).name() == "Int")
+        assertTrue((args.head() as GenericType).params().apply(0).typ().name().name() == "String")
+        assertTrue((args.head() as GenericType).params().apply(1).typ().name().name() == "String")
+        assertTrue((args.head() as GenericType).params().apply(2).typ().name().name() == "Int")
     }
 
     @Test
@@ -191,11 +191,11 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         assertTrue(input._2._2.size() == 2)
         assertTrue(input._1 == input._2._1.dri().get())
-        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
-        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(1).dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).typ().dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(1).typ().dri().get()).isDefined)
 
-        assertTrue(input._2._2.apply(0).name() == "Comparable")
-        assertTrue(input._2._2.apply(1).name() == "Collection")
+        assertTrue(input._2._2.apply(0).name().name() == "Comparable")
+        assertTrue(input._2._2.apply(1).name().name() == "Collection")
     }
 
     @Test
@@ -204,9 +204,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         assertTrue(input._2._2.size() == 1)
         assertTrue(input._1 == input._2._1.dri().get())
-        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).dri().get()).isDefined)
+        assertTrue(SerializationIntegrationTest.inkuireDb.types().get(input._2._1.params().apply(0).typ().dri().get()).isDefined)
 
-        assertTrue(input._2._2.apply(0).name() == "Comparable")
+        assertTrue(input._2._2.apply(0).name().name() == "Comparable")
     }
 
     @Test

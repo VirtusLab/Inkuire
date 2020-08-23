@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
@@ -93,7 +93,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType.?,
             Seq(
-              "Float".concreteType
+              UnresolvedVariance(
+                "Float".concreteType
+              )
             )
           ),
           SignatureContext.empty
@@ -117,7 +119,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType.?,
             Seq(
-              "Short".concreteType
+              UnresolvedVariance(
+                "Short".concreteType
+              )
             )
           ).some,
           Seq(
@@ -145,7 +149,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType,
             Seq(
-              "Short".concreteType.?
+              UnresolvedVariance(
+                "Short".concreteType.?
+              )
             )
           ).some,
           Seq(
@@ -173,7 +179,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType,
             Seq(
-              "Short".concreteType
+              UnresolvedVariance(
+                "Short".concreteType
+              )
             )
           ).some,
           Seq(
@@ -208,7 +216,9 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             GenericType(
               "Function0".concreteType,
               Seq(
-                "Int".concreteType.?
+                UnresolvedVariance(
+                  "Int".concreteType.?
+                )
               )
             )
           ),
@@ -241,14 +251,18 @@ class KotlinSignatureParserNullabilityTest extends BaseInkuireTest {
             GenericType(
               "Function0".concreteType,
               Seq(
-                "Int".concreteType
+                UnresolvedVariance(
+                  "Int".concreteType
+                )
               )
             ).?
           ),
           GenericType(
             "Array".concreteType.?,
             Seq(
-              "A".typeVariable
+              UnresolvedVariance(
+                "A".typeVariable
+              )
             )
           ),
           SignatureContext(

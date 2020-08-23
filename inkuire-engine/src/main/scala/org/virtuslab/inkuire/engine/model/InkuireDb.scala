@@ -36,48 +36,107 @@ object InkuireDb {
 
   def read(functionFiles: List[File], ancestryFiles: List[File]): Either[String, InkuireDb] = {
     try {
-      val functions = functionFiles
-        .flatMap { file =>
-          CustomGson.INSTANCE.getInstance
-            .fromJson(
-              new FileReader(file),
-              new TypeToken[Array[SDFunction]] {}.getType
-            )
-            .asInstanceOf[Array[SDFunction]]
-            .toList
-        }
-        .flatMap(translationService.translateFunction)
 
-      val ancestryGraph = ancestryFiles
-        .flatMap { file =>
-          CustomGson.INSTANCE.getInstance
-            .fromJson(
-              new FileReader(file),
-              new TypeToken[Array[AncestryGraph]] {}.getType
-            )
-            .asInstanceOf[Array[AncestryGraph]]
-        }
-        .map { x: AncestryGraph =>
-          translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList
-            .map(translationService.translateProjection))
-        }
-        .toMap
+      val ancestryGraph = ancestryFilesToTypes(ancestryFiles).populateMissingAnyAncestor.populateVariances
+
+      val functions = functionFilesToExternalSignatures(functionFiles)
+        .populateVariances(ancestryGraph)
       //TODO #53 Move adding implicit inheritance ancestors to inkuire-dokka-plugin
-      val any = ancestryGraph.values.map(_._1).filter(_.name == TypeName("Any")).head
-      val formattedAncestryGraph = ancestryGraph.toSeq
-        .modify(_.each._2)
-        .using {
-          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
-        }
-        .toMap
 
-      Right(new InkuireDb(functions, formattedAncestryGraph))
+      Right(new InkuireDb(functions, ancestryGraph))
     } catch {
       case m: JsonSyntaxException => Left(m.getMessage)
       case m: JsonIOException     => Left(m.getMessage)
     }
   }
 
+  private def functionFilesToExternalSignatures(functionFiles: List[File]): Seq[ExternalSignature] =
+    functionFiles
+      .flatMap { file =>
+        CustomGson.INSTANCE.getInstance
+          .fromJson(
+            new FileReader(file),
+            new TypeToken[Array[SDFunction]] {}.getType
+          )
+          .asInstanceOf[Array[SDFunction]]
+          .toList
+      }
+      .flatMap(translationService.translateFunction)
+
+  private def ancestryFilesToTypes(ancestryFiles: List[File]): Map[DRI, (Type, Seq[Type])] =
+    ancestryFiles
+      .flatMap { file =>
+        CustomGson.INSTANCE.getInstance
+          .fromJson(
+            new FileReader(file),
+            new TypeToken[Array[AncestryGraph]] {}.getType
+          )
+          .asInstanceOf[Array[AncestryGraph]]
+      }
+      .map { x: AncestryGraph =>
+        translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList
+          .map(translationService.translateProjection))
+      }
+      .toMap
+
+  def mapTypesParametersVariance(types: Map[DRI, (Type, Seq[Type])]): PartialFunction[Type, Type] = {
+    case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
+    case typ => typ
+  }
+
+  implicit class AncestryGraphOps(val receiver: Map[DRI, (Type, Seq[Type])]) {
+
+    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] = {
+      receiver
+      // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
+//      val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
+//      receiver.toSeq
+//        .modify(_.each._2)
+//        .using {
+//          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
+//        }
+//        .toMap
+    }
+
+    def populateVariances: Map[DRI, (Type, Seq[Type])] = {
+      receiver.map {
+        case (dri, (typ, ancestors)) => {
+          val mappedAncestors = ancestors.map(mapTypesParametersVariance(receiver))
+          (dri, (typ, mappedAncestors))
+        }
+      }
+    }
+  }
+
+  implicit class FunctionsOps(val receiver: Seq[ExternalSignature]) {
+
+    def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] = {
+
+      receiver.map {
+        case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
+          val rcv = receiver.map(mapTypesParametersVariance(types))
+          val args = arguments.map(mapTypesParametersVariance(types))
+          val rst = result match {
+            case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
+            case typ => typ
+          }
+          ExternalSignature(Signature(rcv, args, rst, context), name, uri)
+      }
+    }
+  }
+
+  private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
+    GenericType(typ.base, types(typ.base.dri.get)._2.zip(typ.params).map {
+      case (typ, variance) => wrapWithVariance(typ, variance)
+    })
+  }
+
+  private def wrapWithVariance(typ: Type, variance: Variance) = variance match {
+    case _: Covariance         => Covariance(typ)
+    case _: Contravariance     => Contravariance(typ)
+    case _: Invariance         => Invariance(typ)
+    case _: UnresolvedVariance => UnresolvedVariance(typ)
+  }
 }
 
 case class ExternalSignature(

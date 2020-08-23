@@ -10,7 +10,7 @@ import cats.implicits._
 //TODO handle case where one variable depends on the other like e.g. <A, B : List<A>> A.() -> B
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with FluffServiceOps {
 
-  val parsedDriPrefix = "iri-"
+  val parsedDriPrefix = "iri-" // IRI stands for Inkuire Resource Identifier
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
 

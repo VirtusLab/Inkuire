@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.parser
 
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.utils.syntax._
 
@@ -46,7 +46,9 @@ class KotlinSignatureParserNoReceiverTest extends BaseInkuireTest {
             GenericType(
               "Array".concreteType,
               Seq(
-                "String".concreteType
+                UnresolvedVariance(
+                  "String".concreteType
+                )
               )
             )
           ),

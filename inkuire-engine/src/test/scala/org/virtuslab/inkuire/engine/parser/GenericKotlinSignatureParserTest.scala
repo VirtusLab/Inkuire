@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class GenericKotlinSignatureParserTest extends BaseInkuireTest {
@@ -53,7 +53,9 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                "Byte".concreteType
+                UnresolvedVariance(
+                  "Byte".concreteType
+                )
               )
             )
           ),
@@ -86,7 +88,9 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                "XD".typeVariable
+                UnresolvedVariance(
+                  "XD".typeVariable
+                )
               )
             )
           ),
@@ -119,13 +123,19 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                GenericType(
-                  "Array".concreteType,
-                  Seq(
-                    GenericType(
-                      "Set".concreteType,
-                      Seq(
-                        "x".typeVariable
+                UnresolvedVariance(
+                  GenericType(
+                    "Array".concreteType,
+                    Seq(
+                      UnresolvedVariance(
+                        GenericType(
+                          "Set".concreteType,
+                          Seq(
+                            UnresolvedVariance(
+                              "x".typeVariable
+                            )
+                          )
+                        )
                       )
                     )
                   )

@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
@@ -130,7 +130,9 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Collection".concreteType,
                   Seq(
-                    "Int".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    )
                   )
                 )
               )
@@ -161,7 +163,9 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
           GenericType(
             "List".concreteType,
             Seq(
-              "C".typeVariable
+              UnresolvedVariance(
+                "C".typeVariable
+              )
             )
           ),
           SignatureContext(
@@ -176,13 +180,17 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Collection".concreteType,
                   Seq(
-                    "Float".concreteType
+                    UnresolvedVariance(
+                      "Float".concreteType
+                    )
                   )
                 ),
                 GenericType(
                   "List".concreteType,
                   Seq(
-                    "C".typeVariable
+                    UnresolvedVariance(
+                      "C".typeVariable
+                    )
                   )
                 )
               ),
@@ -191,7 +199,9 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Collection".concreteType,
                   Seq(
-                    "Int".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    )
                   )
                 )
               )
@@ -250,8 +260,12 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Function1".concreteType,
                   Seq(
-                    "Int".concreteType,
-                    "String".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    ),
+                    UnresolvedVariance(
+                      "String".concreteType
+                    )
                   )
                 )
               )
@@ -299,7 +313,9 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Array".concreteType,
                   Seq(
-                    "Int".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    )
                   )
                 )
               )
@@ -336,13 +352,17 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
                 GenericType(
                   "Collection".concreteType,
                   Seq(
-                    "Int".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    )
                   )
                 ),
                 GenericType(
                   "Array".concreteType,
                   Seq(
-                    "Int".concreteType
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    )
                   )
                 )
               )
