@@ -40,7 +40,7 @@ class ModelMappingTest extends BaseInkuireTest {
     val expected = Seq(
       ExternalSignature(
         Signature(
-          Some(ConcreteType("Clock")),
+          Some(ConcreteType("Clock", dri = DRI("example".some, "Clock".some, None, "example/Clock/#").some)),
           Seq.empty,
           ConcreteType("String", dri = DRI("kotlin".some, "String".some, None, "kotlin/String////").some),
           SignatureContext(Set.empty, Map.empty)
@@ -80,15 +80,15 @@ class ModelMappingTest extends BaseInkuireTest {
           ),
           Seq(
             ConcreteType(
-            "InterfaceToInheritFrom",
-            false,
-            DRI(
-              "example".some,
-              "InterfaceToInheritFrom".some,
-              None,
-              "example/InterfaceToInheritFrom///PointingToDeclaration/"
-            ).some
-          ),
+              "InterfaceToInheritFrom",
+              false,
+              DRI(
+                "example".some,
+                "InterfaceToInheritFrom".some,
+                None,
+                "example/InterfaceToInheritFrom///PointingToDeclaration/"
+              ).some
+            ),
             ConcreteType(
               "Clock",
               false,

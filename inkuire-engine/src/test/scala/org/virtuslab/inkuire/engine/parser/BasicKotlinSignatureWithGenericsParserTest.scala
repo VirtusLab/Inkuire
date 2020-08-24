@@ -2,7 +2,14 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Invariance, Signature, SignatureContext, StarProjection}
+import org.virtuslab.inkuire.engine.model.{
+  GenericType,
+  Invariance,
+  Signature,
+  SignatureContext,
+  StarProjection,
+  UnresolvedVariance
+}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
@@ -25,7 +32,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
           GenericType(
             "List".concreteType,
             Seq(
-              Invariance(
+              UnresolvedVariance(
                 "String".concreteType
               )
             )
@@ -51,7 +58,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType,
             Seq(
-              Invariance(
+              UnresolvedVariance(
                 "Double".concreteType
               )
             )
@@ -81,7 +88,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType,
             Seq(
-              Invariance(
+              UnresolvedVariance(
                 "Double".concreteType
               )
             )
@@ -113,7 +120,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                Invariance(
+                UnresolvedVariance(
                   "Double".concreteType
                 )
               )
@@ -143,7 +150,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                Invariance(
+                UnresolvedVariance(
                   "Double".concreteType
                 )
               )
@@ -151,7 +158,7 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             GenericType(
               "Array".concreteType,
               Seq(
-                Invariance(
+                UnresolvedVariance(
                   "Int".concreteType
                 )
               )
@@ -181,10 +188,10 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             GenericType(
               "Map".concreteType,
               Seq(
-                Invariance(
+                UnresolvedVariance(
                   "Double".concreteType
                 ),
-                Invariance(
+                UnresolvedVariance(
                   "Float".concreteType
                 )
               )
@@ -214,10 +221,10 @@ class BasicKotlinSignatureWithGenericsParserTest extends BaseInkuireTest {
             GenericType(
               "Map".concreteType,
               Seq(
-                Invariance(
+                UnresolvedVariance(
                   StarProjection
                 ),
-                Invariance(
+                UnresolvedVariance(
                   "Float".concreteType
                 )
               )

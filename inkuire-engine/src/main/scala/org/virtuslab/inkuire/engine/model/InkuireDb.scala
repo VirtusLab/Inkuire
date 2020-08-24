@@ -86,17 +86,16 @@ object InkuireDb {
 
   implicit class AncestryGraphOps(val receiver: Map[DRI, (Type, Seq[Type])]) {
 
-    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] = {
+    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] =
       receiver
-      // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
-//      val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
-//      receiver.toSeq
-//        .modify(_.each._2)
-//        .using {
-//          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
-//        }
-//        .toMap
-    }
+    // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
+    val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
+    receiver.toSeq
+      .modify(_.each._2)
+      .using {
+        case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
+      }
+      .toMap
 
     def populateVariances: Map[DRI, (Type, Seq[Type])] = {
       receiver.map {
@@ -114,7 +113,7 @@ object InkuireDb {
 
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
-          val rcv = receiver.map(mapTypesParametersVariance(types))
+          val rcv  = receiver.map(mapTypesParametersVariance(types))
           val args = arguments.map(mapTypesParametersVariance(types))
           val rst = result match {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
