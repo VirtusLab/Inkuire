@@ -233,6 +233,8 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
       .zip(supr.params)
       .toList
       .traverse { //TODO one of them will always be resolved as Invariant
+        case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
+          State.pure[VariableBindings, Boolean](true)
         case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, typContext, suprContext)
         case (Contravariance(typParam), Contravariance(suprParam)) =>
           isSubType(suprParam, typParam, suprContext, typContext)

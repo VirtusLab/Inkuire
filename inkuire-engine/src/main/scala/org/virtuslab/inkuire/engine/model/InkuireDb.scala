@@ -85,16 +85,17 @@ object InkuireDb {
 
   implicit class AncestryGraphOps(val receiver: Map[DRI, (Type, Seq[Type])]) {
 
-    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] =
+    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] = {
       receiver
-    // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
-    val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
-    receiver.toSeq
-      .modify(_.each._2)
-      .using {
-        case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
-      }
-      .toMap
+      // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
+      val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
+      receiver.toSeq
+        .modify(_.each._2)
+        .using {
+          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
+        }
+        .toMap
+    }
 
     def populateVariances: Map[DRI, (Type, Seq[Type])] = {
       receiver.map {
@@ -122,9 +123,11 @@ object InkuireDb {
   }
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
-    GenericType(typ.base, types(typ.base.dri.get)._1.params.zip(typ.params).map {
-      case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
-    })
+    if (types.contains(typ.base.dri.get)) {
+      GenericType(typ.base, types(typ.base.dri.get)._1.params.zip(typ.params).map {
+        case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
+      })
+    } else typ
   }
 
   private def wrapWithVariance(typ: Type, variance: Variance) = variance match {

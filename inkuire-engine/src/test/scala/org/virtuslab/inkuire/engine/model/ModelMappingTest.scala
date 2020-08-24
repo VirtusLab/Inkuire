@@ -42,7 +42,7 @@ class ModelMappingTest extends BaseInkuireTest {
     val expected = Seq(
       ExternalSignature(
         Signature(
-          Some(ConcreteType("Clock", dri = DRI("example".some, "Clock".some, None, "example/Clock/#").some)),
+          Some(ConcreteType("Clock", dri = DRI("example".some, "Clock".some, None, "example/Clock//#/").some)),
           Seq.empty,
           ConcreteType("String", dri = DRI("kotlin".some, "String".some, None, "kotlin/String////").some),
           SignatureContext(Set.empty, Map.empty)
