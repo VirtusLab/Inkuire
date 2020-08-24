@@ -51,7 +51,11 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
             dri = translateDRI(f.getDri)
               .copy(
                 callableName = None,
-                original     = f.getDri.getOriginal.split("/").patch(2, "", 1).mkString(sep = "/")
+                original     = {
+                  val array = f.getDri.getOriginal.split("/")
+                  array(2) = ""
+                  array.mkString(sep = "/") + "/"
+                }
               )
               .some
           )

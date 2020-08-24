@@ -9,9 +9,10 @@ class ModelMappingTest extends BaseInkuireTest {
   it should "map global function" in {
     //given
     val source = Paths.get("src/test", "resources", "modelTestData", "functions", "1.json").toFile
+    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
 
     //when
-    val inkuire = InkuireDb.read(List(source), List.empty)
+    val inkuire = InkuireDb.read(List(source), List(any))
 
     //then
     val expected = Seq(
@@ -32,9 +33,10 @@ class ModelMappingTest extends BaseInkuireTest {
   it should "map method" in {
     //given
     val source = Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile
+    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
 
     //when
-    val inkuire = InkuireDb.read(List(source), List.empty)
+    val inkuire = InkuireDb.read(List(source), List(any))
 
     //then
     val expected = Seq(
@@ -55,9 +57,10 @@ class ModelMappingTest extends BaseInkuireTest {
   it should "load ancestors" in {
     //given
     val ancestors = Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile
+    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
 
     //when
-    val inkuire = InkuireDb.read(List.empty, List(ancestors))
+    val inkuire = InkuireDb.read(List.empty, List(ancestors, any))
 
     //then
     val expected: Map[DRI, (Type, Seq[Type])] = Map(
@@ -100,6 +103,24 @@ class ModelMappingTest extends BaseInkuireTest {
               ).some
             )
           )
+      ),
+      DRI(
+        "kotlin".some,
+        "Any".some,
+        None,
+        "kotlin/Any///PointingToDeclaration/"
+      ) -> (
+        ConcreteType(
+          "Any",
+          false,
+          DRI(
+            "kotlin".some,
+            "Any".some,
+            None,
+            "kotlin/Any///PointingToDeclaration/"
+          ).some
+        ),
+        Seq.empty
       )
     )
 

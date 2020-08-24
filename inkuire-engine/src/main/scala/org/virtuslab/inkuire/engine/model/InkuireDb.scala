@@ -41,7 +41,6 @@ object InkuireDb {
 
       val functions = functionFilesToExternalSignatures(functionFiles)
         .populateVariances(ancestryGraph)
-      //TODO #53 Move adding implicit inheritance ancestors to inkuire-dokka-plugin
 
       Right(new InkuireDb(functions, ancestryGraph))
     } catch {
@@ -109,8 +108,7 @@ object InkuireDb {
 
   implicit class FunctionsOps(val receiver: Seq[ExternalSignature]) {
 
-    def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] = {
-
+    def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           val rcv  = receiver.map(mapTypesParametersVariance(types))
@@ -121,12 +119,11 @@ object InkuireDb {
           }
           ExternalSignature(Signature(rcv, args, rst, context), name, uri)
       }
-    }
   }
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
-    GenericType(typ.base, types(typ.base.dri.get)._2.zip(typ.params).map {
-      case (typ, variance) => wrapWithVariance(typ, variance)
+    GenericType(typ.base, types(typ.base.dri.get)._1.params.zip(typ.params).map {
+      case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
     })
   }
 
