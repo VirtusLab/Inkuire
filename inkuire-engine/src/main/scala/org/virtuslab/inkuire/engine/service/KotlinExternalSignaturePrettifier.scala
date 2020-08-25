@@ -1,7 +1,6 @@
-package org.virtuslab.inkuire.engine.cli.service
+package org.virtuslab.inkuire.engine.service
 
 import org.virtuslab.inkuire.engine.model._
-import org.virtuslab.inkuire.engine.service.SignaturePrettifier
 
 class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
 
@@ -25,7 +24,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   }
 
   private def prettifyTypeVariableConstraints(context: SignatureContext): String = {
-    if (context.constraints.isEmpty) ""
+    if (context.constraints.isEmpty || context.constraints.values.flatten.isEmpty) ""
     else {
       val constraints = context.constraints.flatMap {
         case (key, value) => value.map(v => s"$key: ${prettifyType(v)}")
@@ -45,9 +44,9 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
       case ConcreteType(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
       case TypeVariable(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
       case GenericType(ConcreteType(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
+        s"$name<${prettifyArgs(params.map(_.typ))}>${if (nullable) "?" else ""}"
       case GenericType(TypeVariable(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
+        s"$name<${prettifyArgs(params.map(_.typ))}>${if (nullable) "?" else ""}"
       case _ => t.toString
     }
   }

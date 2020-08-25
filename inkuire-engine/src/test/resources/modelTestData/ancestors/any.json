@@ -1,0 +1,20 @@
+[
+  {
+    "dri": {
+      "packageName": "kotlin",
+      "className": "Any",
+      "original": "kotlin/Any///PointingToDeclaration/"
+    },
+    "type": {
+      "dri": {
+        "packageName": "kotlin",
+        "className": "Any",
+        "original": "kotlin/Any///PointingToDeclaration/"
+      },
+      "projections": [],
+      "modifier": "NONE",
+      "boundkind": "typeconstructor"
+    },
+    "projections": []
+  }
+]

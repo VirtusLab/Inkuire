@@ -2,9 +2,8 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.engine.utils.syntax._
 
 //TODO fix
 class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
@@ -25,8 +24,12 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           GenericType(
             "Function1".concreteType,
             Seq(
-              "Float".concreteType,
-              "Double".concreteType
+              UnresolvedVariance(
+                "Float".concreteType
+              ),
+              UnresolvedVariance(
+                "Double".concreteType
+              )
             )
           ).some,
           Seq(
@@ -54,7 +57,9 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           GenericType(
             "Function0".concreteType,
             Seq(
-              "Int".concreteType
+              UnresolvedVariance(
+                "Int".concreteType
+              )
             )
           ).?.some,
           Seq.empty,
@@ -84,8 +89,12 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           GenericType(
             "Function1".concreteType,
             Seq(
-              "Float".concreteType,
-              "Double".concreteType
+              UnresolvedVariance(
+                "Float".concreteType
+              ),
+              UnresolvedVariance(
+                "Double".concreteType
+              )
             )
           ),
           SignatureContext.empty
@@ -111,15 +120,25 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
             GenericType(
               "Function2".concreteType,
               Seq(
-                "Int".concreteType,
-                GenericType(
-                  "Function1".concreteType,
-                  Seq(
-                    "Float".concreteType,
-                    "Long".concreteType
+                UnresolvedVariance(
+                  "Int".concreteType
+                ),
+                UnresolvedVariance(
+                  GenericType(
+                    "Function1".concreteType,
+                    Seq(
+                      UnresolvedVariance(
+                        "Float".concreteType
+                      ),
+                      UnresolvedVariance(
+                        "Long".concreteType
+                      )
+                    )
                   )
                 ),
-                "Unit".concreteType
+                UnresolvedVariance(
+                  "Unit".concreteType
+                )
               )
             ),
             "Double".concreteType
@@ -151,17 +170,29 @@ class KotilnSignatureParserFunctionTest extends BaseInkuireTest {
           GenericType(
             "Function1".concreteType,
             Seq(
-              "Float".concreteType,
-              GenericType(
-                "Function1".concreteType,
-                Seq(
-                  "Int".concreteType,
-                  GenericType(
-                    "Function2".concreteType,
-                    Seq(
-                      "Double".concreteType,
-                      "Float".concreteType,
-                      "Unit".concreteType
+              UnresolvedVariance("Float".concreteType),
+              UnresolvedVariance(
+                GenericType(
+                  "Function1".concreteType,
+                  Seq(
+                    UnresolvedVariance(
+                      "Int".concreteType
+                    ),
+                    UnresolvedVariance(
+                      GenericType(
+                        "Function2".concreteType,
+                        Seq(
+                          UnresolvedVariance(
+                            "Double".concreteType
+                          ),
+                          UnresolvedVariance(
+                            "Float".concreteType
+                          ),
+                          UnresolvedVariance(
+                            "Unit".concreteType
+                          )
+                        )
+                      )
                     )
                   )
                 )

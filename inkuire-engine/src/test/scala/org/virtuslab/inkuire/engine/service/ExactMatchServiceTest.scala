@@ -2,7 +2,14 @@ package org.virtuslab.inkuire.engine.service
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{ExternalSignature, GenericType, InkuireDb, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{
+  ExternalSignature,
+  GenericType,
+  InkuireDb,
+  Signature,
+  SignatureContext,
+  UnresolvedVariance
+}
 import org.virtuslab.inkuire.engine.model.Type._
 import org.virtuslab.inkuire.engine.service.ExactMatchServiceTest.Fixture
 
@@ -22,7 +29,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
     val res: Seq[ExternalSignature] = exactMatchService |??| equalsSignature
 
     //then
-    res should matchTo[Seq[ExternalSignature]] (Seq(equalsExternalSignature))
+    res should matchTo[Seq[ExternalSignature]](Seq(equalsExternalSignature))
   }
 
   it should "match not match wrong functions" in new Fixture {
@@ -39,7 +46,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
     val res: Seq[ExternalSignature] = exactMatchService |??| toStringSignature
 
     //then
-    res should matchTo[Seq[ExternalSignature]] (Seq.empty)
+    res should matchTo[Seq[ExternalSignature]](Seq.empty)
   }
 
   it should "match signature with generics" in new Fixture {
@@ -56,7 +63,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
     val res: Seq[ExternalSignature] = exactMatchService |??| rangeSignature
 
     //then
-    res should matchTo[Seq[ExternalSignature]] (Seq(rangeExternalSignature))
+    res should matchTo[Seq[ExternalSignature]](Seq(rangeExternalSignature))
   }
 
   it should "match signature without receiver" in new Fixture {
@@ -73,7 +80,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
     val res: Seq[ExternalSignature] = exactMatchService |??| mainSignature
 
     //then
-    res should matchTo[Seq[ExternalSignature]] (Seq(mainExternalSignature))
+    res should matchTo[Seq[ExternalSignature]](Seq(mainExternalSignature))
   }
 }
 
@@ -114,7 +121,9 @@ object ExactMatchServiceTest {
       GenericType(
         "List".concreteType,
         Seq(
-          "Long".concreteType
+          UnresolvedVariance(
+            "Long".concreteType
+          )
         )
       ),
       SignatureContext.empty
@@ -131,7 +140,9 @@ object ExactMatchServiceTest {
         GenericType(
           "Array".concreteType,
           Seq(
-            "String".concreteType
+            UnresolvedVariance(
+              "String".concreteType
+            )
           )
         )
       ),

@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.parser
 
 import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.BaseInkuireTest
-import org.virtuslab.inkuire.engine.model.{ConcreteType, GenericType, Signature, SignatureContext}
+import org.virtuslab.inkuire.engine.model.{ConcreteType, GenericType, Signature, SignatureContext, UnresolvedVariance}
 import org.virtuslab.inkuire.engine.model.Type._
 
 class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
@@ -52,7 +52,9 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType,
             Seq(
-              "A".typeVariable
+              UnresolvedVariance(
+                "A".typeVariable
+              )
             )
           ),
           SignatureContext(
@@ -83,9 +85,15 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
             GenericType(
               "Function2".concreteType,
               Seq(
-                "String".concreteType,
-                "Byte".concreteType,
-                "String".concreteType.?
+                UnresolvedVariance(
+                  "String".concreteType
+                ),
+                UnresolvedVariance(
+                  "Byte".concreteType
+                ),
+                UnresolvedVariance(
+                  "String".concreteType.?
+                )
               )
             ),
             "Double".concreteType.?
@@ -93,7 +101,9 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
           GenericType(
             "Array".concreteType.?,
             Seq(
-              "Short".concreteType
+              UnresolvedVariance(
+                "Short".concreteType
+              )
             )
           ),
           SignatureContext.empty
@@ -119,7 +129,9 @@ class KotlinSignatureParserParenthesesFeverTest extends BaseInkuireTest {
             GenericType(
               "List".concreteType,
               Seq(
-                "Byte".concreteType
+                UnresolvedVariance(
+                  "Byte".concreteType
+                )
               )
             )
           ),

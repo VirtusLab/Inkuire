@@ -1,5 +1,13 @@
 package tests
 
+
+// TODO: Rename to A, B, C or something like that and change that in tests
+interface Comparable<T>
+interface Collection<out T>
+interface List<T>
+
+
+
 class GenericClassWithFunctions<T : Comparable<T>>(s: String) {
 
     constructor(i: Int) : this(i.toString())
@@ -11,11 +19,4 @@ class GenericClassWithFunctions<T : Comparable<T>>(s: String) {
     fun `ClassWithFunctions·(T) → String`(t: T) = t as String
 }
 
-class InheritingClassFromGenericType<T : Number, R : CharSequence> : Comparable<T>, Collection<R> {
-    override fun compareTo(other: T): Int = 0
-    override fun contains(element: R): Boolean = false
-    override fun containsAll(elements: Collection<R>): Boolean = true
-    override fun isEmpty(): Boolean = false
-    override fun iterator(): Iterator<R> = TODO("Not yet implemented")
-    override val size: Int = 0
-}
+class InheritingClassFromGenericType<T : Number, R : CharSequence> : Comparable<T>, Collection<R>

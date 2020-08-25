@@ -24,7 +24,7 @@
         },
         "name": "InterfaceToInheritFrom",
         "boundkind": "typeconstructor",
-        "kind": "bound",
+        "projectionkind": "bound",
         "projections": [],
         "modifier": "NONE"
       },
@@ -36,7 +36,7 @@
         },
         "name": "Clock",
         "boundkind": "typeconstructor",
-        "kind": "bound",
+        "projectionkind": "bound",
         "projections": [],
         "modifier": "NONE"
       }
