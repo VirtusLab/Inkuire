@@ -7,7 +7,6 @@ interface Collection<out T>
 interface List<T>
 
 
-
 class GenericClassWithFunctions<T : Comparable<T>>(s: String) {
 
     constructor(i: Int) : this(i.toString())

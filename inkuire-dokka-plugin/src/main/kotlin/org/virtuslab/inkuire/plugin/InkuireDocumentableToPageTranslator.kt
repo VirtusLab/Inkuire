@@ -50,11 +50,13 @@ object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
         is DTypeAlias ->
             listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable())))
         else -> emptyList()
-    } + if (this is WithGenerics) generics.flatMap { it.toAncestryEntry(sourceSet) } else emptyList()
+    } + if (this is WithGenerics)
+        generics.flatMap { it.toAncestryEntry(sourceSet) }
+    else emptyList()
 
     private fun Documentable.getPossibleGenerics() = if(this is WithGenerics) {
         this.generics.map {
-            STypeParameter(it.dri.toSerializable(), it.name)
+            it.toSerializable().variantTypeParameter
         }
     } else {
         emptyList()

@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.virtuslab.inkuire.model.SBound
 import org.virtuslab.inkuire.model.SProjection
+import org.virtuslab.inkuire.model.SVariance
 import org.virtuslab.inkuire.model.util.CustomGson
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
 
@@ -70,10 +71,50 @@ class CustomSerializationTest {
     }
 
     @Test
-    fun `variance`() {
-        val input = Variance(Variance.Kind.In, UnresolvedBound("placeholder")).toSerializable()
+    fun `covariance as variance`() {
+        val input = Covariance(UnresolvedBound("placeholder")).toSerializable()
+        val actual = gson.toJson(input, SVariance::class.java)
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"covariance"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `contravariance as variance`() {
+        val input = Contravariance(UnresolvedBound("placeholder")).toSerializable()
+        val actual = gson.toJson(input, SVariance::class.java)
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"contravariance"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `invariance as variance`() {
+        val input = Invariance(UnresolvedBound("placeholder")).toSerializable()
+        val actual = gson.toJson(input, SVariance::class.java)
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"invariance"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `covariance as projection`() {
+        val input = Covariance(UnresolvedBound("placeholder")).toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
-        val expect = """{"kind":"In","inner":{"name":"placeholder","boundkind":"unresolvedBound"},"projectionkind":"variance"}"""
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"covariance","projectionkind":"variance"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `contravariance as projection`() {
+        val input = Contravariance(UnresolvedBound("placeholder")).toSerializable()
+        val actual = gson.toJson(input, SProjection::class.java)
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"contravariance","projectionkind":"variance"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `invariance as projection`() {
+        val input = Invariance(UnresolvedBound("placeholder")).toSerializable()
+        val actual = gson.toJson(input, SProjection::class.java)
+        val expect = """{"inner":{"name":"placeholder","boundkind":"unresolvedBound"},"variancekind":"invariance","projectionkind":"variance"}"""
         assertEquals(expect, actual)
     }
 

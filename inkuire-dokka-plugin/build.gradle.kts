@@ -10,6 +10,7 @@ repositories {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
     jcenter()
+    mavenLocal()
 }
 
 dependencies {

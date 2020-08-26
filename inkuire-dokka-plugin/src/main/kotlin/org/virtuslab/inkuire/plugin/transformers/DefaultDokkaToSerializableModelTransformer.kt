@@ -30,8 +30,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
     )
 
     override fun DTypeParameter.toSerializable() = SDTypeParameter(
-        dri = dri.toSerializable(),
-        name = name,
+        variantTypeParameter = variantTypeParameter.toSerializable() as SVariance<*>,
         bounds = bounds.map { it.toSerializable() }
     )
 
@@ -59,12 +58,16 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
     override fun Projection.toSerializable(): SProjection = when(this) {
         is Bound -> this.toSerializable()
         is Star -> SStar
-        is Variance -> SVariance(SVariance.Kind.valueOf(this.kind.name), this.inner.toSerializable())
+        is Variance<*> -> when(this) {
+            is Covariance<*> -> SCovariance(inner.toSerializable())
+            is Contravariance<*> -> SContravariance(inner.toSerializable())
+            is Invariance<*> -> SInvariance(inner.toSerializable())
+        }
     }
 
     override fun FunctionModifiers.toSerializable(): SFunctionModifiers = SFunctionModifiers.valueOf(this.name)
     override fun Bound.toSerializable() : SBound = when(this) {
-        is TypeParameter -> STypeParameter(declarationDRI.toSerializable(), name)
+        is TypeParameter -> STypeParameter(dri.toSerializable(), name)
         is TypeConstructor -> STypeConstructor(
             dri.toSerializable(),
             projections.map { it.toSerializable() },

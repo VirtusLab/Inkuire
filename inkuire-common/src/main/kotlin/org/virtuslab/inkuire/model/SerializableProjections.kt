@@ -4,8 +4,20 @@ sealed class SProjection
 
 object SStar : SProjection()
 
-data class SVariance(val kind: Kind, val inner: SBound) : SProjection() {
-    enum class Kind { In, Out }
+sealed class SVariance<out T : SBound> : SProjection() {
+    abstract val inner: T
+}
+
+data class SCovariance<out T : SBound>(override val inner: T) : SVariance<T>() {
+    override fun toString() = "out"
+}
+
+data class SContravariance<out T : SBound>(override val inner: T) : SVariance<T>() {
+    override fun toString() = "in"
+}
+
+data class SInvariance<out T : SBound>(override val inner: T) : SVariance<T>() {
+    override fun toString() = ""
 }
 
 sealed class SBound : SProjection()
