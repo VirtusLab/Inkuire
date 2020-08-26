@@ -1,8 +1,7 @@
 package org.virtuslab.inkuire.model.util
 
 import com.google.gson.Gson
-import org.virtuslab.inkuire.model.SBound
-import org.virtuslab.inkuire.model.SProjection
+import org.virtuslab.inkuire.model.*
 
 object CustomGson {
 
@@ -10,6 +9,7 @@ object CustomGson {
         Gson().newBuilder()
             .registerTypeAdapter(SBound::class.java, BoundSerializer())
             .registerTypeAdapter(SProjection::class.java, ProjectionSerializer())
+            .registerTypeAdapter(SVariance::class.java, VarianceSerializer())
             .create()
     }
 }

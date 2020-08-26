@@ -27,9 +27,8 @@ data class SDParameter(
 )
 
 data class SDTypeParameter(
-    val dri: SDRI,
-    val name: String,
-    val bounds: List<SBound>
+        val variantTypeParameter: SVariance<*>,
+        val bounds: List<SBound>
 )
 
 data class AncestryGraph(

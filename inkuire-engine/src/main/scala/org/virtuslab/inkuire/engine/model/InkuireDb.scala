@@ -37,7 +37,7 @@ object InkuireDb {
   def read(functionFiles: List[File], ancestryFiles: List[File]): Either[String, InkuireDb] = {
     try {
 
-      val ancestryGraph = ancestryFilesToTypes(ancestryFiles).populateMissingAnyAncestor.populateVariances
+      val ancestryGraph = ancestryFilesToTypes(ancestryFiles).populateMissingAnyAncestor
 
       val functions = functionFilesToExternalSignatures(functionFiles)
         .populateVariances(ancestryGraph)
@@ -96,15 +96,15 @@ object InkuireDb {
         }
         .toMap
     }
-
-    def populateVariances: Map[DRI, (Type, Seq[Type])] = {
-      receiver.map {
-        case (dri, (typ, ancestors)) => {
-          val mappedAncestors = ancestors.map(mapTypesParametersVariance(receiver))
-          (dri, (typ, mappedAncestors))
-        }
-      }
-    }
+    // TODO: Reconsider whether we need actually want to do this, and when
+//    def populateVariances: Map[DRI, (Type, Seq[Type])] = {
+//      receiver.map {
+//        case (dri, (typ, ancestors)) => {
+//          val mappedAncestors = ancestors.map(mapTypesParametersVariance(receiver))
+//          (dri, (typ, mappedAncestors))
+//        }
+//      }
+//    }
   }
 
   implicit class FunctionsOps(val receiver: Seq[ExternalSignature]) {

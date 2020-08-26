@@ -4,7 +4,6 @@ import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
 import org.virtuslab.inkuire.model.{SNullable, SPrimitiveJavaType, STypeConstructor, STypeParameter, SVariance, _}
 import org.virtuslab.inkuire.engine.model.Type._
-import org.virtuslab.inkuire.model.SVariance.Kind
 
 import scala.jdk.CollectionConverters._
 
@@ -12,7 +11,15 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
   implicit def listAsScala[T](list: java.util.List[T]): Iterable[T] = list.asScala
 
   private def translateTypeVariables(f: SDFunction): SignatureContext = {
-    val generics = f.getGenerics.map(p => (p.getName, p.getBounds.map(translateBound).toSeq)).toMap
+    val generics = f.getGenerics
+      .map(
+        p =>
+          (
+            p.getVariantTypeParameter.getInner.asInstanceOf[STypeParameter].getName,
+            p.getBounds.map(translateBound).toSeq
+        )
+      )
+      .toMap
     SignatureContext(
       generics.keys.toSet,
       generics
@@ -51,7 +58,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
             dri = translateDRI(f.getDri)
               .copy(
                 callableName = None,
-                original     = {
+                original = {
                   val array = f.getDri.getOriginal.split("/")
                   array(2) = ""
                   array.mkString(sep = "/") + "/"
@@ -64,23 +71,24 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
   }
 
   private def translateProjectionVariance(projection: SProjection): Variance = projection match {
-    case s: SVariance =>
+    case s: SVariance[_] =>
       translateVariance(s)(translateBound(s.getInner))
     case b: SBound => Invariance(translateBound(b))
     case _: SStar  => Invariance(StarProjection)
   }
 
-  private def translateVariance(variance: SVariance): Type => Variance = {
-    variance.getKind match {
-      case Kind.In  => Contravariance.apply
-      case Kind.Out => Covariance.apply
+  private def translateVariance(variance: SVariance[_]): Type => Variance = {
+    variance match {
+      case _: SContravariance[_] => Contravariance.apply
+      case _: SCovariance[_]     => Covariance.apply
+      case _: SInvariance[_]     => Invariance.apply
     }
   }
 
   def translateProjection(projection: SProjection): Type = projection match {
-    case _: SStar     => StarProjection
-    case s: SVariance => translateBound(s.getInner)
-    case b: SBound    => translateBound(b)
+    case _: SStar        => StarProjection
+    case s: SVariance[_] => translateBound(s.getInner)
+    case b: SBound       => translateBound(b)
   }
 
   def translateDRI(sdri: SDRI): DRI = DRI(
