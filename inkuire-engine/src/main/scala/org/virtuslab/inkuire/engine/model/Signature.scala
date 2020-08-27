@@ -5,7 +5,9 @@ case class Signature(
   arguments: Seq[Type],
   result: Type,
   context: SignatureContext
-)
+) {
+  def argsWithReceiver: Seq[Type] = receiver.toSeq ++ arguments
+}
 
 case class SignatureContext(
   vars: Set[String],

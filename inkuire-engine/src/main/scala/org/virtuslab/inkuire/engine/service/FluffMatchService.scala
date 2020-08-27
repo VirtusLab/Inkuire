@@ -19,12 +19,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     inkuireDb.functions.filter { eSgn =>
       signatures.exists { sgn =>
         val ok = for {
-          okReceiver <- checkReceiver(eSgn, sgn)
           okParams <- checkArguments(eSgn, sgn)
           okResult <- checkResult(eSgn, sgn)
           bindings <- State.get[VariableBindings]
           okBindings = checkBindings(bindings)
-        } yield okReceiver && okParams && okResult && okBindings
+        } yield okParams && okResult && okBindings
         ok.runA(VariableBindings.empty).value
       }
     }
@@ -89,24 +88,10 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  private def checkReceiver(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
-    (eSgn.signature.receiver, signature.receiver) match {
-      case (None, None) => State.pure(true)
-      case (Some(eReceiver), Some(receiver)) =>
-        ancestryGraph.isSubType(
-          typ         = receiver,
-          supr        = eReceiver,
-          typContext  = signature.context,
-          suprContext = eSgn.signature.context
-        )
-      case _ => State.pure(false)
-    }
-  }
-
   private def checkArguments(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
     //TODO #54 Consider disregarding arguments order in FluffMatchService
-    eSgn.signature.arguments
-      .zip(signature.arguments)
+    eSgn.signature.argsWithReceiver
+      .zip(signature.argsWithReceiver)
       .toList
       .traverse {
         case (eSgnType, sgnType) =>
@@ -117,7 +102,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
             suprContext = eSgn.signature.context
           )
       }
-      .map(_.forall(identity) && eSgn.signature.arguments.size == signature.arguments.size)
+      .map(_.forall(identity) && eSgn.signature.argsWithReceiver.size == signature.argsWithReceiver.size)
   }
 
   private def checkResult(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
