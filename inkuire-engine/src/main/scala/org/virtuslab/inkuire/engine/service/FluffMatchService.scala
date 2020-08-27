@@ -182,10 +182,10 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
   }
 
   private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = {
-    val bindings = node._1.params.map(_.typ.name).zip(concreteType.params).toMap
+    val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
     node._2.map {
-      case t: GenericType if !t.base.isInstanceOf[TypeVariable] =>
-        t.modify(_.params.each).using(p => bindings.getOrElse(p.typ.name, p))
+      case t: GenericType if !t.base.isVariable =>
+        t.modify(_.params.each.typ).using(p => bindings.getOrElse(p.name, p))
       case t => t
     }
   }
@@ -214,8 +214,8 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     typContext:  SignatureContext,
     suprContext: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    typ.params
-      .zip(supr.params)
+    writeVariancesFromDRI(typ).params
+      .zip(writeVariancesFromDRI(supr).params)
       .toList
       .traverse { //TODO one of them will always be resolved as Invariant
         case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
@@ -227,6 +227,20 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
           State.pure[VariableBindings, Boolean](typParam == suprParam)
       }
       .map(_.forall(identity))
+  }
+
+  private def writeVariancesFromDRI: Type => Type = {
+    case typ: GenericType =>
+      typ
+        .modify(_.params)
+        .using { params =>
+          if (typ.dri.nonEmpty && nodes.contains(typ.dri.get)) {
+            params.zip(nodes(typ.dri.get)._1.params).map {
+              case (t, v) => zipVariance(t.typ, v)
+            }
+          } else params
+        }
+    case typ => typ
   }
 }
 
