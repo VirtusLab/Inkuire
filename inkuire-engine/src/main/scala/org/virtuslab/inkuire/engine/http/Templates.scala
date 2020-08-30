@@ -6,10 +6,10 @@ object Templates {
   def formTemplate(): String = {
     html(
       body(style := "display: flex; justify-content: center; align-items: center;")(
-        div(style := "vertical-align: middle;text-align: center")(
+        div(style := "vertical-align: middle;text-align: center; width: 600px")(
           form(method := "post")(
             div(
-              input(name := "query")
+              input(name := "query", style := "width: 100%")
             ),
             div(
               input(`type` := "submit", value := "Send")

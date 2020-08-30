@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 group = "org.virtuslab"
 version = "1.0-SNAPSHOT"
 
@@ -5,6 +7,7 @@ plugins {
     scala
     id("com.github.maiflai.scalatest") version "0.26"
     application
+    kotlin("jvm")
 }
 
 repositories {
@@ -53,3 +56,8 @@ dependencies {
 }
 
 application.mainClassName = "org.virtuslab.inkuire.engine.Main"
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
