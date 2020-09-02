@@ -41,6 +41,7 @@ object InkuireDb {
 
       val functions = functionFilesToExternalSignatures(functionFiles)
         .populateVariances(ancestryGraph)
+        .remapFunctionDRIs(ancestryGraph)
 
       Right(new InkuireDb(functions, ancestryGraph))
     } catch {
@@ -120,6 +121,34 @@ object InkuireDb {
           }
           ExternalSignature(Signature(rcv, args, rst, context), name, uri)
       }
+
+    def remapFunctionDRIs(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] = {
+      receiver.map { eSgn =>
+        eSgn.modify(_.signature).using { sgn =>
+          sgn
+            .modify(_.receiver.each)
+            .using(remapFunctionTypeDRIs(types, _))
+            .modify(_.arguments.each)
+            .using(remapFunctionTypeDRIs(types, _))
+            .modify(_.result)
+            .using(remapFunctionTypeDRIs(types, _))
+        }
+      }
+    }
+
+    private def remapFunctionTypeDRIs(types: Map[DRI, (Type, Seq[Type])], typ: Type): Type = typ match {
+      case t: ConcreteType =>
+        t.modify(_.dri)
+          .setToIf(t.name.name.matches("Function.*"))(
+            types.values.filter(_._1.name == t.name).map(_._1).headOption.map(_.dri.get)
+          )
+      case t: GenericType =>
+        t.modify(_.base)
+          .using(remapFunctionTypeDRIs(types, _))
+          .modify(_.params.each.typ)
+          .using(remapFunctionTypeDRIs(types, _))
+      case t => t
+    }
   }
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
