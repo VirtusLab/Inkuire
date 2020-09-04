@@ -19,11 +19,10 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     inkuireDb.functions.filter { eSgn =>
       signatures.exists { sgn =>
         val ok = for {
-          okParams <- checkArguments(eSgn, sgn)
-          okResult <- checkResult(eSgn, sgn)
+          okTypes <- checkTypes(eSgn.signature, sgn)
           bindings <- State.get[VariableBindings]
           okBindings = checkBindings(bindings)
-        } yield okParams && okResult && okBindings
+        } yield okTypes && okBindings
         ok.runA(VariableBindings.empty).value
       }
     }
@@ -31,10 +30,12 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {
-      receiver <- signature.receiver
-        .fold[Seq[Option[Type]]](Seq(None))(resolvePossibleTypes(_).map(_.some))
-      args <- resolveMultipleTypes(signature.arguments)
-      result <- resolvePossibleTypes(signature.result)
+      receiver <- signature.receiver.map(r =>
+        resolvePossibleTypes(r.typ))
+          .fold[Seq[Option[Contravariance]]](Seq.empty)(_.map(r => Contravariance(r).some)
+      )
+      args <- resolveMultipleTypes(signature.arguments.map(_.typ)).map(_.map(Contravariance))
+      result <- resolvePossibleTypes(signature.result.typ).map(Covariance)
       constraints = signature.context.constraints.view
         .mapValues(resolveMultipleTypes(_).head)
         .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
@@ -88,39 +89,32 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  private def checkArguments(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
-    //TODO #54 Consider disregarding arguments order in FluffMatchService
-    eSgn.signature.argsWithReceiver
-      .zip(signature.argsWithReceiver)
-      .toList
-      .traverse {
-        case (eSgnType, sgnType) =>
-          ancestryGraph.isSubType(
-            typ         = sgnType,
-            supr        = eSgnType,
-            typContext  = signature.context,
-            suprContext = eSgn.signature.context
-          )
-      }
-      .map(_.forall(identity) && eSgn.signature.argsWithReceiver.size == signature.argsWithReceiver.size)
-  }
-
-  private def checkResult(eSgn: ExternalSignature, signature: Signature): State[VariableBindings, Boolean] = {
-    ancestryGraph.isSubType(
-      typ         = eSgn.signature.result,
-      supr        = signature.result,
-      typContext  = eSgn.signature.context,
-      suprContext = signature.context
-    )
+  private def checkTypes(external: Signature, query: Signature): State[VariableBindings, Boolean] = {
+    val eTypes = external.types
+    val qTypes = query.types
+    if (eTypes.size == qTypes.size) {
+      external.types
+        .zip(query.types)
+        .toList
+        .traverse {
+          case (externalType, queryType) =>
+            ancestryGraph.checkByVariance(
+              typ = externalType,
+              supr = queryType,
+              typContext = external.context,
+              suprContext = query.context
+            )
+        }.map(_.forall(identity))
+    } else State.pure(false)
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
     //TODO can be done better
-    bindings.bindings.values.forall { types =>
-      types
+    bindings.bindings.forall{
+      case (_, binded) => binded
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil => a == b
+          case a :: b :: Nil => a.dri == b.dri
           case _             => true
         }
     }
@@ -134,7 +128,7 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     typ:         Type,
     supr:        Type,
     typContext:  SignatureContext,
-    suprContext: SignatureContext
+    suprContext: SignatureContext,
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
       case (StarProjection, _) => State.pure(true)
@@ -164,8 +158,7 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
       case (_, supr: GenericType) if supr.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
-      case (typ, supr) if typ.dri == supr.dri =>
-        checkTypeParamsByVariance(typ, supr, typContext, suprContext)
+      case (typ, supr) if typ.dri == supr.dri => checkTypeParamsByVariance(typ, supr, typContext, suprContext)
       case (typ, supr) =>
         typ.dri.fold {
           // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
@@ -209,15 +202,25 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     }
 
   private def checkTypeParamsByVariance(
-    typ:         Type,
-    supr:        Type,
+     typ: Type,
+     supr: Type,
+     typContext: SignatureContext,
+     suprContext: SignatureContext
+  ): State[VariableBindings, Boolean] = {
+    val typVariance = writeVariancesFromDRI(typ)
+    val suprVariance = writeVariancesFromDRI(supr)
+    typVariance.params.zip(suprVariance.params).toList.traverse {
+      case (typParam, suprParam) => checkByVariance(typParam, suprParam, typContext, suprContext)
+    }.map(_.forall(identity))
+  }
+
+  def checkByVariance(
+    typ:         Variance,
+    supr:        Variance,
     typContext:  SignatureContext,
     suprContext: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    writeVariancesFromDRI(typ).params
-      .zip(writeVariancesFromDRI(supr).params)
-      .toList
-      .traverse { //TODO one of them will always be resolved as Invariant
+    (typ, supr) match { //TODO one of them will always be resolved as Invariant
         case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
           State.pure[VariableBindings, Boolean](true)
         case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, typContext, suprContext)
@@ -226,7 +229,6 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
         case (Invariance(typParam), Invariance(suprParam)) =>
           State.pure[VariableBindings, Boolean](typParam == suprParam)
       }
-      .map(_.forall(identity))
   }
 
   private def writeVariancesFromDRI: Type => Type = {

@@ -123,9 +123,9 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
   private def convert(sgn: Signature): Either[String, Signature] = {
     val converter: Type => Type = resolve(sgn.context.vars)
     sgn
-      .modifyAll(_.receiver.each, _.result)
+      .modifyAll(_.receiver.each.typ, _.result.typ)
       .using(converter)
-      .modify(_.arguments.each)
+      .modify(_.arguments.each.typ)
       .using(converter)
       .modify(_.context.constraints.each.each)
       .using(converter)
@@ -164,13 +164,15 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
     )
 
   private def validateTypeParamsArgs(sgn: Signature): Either[String, Unit] = {
-    sgn.receiver.map(doValidateTypeParamsArgs).getOrElse(().right) >>
-      sgn.arguments.map(doValidateTypeParamsArgs).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
-      doValidateTypeParamsArgs(sgn.result) >>
+    sgn.receiver.map(doValidateVariance).getOrElse(().right) >>
+      sgn.arguments.map(doValidateVariance).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
+      doValidateVariance(sgn.result) >>
       sgn.context.constraints.values.toSeq.flatten
         .map(doValidateTypeParamsArgs)
         .foldLeft[Either[String, Unit]](().right)(_ >> _)
   }
+
+  private def doValidateVariance(v: Variance): Either[String, Unit] = doValidateTypeParamsArgs(v.typ)
 
   private def doValidateTypeParamsArgs(t: Type): Either[String, Unit] = {
     t match {

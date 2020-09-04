@@ -93,6 +93,8 @@ case object StarProjection extends Type {
   override def ? : Type = throw new RuntimeException("Operation not allowed!")
 
   override def isVariable: Boolean = false
+
+  override def toString: String = "*"
 }
 
 object Type {
