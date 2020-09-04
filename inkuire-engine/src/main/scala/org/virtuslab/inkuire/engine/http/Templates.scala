@@ -1,6 +1,8 @@
 package org.virtuslab.inkuire.engine.http
 
+import org.virtuslab.inkuire.model.OutputFormat
 import scalatags.Text.all._
+import collection.JavaConverters._
 
 object Templates {
   def formTemplate(): String = {
@@ -20,11 +22,23 @@ object Templates {
     ).toString()
   }
 
-  def result(results: List[String]): String = {
+  def result(results: OutputFormat): String = {
     html(
       body(
-        div(style := "text-align: center")(
-          for (res <- results) yield p(res)
+        h1(s"Result for: ${results.getQuery}"),
+        table(style := "width: 100%;")(
+          tr(
+            th(style := "text-align: left")("Name"),
+            th(style := "text-align: left")("Signature"),
+            th(style := "text-align: left")("Localization")
+          ),
+          for (res <- results.getMatches.asScala.toList)
+            yield
+              tr(
+                td(res.getFunctionName),
+                td(res.getPrettifiedSignature),
+                td(res.getLocalization)
+              )
         )
       )
     ).toString()

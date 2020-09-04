@@ -8,7 +8,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
     sgns.map(doPrettify).map(identity).mkString("\n")
 
   private def doPrettify(esgn: ExternalSignature): String =
-    s"${esgn.name}: ${prettifySignature(esgn.signature)}"
+    s"${prettifySignature(esgn.signature)}"
 
   private def prettifySignature(sgn: Signature): String = {
     s"${prettifyTypeVariables(sgn.context)}" +

@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(project(":inkuire-common"))
     testCompile("junit", "junit", "4.12")
 }
 
