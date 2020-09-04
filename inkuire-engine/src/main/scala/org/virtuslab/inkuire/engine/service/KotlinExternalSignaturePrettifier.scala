@@ -47,6 +47,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
       case GenericType(TypeVariable(name, nullable, _), params) =>
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
+      case StarProjection => "*"
       case _ => t.toString
     }
   }

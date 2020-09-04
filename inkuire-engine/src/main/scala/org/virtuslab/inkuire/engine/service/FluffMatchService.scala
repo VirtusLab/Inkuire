@@ -30,10 +30,9 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {
-      receiver <- signature.receiver.map(r =>
-        resolvePossibleTypes(r.typ))
-          .fold[Seq[Option[Contravariance]]](Seq.empty)(_.map(r => Contravariance(r).some)
-      )
+      receiver <- signature.receiver
+        .fold[Seq[Option[Type]]](Seq(None))(r => resolvePossibleTypes(r.typ).map(_.some))
+        .map(_.map(Contravariance))
       args <- resolveMultipleTypes(signature.arguments.map(_.typ)).map(_.map(Contravariance))
       result <- resolvePossibleTypes(signature.result.typ).map(Covariance)
       constraints = signature.context.constraints.view
@@ -99,19 +98,20 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
         .traverse {
           case (externalType, queryType) =>
             ancestryGraph.checkByVariance(
-              typ = externalType,
-              supr = queryType,
-              typContext = external.context,
+              typ         = externalType,
+              supr        = queryType,
+              typContext  = external.context,
               suprContext = query.context
             )
-        }.map(_.forall(identity))
+        }
+        .map(_.forall(identity))
     } else State.pure(false)
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
     //TODO can be done better
-    bindings.bindings.forall{
-      case (_, binded) => binded
+    bindings.bindings.values.forall { types =>
+      types
         .sliding(2, 1)
         .forall {
           case a :: b :: Nil => a.dri == b.dri
@@ -128,7 +128,7 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     typ:         Type,
     supr:        Type,
     typContext:  SignatureContext,
-    suprContext: SignatureContext,
+    suprContext: SignatureContext
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
       case (StarProjection, _) => State.pure(true)
@@ -202,16 +202,20 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     }
 
   private def checkTypeParamsByVariance(
-     typ: Type,
-     supr: Type,
-     typContext: SignatureContext,
-     suprContext: SignatureContext
+    typ:         Type,
+    supr:        Type,
+    typContext:  SignatureContext,
+    suprContext: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    val typVariance = writeVariancesFromDRI(typ)
+    val typVariance  = writeVariancesFromDRI(typ)
     val suprVariance = writeVariancesFromDRI(supr)
-    typVariance.params.zip(suprVariance.params).toList.traverse {
-      case (typParam, suprParam) => checkByVariance(typParam, suprParam, typContext, suprContext)
-    }.map(_.forall(identity))
+    typVariance.params
+      .zip(suprVariance.params)
+      .toList
+      .traverse {
+        case (typParam, suprParam) => checkByVariance(typParam, suprParam, typContext, suprContext)
+      }
+      .map(_.forall(identity))
   }
 
   def checkByVariance(
@@ -220,15 +224,15 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
     typContext:  SignatureContext,
     suprContext: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    (typ, supr) match { //TODO one of them will always be resolved as Invariant
-        case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
-          State.pure[VariableBindings, Boolean](true)
-        case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, typContext, suprContext)
-        case (Contravariance(typParam), Contravariance(suprParam)) =>
-          isSubType(suprParam, typParam, suprContext, typContext)
-        case (Invariance(typParam), Invariance(suprParam)) =>
-          State.pure[VariableBindings, Boolean](typParam == suprParam)
-      }
+    (typ, supr) match {
+      case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
+        State.pure[VariableBindings, Boolean](true)
+      case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, typContext, suprContext)
+      case (Contravariance(typParam), Contravariance(suprParam)) =>
+        isSubType(suprParam, typParam, suprContext, typContext)
+      case (Invariance(typParam), Invariance(suprParam)) =>
+        State.pure[VariableBindings, Boolean](typParam == suprParam)
+    }
   }
 
   private def writeVariancesFromDRI: Type => Type = {
