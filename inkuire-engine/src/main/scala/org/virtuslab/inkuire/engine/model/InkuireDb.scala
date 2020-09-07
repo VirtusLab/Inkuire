@@ -113,9 +113,10 @@ object InkuireDb {
     def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
-          val rcv  = receiver.map(mapTypesParametersVariance(types))
-          val args = arguments.map(mapTypesParametersVariance(types))
-          val rst = result match {
+          import com.softwaremill.quicklens._
+          val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val rst = result.modify(_.typ).using {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
             case typ => typ
           }
@@ -126,11 +127,11 @@ object InkuireDb {
       receiver.map { eSgn =>
         eSgn.modify(_.signature).using { sgn =>
           sgn
-            .modify(_.receiver.each)
+            .modify(_.receiver.each.typ)
             .using(remapFunctionTypeDRIs(types, _))
-            .modify(_.arguments.each)
+            .modify(_.arguments.each.typ)
             .using(remapFunctionTypeDRIs(types, _))
-            .modify(_.result)
+            .modify(_.result.typ)
             .using(remapFunctionTypeDRIs(types, _))
         }
       }
