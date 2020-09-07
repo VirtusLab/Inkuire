@@ -1,36 +1,36 @@
 package org.virtuslab.inkuire.engine.cli
 
+import java.nio.file.Paths
+
 import cats.Id
 import cats.data.EitherT
 import cats.data.StateT
 import cats.instances.all._
 import cats.syntax.all._
 import cats.effect.IO
-import org.virtuslab.inkuire.engine.api.{InputHandler, OutputHandler}
+import org.virtuslab.inkuire.engine.api.{ConfigReader, InputHandler, OutputHandler}
 import org.virtuslab.inkuire.engine.utils.syntax._
-import org.virtuslab.inkuire.engine.cli.model.{CliContext, CliParam}
-import org.virtuslab.inkuire.engine.model.InkuireDb
+import org.virtuslab.inkuire.engine.model.{AppConfig, AppParam, InkuireDb}
 import org.virtuslab.inkuire.engine.model.Engine._
 import org.virtuslab.inkuire.engine.utils.helpers.IOHelpers
 
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
 
-class Cli extends InputHandler with OutputHandler with IOHelpers {
+class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
 
   @tailrec
-  private def parseArgs(
-    args: List[String],
-    agg:  Either[String, List[CliParam]] = List.empty.right
-  ): Either[String, List[CliParam]] = {
+  private def parseArgs[P](f: (String, String) => Either[String, P])(
+    args:                     List[String],
+    agg:                      Either[String, List[P]] = List.empty.right
+  ): Either[String, List[P]] = {
     args match {
       case Nil => agg
       case opt :: v :: tail =>
-        parseArgs(
+        parseArgs(f)(
           tail,
           agg >>= { list =>
-            CliParam
-              .parseCliOption(opt, v)
+            f(opt, v)
               .fmap(list :+ _)
           }
         )
@@ -52,7 +52,7 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
         .parse(input)
         .fold(
           handleSyntaxError,
-          s => printlnIO(env.prettifier.prettify(env.matcher |??| s)).liftApp
+          s => putStrLn(env.prettifier.prettify(env.matcher |??| s)).liftApp
         )
     }
   }
@@ -71,12 +71,23 @@ class Cli extends InputHandler with OutputHandler with IOHelpers {
     }
   }
 
-  def readInput(args: Seq[String]): EitherT[IO, String, InkuireDb] = {
-    parseArgs(args.toList)
-      .map(CliContext.create)
-      .flatMap(ctx => InkuireDb.read(ctx.dbFiles, ctx.ancestryFiles))
+  private def toFile(path: String) = Paths.get(path).toFile
+
+  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
+    InkuireDb
+      .read(
+        appConfig.bdPaths.toList.map(path            => toFile(path.path)),
+        appConfig.ancestryGraphPaths.toList.map(path => toFile(path.path))
+      )
       .traverse(value => IO { value })
       .pure[Id]
       .fmap(new EitherT(_))
+  }
+
+  override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
+    parseArgs(AppParam.parseCliOption)(args.toList)
+      .map(AppConfig.create)
+      .pure[Id]
+      .fmap(config => new EitherT(IO(config)))
   }
 }
