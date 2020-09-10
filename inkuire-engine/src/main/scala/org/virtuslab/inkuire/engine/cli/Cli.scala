@@ -1,5 +1,6 @@
 package org.virtuslab.inkuire.engine.cli
 
+import java.net.URL
 import java.nio.file.Paths
 
 import cats.Id
@@ -71,13 +72,13 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
     }
   }
 
-  private def toFile(path: String) = Paths.get(path).toFile
+  private def toURL(path: String) = new URL(path)
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     InkuireDb
       .read(
-        appConfig.bdPaths.toList.map(path            => toFile(path.path)),
-        appConfig.ancestryGraphPaths.toList.map(path => toFile(path.path))
+        appConfig.bdPaths.toList.map(path            => toURL(path.path)),
+        appConfig.ancestryGraphPaths.toList.map(path => toURL(path.path))
       )
       .traverse(value => IO { value })
       .pure[Id]

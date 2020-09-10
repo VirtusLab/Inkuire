@@ -1,6 +1,7 @@
 package org.virtuslab.inkuire.engine.model
 
-import java.io.{File, FileReader}
+import java.io.{BufferedReader, File, FileReader, InputStreamReader}
+import java.net.URL
 
 import com.google.gson.{JsonIOException, JsonSyntaxException}
 import com.google.gson.reflect.TypeToken
@@ -34,7 +35,7 @@ object InkuireDb {
 
   val translationService: DokkaModelTranslationService = DefaultDokkaModelTranslationService
 
-  def read(functionFiles: List[File], ancestryFiles: List[File]): Either[String, InkuireDb] = {
+  def read(functionFiles: List[URL], ancestryFiles: List[URL]): Either[String, InkuireDb] = {
     try {
 
       val ancestryGraph = ancestryFilesToTypes(ancestryFiles).populateMissingAnyAncestor
@@ -50,12 +51,12 @@ object InkuireDb {
     }
   }
 
-  private def functionFilesToExternalSignatures(functionFiles: List[File]): Seq[ExternalSignature] =
+  private def functionFilesToExternalSignatures(functionFiles: List[URL]): Seq[ExternalSignature] =
     functionFiles
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
           .fromJson(
-            new FileReader(file),
+            new BufferedReader(new InputStreamReader(file.openStream())),
             new TypeToken[Array[SDFunction]] {}.getType
           )
           .asInstanceOf[Array[SDFunction]]
@@ -63,12 +64,12 @@ object InkuireDb {
       }
       .flatMap(translationService.translateFunction)
 
-  private def ancestryFilesToTypes(ancestryFiles: List[File]): Map[DRI, (Type, Seq[Type])] =
+  private def ancestryFilesToTypes(ancestryFiles: List[URL]): Map[DRI, (Type, Seq[Type])] =
     ancestryFiles
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
           .fromJson(
-            new FileReader(file),
+            new BufferedReader(new InputStreamReader(file.openStream())),
             new TypeToken[Array[AncestryGraph]] {}.getType
           )
           .asInstanceOf[Array[AncestryGraph]]
@@ -114,7 +115,7 @@ object InkuireDb {
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           import com.softwaremill.quicklens._
-          val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val rcv  = receiver.map(r  => r.modify(_.typ).using(mapTypesParametersVariance(types)))
           val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
           val rst = result.modify(_.typ).using {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)

@@ -1,0 +1,51 @@
+name: S3-SNAPSHOTS
+
+on:
+  push
+env:
+  branch-name: ${GITHUB_REF#refs/heads/}
+  bucket-name: 'inkuire-db'
+
+jobs:
+  stdlib:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Inkuire
+        uses: actions/checkout@v2
+        with:
+          path: inkuire
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Publish plugin to maven local
+        run: ./gradlew clean publishToMavenLocal --stacktrace
+        working-directory: ./inkuire
+
+      - name: Checkout Kotlin stdlib
+        uses: actions/checkout@v2
+        with:
+          repository: 'pikinier20/kotlin-dokka-stdlib'
+          ref: 'inkuire'
+          path: stdlib
+
+      - name: Create database from stdlib
+        run: ./gradlew clean extractAll cleanupSources dokkaStdlib --stacktrace
+        working-directory: ./stdlib
+
+      - name: Configure AWS credentials for S3 access
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Copy files to S3
+        run: |
+          aws s3 --recursive rm s3://${{ env.bucket-name }}/${{ env.branch-name }}/stdlib/prev
+          aws s3 --recursive mv s3://${{ env.bucket-name }}/${{ env.branch-name }}/stdlib-latest s3://${{ env.bucket-name }}/${{ env.branch-name }}/stdlib/prev
+          aws s3 sync ./stdlib/build/dokka s3://${{ env.bucket-name }}/${{ env.branch-name }}/stdlib/latest
+
+      - name: Print link
+        run: echo http://{{ env.bucket-name }}.s3.eu-central-1.amazonaws.com/${{ env.branch-name }}/stdlib/latest/kotlin-stdlib
