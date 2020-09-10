@@ -55,7 +55,7 @@ class HttpServer extends OutputHandler {
       .orNotFound
 
     BlazeServerBuilder[IO]
-      .bindHttp(8080, "localhost")
+      .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
       .withHttpApp(app)
       .resource
       .use(_ => IO.never)
