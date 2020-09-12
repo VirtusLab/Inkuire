@@ -57,6 +57,15 @@ dependencies {
 
 application.mainClassName = "org.virtuslab.inkuire.engine.Main"
 
+val fatJar = task("fatJar", type = Jar::class) {
+    baseName = "${project.name}-fatJar"
+    manifest {
+        attributes["Main-Class"] = "org.virtuslab.inkuire.engine.Main"
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    with(tasks.jar.get() as CopySpec)
+}
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"

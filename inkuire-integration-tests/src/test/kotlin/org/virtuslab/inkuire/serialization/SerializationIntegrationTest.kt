@@ -79,6 +79,11 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 "jvm" in it.name || "common" in it.name
             }.partition {
                 "functions" in it.name
+            }.let {
+                Pair(
+                        it.first.map { it.toURI().toURL() },
+                        it.second.map { it.toURI().toURL() }
+                )
             }
 
             inkuireDb = InkuireDb.read(asScala(functions).toList(), asScala(ancestors).toList()).toOption().get()

@@ -8,8 +8,8 @@ import org.virtuslab.inkuire.engine.BaseInkuireTest
 class ModelMappingTest extends BaseInkuireTest {
   it should "map global function" in {
     //given
-    val source = Paths.get("src/test", "resources", "modelTestData", "functions", "1.json").toFile
-    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
+    val source = Paths.get("src/test", "resources", "modelTestData", "functions", "1.json").toFile.toURI.toURL
+    val any    = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL
 
     //when
     val inkuire = InkuireDb.read(List(source), List(any))
@@ -32,8 +32,8 @@ class ModelMappingTest extends BaseInkuireTest {
 
   it should "map method" in {
     //given
-    val source = Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile
-    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
+    val source = Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile.toURI.toURL
+    val any    = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL
 
     //when
     val inkuire = InkuireDb.read(List(source), List(any))
@@ -56,8 +56,8 @@ class ModelMappingTest extends BaseInkuireTest {
 
   it should "load ancestors" in {
     //given
-    val ancestors = Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile
-    val any = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile
+    val ancestors = Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL
+    val any       = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL
 
     //when
     val inkuire = InkuireDb.read(List.empty, List(ancestors, any))
