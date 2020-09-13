@@ -20,4 +20,8 @@ class ClassWithFunctions(i: Int) {
         return i.toFloat()
     }
 
+    val `ClassWithFunctions·() → Int`: Int = 1
+
+    val String.`with(ClassWithFunctions) { String·() → Int }`: Int
+        get() = this.length
 }
