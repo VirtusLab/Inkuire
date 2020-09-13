@@ -1,7 +1,6 @@
 plugins {
     id("org.jetbrains.intellij") version "0.4.21"
     java
-    kotlin("jvm")
 }
 
 group = "org.virtuslab"
