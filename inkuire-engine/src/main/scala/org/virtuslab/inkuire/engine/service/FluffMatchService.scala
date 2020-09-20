@@ -1,7 +1,6 @@
 package org.virtuslab.inkuire.engine.service
 
 import cats.data.State
-import cats.implicits.catsSyntaxOptionId
 import org.virtuslab.inkuire.engine.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
@@ -19,7 +18,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     inkuireDb.functions.filter { eSgn =>
       signatures.exists { sgn =>
         val ok = for {
-          okTypes <- checkTypes(eSgn.signature, sgn)
+          okTypes <- ancestryGraph.checkTypesWithVariances(
+            eSgn.signature.typesWithVariances,
+            sgn.typesWithVariances,
+            eSgn.signature.context |+| sgn.context
+          )
           bindings <- State.get[VariableBindings]
           okBindings = checkBindings(bindings)
         } yield okTypes && okBindings
@@ -88,26 +91,6 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  private def checkTypes(external: Signature, query: Signature): State[VariableBindings, Boolean] = {
-    val eTypes = external.types
-    val qTypes = query.types
-    if (eTypes.size == qTypes.size) {
-      external.types
-        .zip(query.types)
-        .toList
-        .traverse {
-          case (externalType, queryType) =>
-            ancestryGraph.checkByVariance(
-              typ         = externalType,
-              supr        = queryType,
-              typContext  = external.context,
-              suprContext = query.context
-            )
-        }
-        .map(_.forall(identity))
-    } else State.pure(false)
-  }
-
   private def checkBindings(bindings: VariableBindings): Boolean = {
     //TODO can be done better
     bindings.bindings.values.forall { types =>
@@ -125,49 +108,48 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
 
   //TODO #55 Consider making a common context for constraints from both signatures
   def isSubType(
-    typ:         Type,
-    supr:        Type,
-    typContext:  SignatureContext,
-    suprContext: SignatureContext
+    typ:     Type,
+    supr:    Type,
+    context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
       case (StarProjection, _) => State.pure(true)
       case (_, StarProjection) => State.pure(true)
       case (typ: TypeVariable, supr: TypeVariable) =>
-        val typConstraints  = typContext.constraints.get(typ.name.name).toSeq.flatten
-        val suprConstraints = suprContext.constraints.get(supr.name.name).toSeq.flatten
+        val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
+        val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
         State.modify[VariableBindings](_.add(typ.dri.get, supr).add(supr.dri.get, typ)) >>
           State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
       case (typ, supr: TypeVariable) =>
-        val constraints = suprContext.constraints.get(supr.name.name).toSeq.flatten.toList
+        val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
         for {
           _ <- State.modify[VariableBindings](_.add(supr.dri.get, typ))
           checks <- constraints.traverse { t =>
-            isSubType(typ, t, typContext, suprContext)
+            isSubType(typ, t, context)
           }
         } yield checks.forall(identity)
       case (typ: TypeVariable, supr) =>
-        val constraints = typContext.constraints.get(typ.name.name).toSeq.flatten.toList
+        val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
         for {
           _ <- State.modify[VariableBindings](_.add(typ.dri.get, supr))
           checks <- constraints.traverse { t =>
-            isSubType(t, supr, typContext, suprContext)
+            isSubType(t, supr, context)
           }
         } yield constraints.isEmpty || checks.exists(identity)
       case (typ: GenericType, _) if typ.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
       case (_, supr: GenericType) if supr.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
-      case (typ, supr) if typ.dri == supr.dri => checkTypeParamsByVariance(typ, supr, typContext, suprContext)
+      case (typ, supr) if typ.dri == supr.dri => checkTypeParamsByVariance(typ, supr, context)
       case (typ, supr) =>
         typ.dri.fold {
           // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
           val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1)).toList
-          ts.traverse(n => isSubType(n, supr, typContext, suprContext)).map(_.exists(identity))
+          ts.traverse(n => isSubType(n, supr, context)).map(_.exists(identity))
         } { dri =>
           if (nodes.contains(dri))
             specializeParents(typ, nodes(dri)).toList
-              .traverse(isSubType(_, supr, typContext, suprContext))
+              .traverse(isSubType(_, supr, context))
               .map(_.exists(identity))
           else State.pure(false) //TODO remove when everything is correctly resolved
         }
@@ -201,35 +183,43 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends FluffServic
       case _ => possibleMatch
     }
 
+  def checkTypesWithVariances(
+    types:   Seq[Variance],
+    suprs:   Seq[Variance],
+    context: SignatureContext
+  ): State[VariableBindings, Boolean] = {
+    if (types.size == suprs.size) {
+      types
+        .zip(suprs)
+        .toList
+        .traverse {
+          case (externalType, queryType) => checkByVariance(externalType, queryType, context)
+        }
+        .map(_.forall(identity))
+    } else State.pure(false)
+  }
+
   private def checkTypeParamsByVariance(
-    typ:         Type,
-    supr:        Type,
-    typContext:  SignatureContext,
-    suprContext: SignatureContext
+    typ:     Type,
+    supr:    Type,
+    context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     val typVariance  = writeVariancesFromDRI(typ)
     val suprVariance = writeVariancesFromDRI(supr)
-    typVariance.params
-      .zip(suprVariance.params)
-      .toList
-      .traverse {
-        case (typParam, suprParam) => checkByVariance(typParam, suprParam, typContext, suprContext)
-      }
-      .map(_.forall(identity))
+    checkTypesWithVariances(typVariance.params, suprVariance.params, context)
   }
 
   def checkByVariance(
-    typ:         Variance,
-    supr:        Variance,
-    typContext:  SignatureContext,
-    suprContext: SignatureContext
+    typ:     Variance,
+    supr:    Variance,
+    context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
       case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
         State.pure[VariableBindings, Boolean](true)
-      case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, typContext, suprContext)
+      case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
-        isSubType(suprParam, typParam, suprContext, typContext)
+        isSubType(suprParam, typParam, context)
       case (Invariance(typParam), Invariance(suprParam)) =>
         State.pure[VariableBindings, Boolean](typParam == suprParam)
     }
