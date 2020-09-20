@@ -7,7 +7,6 @@ plugins {
     scala
     id("com.github.maiflai.scalatest") version "0.26"
     application
-    kotlin("jvm")
 }
 
 repositories {
