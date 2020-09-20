@@ -28,3 +28,8 @@ fun `(String·(String) → Int) → Unit`(s: String.(String) -> Int): Unit {
     println("Galadriela said: ".s("Even the smallest person can change the course of the future."))
     println(s("Galadriela said: ", "Even the smallest person can change the course of the future."))
 }
+
+val String.`String·() → Int`: Int
+    get() = this.length
+
+

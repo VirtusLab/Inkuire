@@ -267,6 +267,36 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         ))
     }
 
+    @Test
+    fun `deserialize extension property String·() → Int`() {
+        val sig = inkuireDb.functions().findSignature("getString·() → Int").single()
+        sig.signature().run {
+            assertTrue((receiver().get().typ() as ConcreteType).name().name().contains("String"))
+            assertTrue((result().typ() as ConcreteType).name().name().contains("Int"))
+            assertEquals(arguments().size(), 0)
+        }
+    }
+
+    @Test
+    fun `deserialize getter of property ClassWithFunctions returning Int`() {
+        val sig = inkuireDb.functions().findSignature("getClassWithFunctions·() → Int").single()
+        sig.signature().run {
+            assertTrue((receiver().get().typ() as ConcreteType).name().name().contains("ClassWithFunctions"))
+            assertTrue((result().typ() as ConcreteType).name().name().contains("Int"))
+            assertEquals(arguments().size(), 0)
+        }
+    }
+
+    @Test
+    fun `deserialize getter of extension property ClassWithFunctions getting String returning Int`() {
+        val sig = inkuireDb.functions().findSignature("getWith(ClassWithFunctions) { String·() → Int }").single()
+        sig.signature().run {
+            assertTrue((receiver().get().typ() as ConcreteType).name().name().contains("String"))
+            assertTrue((result().typ() as ConcreteType).name().name().contains("Int"))
+            assertEquals(arguments().size(), 0)
+        }
+    }
+
     private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(filter {
         it.name() == name
     })
