@@ -26,10 +26,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         private val testDataDir = getTestDataDir("projects/basic-multiplatform/src").toAbsolutePath()
 
         val configuration = dokkaConfiguration {
-
+            moduleName = "example"
             sourceSets {
                 val common = sourceSet {
-                    moduleName = "example"
                     displayName = "common"
                     name = "common"
                     analysisPlatform = "common"
@@ -38,17 +37,15 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                     }
                 }
                 sourceSet {
-                    moduleName = "example"
                     displayName = "js"
                     name = "js"
                     analysisPlatform = "js"
                     sourceRoots = listOf("jsMain").map {
                         Paths.get("$testDataDir/$it/kotlin").toString()
                     }
-                    dependentSourceSets = setOf(common.sourceSetID)
+                    dependentSourceSets = setOf(common.value.sourceSetID)
                 }
                 sourceSet {
-                    moduleName = "example"
                     displayName = "jvm"
                     name = "jvm"
                     analysisPlatform = "jvm"
@@ -57,7 +54,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                     } + listOf("jvmMain").map {
                         Paths.get("$testDataDir/$it/java").toString()
                     }
-                    dependentSourceSets = setOf(common.sourceSetID)
+                    dependentSourceSets = setOf(common.value.sourceSetID)
                 }
             }
         }

@@ -120,7 +120,18 @@ class ModelMappingTest extends BaseInkuireTest {
             "kotlin/Any///PointingToDeclaration/"
           ).some
         ),
-        Seq.empty
+        Seq(
+          ConcreteType(
+            "Any",
+            false,
+            DRI(
+              "kotlin".some,
+              "Any".some,
+              None,
+              "kotlin/Any///PointingToDeclaration/"
+            ).some
+          )
+        )
       )
     )
 
