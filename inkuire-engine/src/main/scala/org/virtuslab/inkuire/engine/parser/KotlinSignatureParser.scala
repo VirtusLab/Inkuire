@@ -22,13 +22,15 @@ class KotlinSignatureParser extends BaseSignatureParser {
     typ ~ nullability ^^ { case typ ~ nullable => if (nullable) typ.? else typ }
 
   def singleType: Parser[Type] =
-    functionType |
+    starProjection |
+      functionType |
       typ |
       nullable("(" ~> singleType <~ ")")
 
   def receiverType: Parser[Type] =
     nullable("(" ~> functionType <~ ")") |
       ("(" ~> functionType <~ ")") |
+      starProjection |
       typ |
       nullable("(" ~> receiverType <~ ")")
 
@@ -46,13 +48,13 @@ class KotlinSignatureParser extends BaseSignatureParser {
   }
 
   def genericType: Parser[Type] =
-    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ { case baseType ~ types => GenericType(baseType, types.map(UnresolvedVariance)) })
+    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ {
+      case baseType ~ types => GenericType(baseType, types.map(UnresolvedVariance))
+    })
 
   def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
-  def typeArgument: Parser[Type] = singleType | starProjection
-
-  def typeArguments: Parser[Seq[Type]] = list(typeArgument) | empty[List[Type]]
+  def typeArguments: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
   def constraint: Parser[(String, Type)] =
     (identifier <~ ":") ~ singleType ^^ { case id ~ typ => (id, typ) }
