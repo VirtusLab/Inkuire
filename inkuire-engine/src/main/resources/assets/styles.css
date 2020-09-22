@@ -1,0 +1,80 @@
+body {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    flex-direction: column;
+    font-family: 'Ubuntu', monospace;
+    background: rgb(255,255,255);
+    background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(250,252,238,1) 100%);
+}
+
+#header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    font-size: large;
+}
+
+.form-div {
+    vertical-align: middle;
+    text-align: center; 
+    width: 600px;
+}
+
+.query-form {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.query-input {
+    width: 80%;
+}
+
+.query-button {
+    width: 20%;
+}
+
+#logo {
+    width: 800px;
+}
+
+.btn {
+    width: 90%;
+}
+
+.bg-primary {
+    background-color: #64BD3B;
+}
+
+.code {
+    font-family: 'Fira-Code', monospace;
+}
+
+#table-container {
+    width: 90%;
+    background-color: white;
+    border: 1px solid gray;
+    padding: 25px;
+    border-radius: 25px;
+}
+
+.result-table-header th {
+    color: black;
+    background-color: #D29D09;
+    border-color: #D29D09;
+}
+
+.left-header-cell {
+    background-color: #D29D09;
+    padding: 10px;
+    border: 1px solid #D29D09;
+    border-radius: 10px 0px 0px 10px;
+}
+
+.right-header-cell {
+    background-color: #D29D09;
+    padding: 10px;
+    border: 1px solid #D29D09;
+    border-radius: 0px 10px 10px 0px;
+}
