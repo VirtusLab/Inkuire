@@ -109,6 +109,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           acc.map(_ :+ elem._2) ++ acc
         }
       }
+    val dri = translateDRI(f.getDri)
 
     parametersCombinations.map { params =>
       ExternalSignature(
@@ -119,8 +120,9 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           translateTypeVariables(f)
         ),
         f.getName,
-        f.getDri.getOriginal
+        Seq(dri.packageName, dri.className).flatten.mkString(".")
       )
     }
   }
+
 }
