@@ -4,7 +4,7 @@ on:
   push
 env:
   branch-name: ${GITHUB_REF#refs/heads/}
-  bucket-name: 'inkuire-db'
+  bucket-name: 'inkuire'
 
 jobs:
   stdlib:
@@ -48,4 +48,4 @@ jobs:
           aws s3 sync ./stdlib/build/dokka s3://${{ env.bucket-name }}/${{ env.branch-name }}/stdlib/latest
 
       - name: Print link
-        run: echo http://{{ env.bucket-name }}.s3.eu-central-1.amazonaws.com/${{ env.branch-name }}/stdlib/latest/kotlin-stdlib
+        run: echo http://${{ env.bucket-name }}.s3.eu-central-1.amazonaws.com/${{ env.branch-name }}/stdlib/latest/kotlin-stdlib
