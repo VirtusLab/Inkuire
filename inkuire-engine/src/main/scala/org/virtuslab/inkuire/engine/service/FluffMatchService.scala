@@ -92,7 +92,6 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
-    //TODO can be done better
     bindings.bindings.values.forall { types =>
       types
         .sliding(2, 1)
@@ -100,7 +99,53 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           case a :: b :: Nil => a.dri == b.dri
           case _             => true
         }
-    }
+    } && !TypeVariablesGraph(bindings).hasCyclicDependency
+  }
+}
+
+case class TypeVariablesGraph(variableBindings: VariableBindings) {
+  val dependencyGraph: Map[DRI, Seq[DRI]] = variableBindings.bindings.view
+    .mapValues(_.flatMap {
+      case g: GenericType => retrieveVariables(g)
+      case _ => Seq()
+    }.distinct)
+    .toMap
+
+  private def retrieveVariables(t: Type): Seq[DRI] = t match {
+    case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
+    case t: TypeVariable => Seq(t.dri.get)
+    case _ => Seq()
+  }
+
+  def hasCyclicDependency: Boolean = {
+    case class DfsState(visited: Set[DRI] = Set.empty, stack: Set[DRI] = Set.empty)
+
+    def loop(current: DRI): State[DfsState, Boolean] =
+      for {
+        dfsState <- State.get[DfsState]
+        cycle    = dfsState.stack.contains(current)
+        visited  = dfsState.visited.contains(current)
+        newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
+        _ <- State.set[DfsState](newState)
+        f <- if (!visited)
+          dependencyGraph
+            .getOrElse(current, Seq())
+            .toList
+            .traverse(loop)
+        else State.pure[DfsState, List[Boolean]](List())
+        _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
+      } yield cycle || f.exists(identity)
+
+    dependencyGraph.keys.toList
+      .traverse { v =>
+        for {
+          dfsState <- State.get[DfsState]
+          flag <- if (dfsState.visited.contains(v)) State.pure[DfsState, Boolean](false) else loop(v)
+        } yield flag
+      }
+      .map(_.exists(identity))
+      .runA(DfsState())
+      .value
   }
 }
 
