@@ -4,10 +4,10 @@ import cats.effect._
 import cats.implicits._
 import com.google.gson.Gson
 import org.http4s.dsl.io._
-import org.http4s.headers.`Content-Type`
+import org.http4s.headers.{`Content-Type`, Location}
 import org.http4s.implicits._
 import org.http4s.server.blaze._
-import org.http4s.{HttpRoutes, MediaType, Request, StaticFile, UrlForm}
+import org.http4s.{HttpRoutes, MediaType, Request, StaticFile, Uri, UrlForm}
 import org.virtuslab.inkuire.engine.api.OutputHandler
 import org.virtuslab.inkuire.engine.model.Engine._
 import org.virtuslab.inkuire.model.OutputFormat
@@ -60,6 +60,12 @@ class HttpServer extends OutputHandler {
                   gson.toJson(fb),
                   `Content-Type`(MediaType.application.json)
               )
+            )
+          case GET -> Root =>
+            Found(
+              Templates.rootPage,
+              Location(uri"/query"),
+              `Content-Type`(MediaType.text.html)
             )
           case req @ GET -> Root / "assets" / path => static(s"assets/$path", b, req)
         }

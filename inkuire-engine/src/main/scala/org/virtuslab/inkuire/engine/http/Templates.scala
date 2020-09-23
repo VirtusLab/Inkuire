@@ -106,4 +106,18 @@ object Templates {
       )
     ).toString()
   }
+
+  def rootPage: String =
+    html(
+      head(
+        meta(httpEquiv := "refresh", content := "0; url=./query"),
+        script(raw("""window.location.replace("./query")"""))
+      ),
+      body(
+        p(
+          "If you wasn't redirected, click this ",
+          a(href := "./query")("link")
+        )
+      )
+    ).toString
 }
