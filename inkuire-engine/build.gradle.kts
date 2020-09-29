@@ -39,6 +39,7 @@ dependencies {
     implementation("io.scalaland:chimney_$scalaVersion:0.5.1")
     implementation("org.scala-lang.modules:scala-parser-combinators_$scalaVersion:1.1.2")
     implementation("com.google.code.gson:gson:2.8.6")
+    implementation("com.github.pureconfig:pureconfig_$scalaVersion:0.14.0")
 
     val http4sVersion = "0.21.0"
 

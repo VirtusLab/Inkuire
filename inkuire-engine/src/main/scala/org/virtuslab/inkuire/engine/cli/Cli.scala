@@ -77,7 +77,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     InkuireDb
       .read(
-        appConfig.bdPaths.toList.map(path            => toURL(path.path)),
+        appConfig.dbPaths.toList.map(path            => toURL(path.path)),
         appConfig.ancestryGraphPaths.toList.map(path => toURL(path.path))
       )
       .traverse(value => IO { value })
@@ -87,7 +87,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
     parseArgs(AppParam.parseCliOption)(args.toList)
-      .map(AppConfig.create)
+      .flatMap(AppConfig.create)
       .pure[Id]
       .fmap(config => new EitherT(IO(config)))
   }

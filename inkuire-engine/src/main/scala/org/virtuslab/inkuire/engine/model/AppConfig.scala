@@ -1,29 +1,33 @@
 package org.virtuslab.inkuire.engine.model
 
 import org.virtuslab.inkuire.engine.utils.syntax._
+import cats.implicits._
 
 case class AppConfig(
   address:            Address,
   port:               Port,
-  bdPaths:            Seq[DbPath],
+  dbPaths:            Seq[DbPath],
   ancestryGraphPaths: Seq[AncestryGraphPath]
 )
 
 object AppConfig {
-  def create(args: List[AppParam]): AppConfig = {
-    val addresses          = args.collect { case a: Address => a }.head
-    val ports              = args.collect { case p: Port => p }.head
-    val bdPaths            = args.collect { case a: DbPath => a }
-    val ancestryGraphPaths = args.collect { case p: AncestryGraphPath => p }
-    AppConfig(addresses, ports, bdPaths, ancestryGraphPaths)
+  def create(args: List[AppParam]): Either[String, AppConfig] = {
+    val address            = args.collectFirst { case a: Address           => a }.toRight(noConfigFoundString("address"))
+    val port               = args.collectFirst { case p: Port              => p }.toRight(noConfigFoundString("port"))
+    val dbPaths            = args.collect { case a:      DbPath            => a }.right[String]
+    val ancestryGraphPaths = args.collect { case p:      AncestryGraphPath => p }.right[String]
+    (address, port, dbPaths, ancestryGraphPaths).mapN(AppConfig.apply)
   }
+
+  private def noConfigFoundString(paramName: String) =
+    s"No value for config parameter '$paramName' found"
 }
 
-trait AppParam
-case class Address(address:        String) extends AppParam
-case class Port(port:              Int) extends AppParam
-case class DbPath(path:            String) extends AppParam
-case class AncestryGraphPath(path: String) extends AppParam
+trait AppParam extends Any
+case class Address(address:        String) extends AnyVal with AppParam
+case class Port(port:              Int) extends AnyVal with AppParam
+case class DbPath(path:            String) extends AnyVal with AppParam
+case class AncestryGraphPath(path: String) extends AnyVal with AppParam
 
 object AppParam {
   def parseCliOption(opt: String, v: String): Either[String, AppParam] =
