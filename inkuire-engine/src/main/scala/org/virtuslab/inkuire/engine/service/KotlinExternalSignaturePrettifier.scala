@@ -1,5 +1,6 @@
 package org.virtuslab.inkuire.engine.service
 
+import cats.data.NonEmptyList
 import org.virtuslab.inkuire.engine.model._
 
 class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
@@ -43,12 +44,21 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
     t match {
       case ConcreteType(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
       case TypeVariable(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
+      case GenericType(ConcreteType(name, nullable, _), params) if name.name.matches("Function.*") && params.nonEmpty =>
+        prettifyFunction(NonEmptyList.fromListUnsafe(params.toList), nullable)
       case GenericType(ConcreteType(name, nullable, _), params) =>
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
       case GenericType(TypeVariable(name, nullable, _), params) =>
         s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
       case StarProjection => "*"
-      case _ => t.toString
+      case _              => t.toString
     }
+  }
+
+  private def prettifyFunction(params: NonEmptyList[Variance], nullable: Boolean): String = {
+    val prettifiedFunction = s"(${prettifyArgs(params.init)}) -> ${prettifyType(params.last.typ)}"
+    if (nullable) {
+      s"($prettifiedFunction)?"
+    } else prettifiedFunction
   }
 }
