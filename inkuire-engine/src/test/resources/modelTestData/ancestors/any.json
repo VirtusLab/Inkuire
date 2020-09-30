@@ -15,6 +15,18 @@
       "modifier": "NONE",
       "boundkind": "typeconstructor"
     },
-    "projections": []
+    "superTypes": [
+      {
+        "dri": {
+          "packageName": "kotlin",
+          "className": "Any",
+          "original": "kotlin/Any///PointingToDeclaration/"
+        },
+        "projections": [],
+        "modifier": "NONE",
+        "boundkind": "typeconstructor",
+        "projectionkind":"bound"
+      }
+    ]
   }
 ]

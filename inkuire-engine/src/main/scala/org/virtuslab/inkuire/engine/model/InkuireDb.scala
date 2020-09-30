@@ -38,11 +38,10 @@ object InkuireDb {
   def read(functionFiles: List[URL], ancestryFiles: List[URL]): Either[String, InkuireDb] = {
     try {
 
-      val ancestryGraph = ancestryFilesToTypes(ancestryFiles).populateMissingAnyAncestor
+      val ancestryGraph = ancestryFilesToTypes(ancestryFiles)
 
       val functions = functionFilesToExternalSignatures(functionFiles)
         .populateVariances(ancestryGraph)
-        .remapFunctionDRIs(ancestryGraph)
 
       Right(new InkuireDb(functions, ancestryGraph))
     } catch {
@@ -75,7 +74,7 @@ object InkuireDb {
           .asInstanceOf[Array[AncestryGraph]]
       }
       .map { x: AncestryGraph =>
-        translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getProjections.asScala.toList
+        translateDRI(x.getDri) -> (translationService.translateProjection(x.getType) -> x.getSuperTypes.asScala.toList
           .map(translationService.translateProjection))
       }
       .toMap
@@ -87,17 +86,6 @@ object InkuireDb {
 
   implicit class AncestryGraphOps(val receiver: Map[DRI, (Type, Seq[Type])]) {
 
-    def populateMissingAnyAncestor: Map[DRI, (Type, Seq[Type])] = {
-      receiver
-      // TODO: Not working when there is no `Any` class provided to the database, logic should be moved to plugin #53
-      val any = receiver.values.map(_._1).filter(_.name == TypeName("Any")).head
-      receiver.toSeq
-        .modify(_.each._2)
-        .using {
-          case (t, l) => if (l.nonEmpty || t.name.name.contains("Any")) (t, l) else (t, List(any))
-        }
-        .toMap
-    }
     // TODO: Reconsider whether we need actually want to do this, and when
 //    def populateVariances: Map[DRI, (Type, Seq[Type])] = {
 //      receiver.map {
@@ -123,34 +111,6 @@ object InkuireDb {
           }
           ExternalSignature(Signature(rcv, args, rst, context), name, uri)
       }
-
-    def remapFunctionDRIs(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] = {
-      receiver.map { eSgn =>
-        eSgn.modify(_.signature).using { sgn =>
-          sgn
-            .modify(_.receiver.each.typ)
-            .using(remapFunctionTypeDRIs(types, _))
-            .modify(_.arguments.each.typ)
-            .using(remapFunctionTypeDRIs(types, _))
-            .modify(_.result.typ)
-            .using(remapFunctionTypeDRIs(types, _))
-        }
-      }
-    }
-
-    private def remapFunctionTypeDRIs(types: Map[DRI, (Type, Seq[Type])], typ: Type): Type = typ match {
-      case t: ConcreteType =>
-        t.modify(_.dri)
-          .setToIf(t.name.name.matches("Function.*"))(
-            types.values.filter(_._1.name == t.name).map(_._1).headOption.map(_.dri.get)
-          )
-      case t: GenericType =>
-        t.modify(_.base)
-          .using(remapFunctionTypeDRIs(types, _))
-          .modify(_.params.each.typ)
-          .using(remapFunctionTypeDRIs(types, _))
-      case t => t
-    }
   }
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {

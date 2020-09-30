@@ -1,9 +1,7 @@
 package org.virtuslab.inkuire.plugin
 
 import org.jetbrains.dokka.CoreExtensions
-import org.jetbrains.dokka.DokkaSourceSetID
 import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.plugability.ConfigurableBlock
 import org.jetbrains.dokka.plugability.DokkaPlugin
 
 class InkuireDokkaPlugin : DokkaPlugin() {

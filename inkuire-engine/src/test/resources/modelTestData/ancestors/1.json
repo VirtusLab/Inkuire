@@ -15,7 +15,7 @@
       "modifier": "NONE",
       "boundkind": "typeconstructor"
     },
-    "projections": [
+    "superTypes": [
       {
         "dri": {
           "packageName": "example",

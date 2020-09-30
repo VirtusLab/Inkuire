@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.model
 
 data class SDRI(
-    val packageName: String?,
-    val className: String?,
-    val callableName: String?,
+    val packageName: String? = null,
+    val className: String? = null,
+    val callableName: String? = null,
     val original: String
 ) {
     override fun toString(): String = original
@@ -34,7 +34,7 @@ data class SDTypeParameter(
 data class AncestryGraph(
     val dri: SDRI,
     val type: SBound,
-    val projections: List<SProjection>
+    val superTypes: List<SProjection>
 )
 
 
