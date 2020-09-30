@@ -1,6 +1,7 @@
 package org.virtuslab.inkuire.engine
 
 import org.virtuslab.inkuire.engine.cli.Cli
+import org.virtuslab.inkuire.engine.config.PureConfigReader
 import org.virtuslab.inkuire.engine.http.HttpServer
 import org.virtuslab.inkuire.engine.model.Engine.Env
 import org.virtuslab.inkuire.engine.model._
@@ -18,10 +19,8 @@ object Main extends App {
 
   configReader
     .readConfig(args)
-    .toOption
     .flatMap { config: AppConfig =>
       in.readInput(config)
-        .toOption
         .semiflatMap { db: InkuireDb =>
           out
             .serveOutput()
@@ -30,7 +29,7 @@ object Main extends App {
             )
         }
     }
-    .fold(println("Oooooh man, bad luck. Inkuire encountered an unexpected error :/"))(identity)
+    .fold(str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"), identity)
     .unsafeRunSync()
 
 }
