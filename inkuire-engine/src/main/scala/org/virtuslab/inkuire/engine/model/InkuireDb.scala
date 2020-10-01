@@ -3,6 +3,7 @@ package org.virtuslab.inkuire.engine.model
 import java.io.{BufferedReader, File, FileReader, InputStreamReader}
 import java.net.URL
 
+import cats.implicits.catsSyntaxOptionId
 import com.google.gson.{JsonIOException, JsonSyntaxException}
 import com.google.gson.reflect.TypeToken
 import org.virtuslab.inkuire.engine.service.DefaultDokkaModelTranslationService.translateDRI
@@ -38,7 +39,7 @@ object InkuireDb {
   def read(functionFiles: List[URL], ancestryFiles: List[URL]): Either[String, InkuireDb] = {
     try {
 
-      val ancestryGraph = ancestryFilesToTypes(ancestryFiles)
+      val ancestryGraph = ancestryFilesToTypes(ancestryFiles).filterOutImmediateCycles
 
       val functions = functionFilesToExternalSignatures(functionFiles)
         .populateVariances(ancestryGraph)
@@ -84,7 +85,14 @@ object InkuireDb {
     case typ => typ
   }
 
-  implicit class AncestryGraphOps(val receiver: Map[DRI, (Type, Seq[Type])]) {
+  implicit class AncestryGraphOps(receiver: Map[DRI, (Type, Seq[Type])]) {
+
+    def filterOutImmediateCycles: Map[DRI, (Type, Seq[Type])] = {
+      receiver.map {
+        case (dri, (typ, parents)) =>
+          dri -> (typ, parents.filter(_.dri != dri.some))
+      }
+    }
 
     // TODO: Reconsider whether we need actually want to do this, and when
 //    def populateVariances: Map[DRI, (Type, Seq[Type])] = {
@@ -97,7 +105,7 @@ object InkuireDb {
 //    }
   }
 
-  implicit class FunctionsOps(val receiver: Seq[ExternalSignature]) {
+  implicit class FunctionsOps(receiver: Seq[ExternalSignature]) {
 
     def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
       receiver.map {
