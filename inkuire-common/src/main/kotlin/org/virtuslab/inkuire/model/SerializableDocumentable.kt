@@ -27,8 +27,8 @@ data class SDParameter(
 )
 
 data class SDTypeParameter(
-        val variantTypeParameter: SVariance<*>,
-        val bounds: List<SBound>
+    val variantTypeParameter: SVariance<*>,
+    val bounds: List<SBound>
 )
 
 data class AncestryGraph(
@@ -36,10 +36,3 @@ data class AncestryGraph(
     val type: SBound,
     val superTypes: List<SProjection>
 )
-
-
-
-
-
-
-

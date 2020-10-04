@@ -12,20 +12,20 @@ internal fun simpleFunction(
     receiver: DParameter?,
     generics: List<DTypeParameter>
 ): DFunction = DFunction(
-        dri = dri,
-        name = name,
-        isConstructor = false,
-        parameters = parameters,
-        documentation = emptyMap(),
-        expectPresentInSet = null,
-        sources = emptyMap(),
-        visibility = emptyMap(),
-        type = type,
-        receiver = receiver,
-        generics = generics,
-        modifier = emptyMap(),
-        sourceSets = emptySet(),
-        extra = PropertyContainer.empty()
+    dri = dri,
+    name = name,
+    isConstructor = false,
+    parameters = parameters,
+    documentation = emptyMap(),
+    expectPresentInSet = null,
+    sources = emptyMap(),
+    visibility = emptyMap(),
+    type = type,
+    receiver = receiver,
+    generics = generics,
+    modifier = emptyMap(),
+    sourceSets = emptySet(),
+    extra = PropertyContainer.empty()
 )
 
 internal fun simpleParameter(
@@ -33,23 +33,23 @@ internal fun simpleParameter(
     name: String?,
     type: Bound
 ): DParameter = DParameter(
-        dri = dri,
-        name = name,
-        documentation = emptyMap(),
-        expectPresentInSet = null,
-        type = type,
-        sourceSets = emptySet(),
-        extra = PropertyContainer.empty()
+    dri = dri,
+    name = name,
+    documentation = emptyMap(),
+    expectPresentInSet = null,
+    type = type,
+    sourceSets = emptySet(),
+    extra = PropertyContainer.empty()
 )
 
 internal fun simpleTypeParameter(
     variantTypeParameter: Variance<TypeParameter>,
     bounds: List<Bound>
 ): DTypeParameter = DTypeParameter(
-        variantTypeParameter = variantTypeParameter,
-        documentation = emptyMap(),
-        expectPresentInSet = null,
-        bounds = bounds,
-        sourceSets = emptySet(),
-        extra = PropertyContainer.empty()
+    variantTypeParameter = variantTypeParameter,
+    documentation = emptyMap(),
+    expectPresentInSet = null,
+    bounds = bounds,
+    sourceSets = emptySet(),
+    extra = PropertyContainer.empty()
 )

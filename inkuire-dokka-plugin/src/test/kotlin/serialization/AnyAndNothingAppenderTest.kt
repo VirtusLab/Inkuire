@@ -12,9 +12,9 @@ import org.virtuslab.inkuire.plugin.transformers.anyAndNothingAppender
 class AnyAndNothingAppenderTest {
 
     val anyBound = STypeConstructor(
-            DRI("kotlin", "Any").toSerializable(),
-            emptyList(),
-            SFunctionModifiers.NONE
+        DRI("kotlin", "Any").toSerializable(),
+        emptyList(),
+        SFunctionModifiers.NONE
     )
 
     @Test
@@ -61,27 +61,27 @@ class AnyAndNothingAppenderTest {
         )
 
         val supertypeBound = STypeConstructor(
-                DRI("org.virtuslab", "SuperClass").toSerializable(),
-                emptyList(),
-                SFunctionModifiers.NONE
+            DRI("org.virtuslab", "SuperClass").toSerializable(),
+            emptyList(),
+            SFunctionModifiers.NONE
         )
 
         val before = listOf(
-                AncestryGraph(
-                    dri = driOfClass,
-                    type = classBound,
-                    superTypes = listOf(supertypeBound)
-                )
+            AncestryGraph(
+                dri = driOfClass,
+                type = classBound,
+                superTypes = listOf(supertypeBound)
+            )
         )
 
         val after = before.anyAndNothingAppender()
 
         val expected = listOf(
-                AncestryGraph(
-                    dri = driOfClass,
-                    type = classBound,
-                    superTypes = listOf(supertypeBound)
-                )
+            AncestryGraph(
+                dri = driOfClass,
+                type = classBound,
+                superTypes = listOf(supertypeBound)
+            )
         )
 
         assertEquals(expected, after)

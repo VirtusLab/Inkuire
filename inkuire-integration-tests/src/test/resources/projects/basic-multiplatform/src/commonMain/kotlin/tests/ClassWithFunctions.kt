@@ -4,7 +4,7 @@ class ClassWithFunctions(i: Int) {
 
     constructor(s: String) : this(0)
 
-    fun `ClassWithFunctions·() → Unit`(): Unit {
+    fun `ClassWithFunctions·() → Unit`() {
         println("Oh, it’s quite simple. If you are a friend, you speak the password, and the doors will open.")
     }
 

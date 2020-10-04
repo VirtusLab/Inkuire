@@ -14,25 +14,24 @@ import org.jetbrains.dokka.renderers.Renderer
 import org.virtuslab.inkuire.model.util.CustomGson
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 
-
 class InkuireRenderer(context: DokkaContext) : Renderer {
     private val outputWriter = context.plugin<DokkaBase>().querySingle { outputWriter }
 
-    override fun render(root: RootPageNode) = when(root) {
+    override fun render(root: RootPageNode) = when (root) {
         is ModulePageNode -> runBlocking(Dispatchers.Default) {
             root.children.forEach {
                 launch {
                     outputWriter.write(
-                            "functions${it.name}",
-                            it.toFunctionsJson(),
-                            ".json"
+                        "functions${it.name}",
+                        it.toFunctionsJson(),
+                        ".json"
                     )
                 }
                 launch {
                     outputWriter.write(
-                            "ancestryGraph${it.name}",
-                            it.toAncestryGraphJson(),
-                            ".json"
+                        "ancestryGraph${it.name}",
+                        it.toAncestryGraphJson(),
+                        ".json"
                     )
                 }
             }
@@ -40,14 +39,13 @@ class InkuireRenderer(context: DokkaContext) : Renderer {
         else -> throw UnsupportedOperationException("Root page node is not module page node")
     }
 
-    private fun PageNode.toFunctionsJson() = when(this) {
+    private fun PageNode.toFunctionsJson() = when (this) {
         is InkuireContentPage -> CustomGson.instance.toJson(functions)
         else -> throw UnsupportedOperationException("Content node is not Inkuiry content node")
     }
 
-    private fun PageNode.toAncestryGraphJson() = when(this) {
+    private fun PageNode.toAncestryGraphJson() = when (this) {
         is InkuireContentPage -> CustomGson.instance.toJson(ancestryGraph)
         else -> throw UnsupportedOperationException("Content node is not Inkuiry content node")
     }
-
 }

@@ -1,6 +1,6 @@
 package tests
 
-fun `() → Unit`(): Unit {
+fun `() → Unit`() {
     println("Oh, it’s quite simple. If you are a friend, you speak the password, and the doors will open.")
 }
 
@@ -20,16 +20,14 @@ fun String.`String·(String, Int = 1, Boolean = true) → Float`(s: String, i: I
     return i.toFloat()
 }
 
-fun `((String) → Int) → Unit`(s: (String) -> Int): Unit {
+fun `((String) → Int) → Unit`(s: (String) -> Int) {
     println(s("Even the smallest person can change the course of the future."))
 }
 
-fun `(String·(String) → Int) → Unit`(s: String.(String) -> Int): Unit {
+fun `(String·(String) → Int) → Unit`(s: String.(String) -> Int) {
     println("Galadriela said: ".s("Even the smallest person can change the course of the future."))
     println(s("Galadriela said: ", "Even the smallest person can change the course of the future."))
 }
 
 val String.`String·() → Int`: Int
     get() = this.length
-
-

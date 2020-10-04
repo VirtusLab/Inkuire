@@ -4,20 +4,20 @@ import org.jetbrains.dokka.testApi.testRunner.AbstractCoreTest
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
+import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.engine.model.ConcreteType
 import org.virtuslab.inkuire.engine.model.ExternalSignature
 import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
-import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.plugin.InkuireDokkaPlugin
 import scala.Option
 import scala.Some
 import scala.Tuple2
 import scala.collection.Seq
 import scala.jdk.javaapi.CollectionConverters.asJava
+import scala.jdk.javaapi.CollectionConverters.asScala
 import java.io.File
 import java.nio.file.Paths
-import scala.jdk.javaapi.CollectionConverters.asScala
 
 class SerializationIntegrationTest : AbstractCoreTest() {
 
@@ -78,8 +78,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 "functions" in it.name
             }.let {
                 Pair(
-                        it.first.map { it.toURI().toURL() },
-                        it.second.map { it.toURI().toURL() }
+                    it.first.map { it.toURI().toURL() },
+                    it.second.map { it.toURI().toURL() }
                 )
             }
 
@@ -210,7 +210,6 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val r = inkuireDb.types().findType("tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(0)/").single()
         val c = inkuireDb.types().findType("tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(1)/").single()
 
-
         assertEquals(r.value._1.name().name(), "R")
         assertEquals(r.value._2.apply(0).name().name(), "Any")
 
@@ -219,10 +218,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         assertEquals((c.value._2.apply(0) as GenericType).params().apply(0)::class.java, Contravariance::class.java)
         assertEquals(((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).name().name(), "R")
         assertEquals(
-                ((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).dri().get().original(),
-                "tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(0)/"
+            ((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).dri().get().original(),
+            "tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(0)/"
         )
-
     }
 
     @Test
@@ -256,12 +254,15 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val sig = inkuireDb.functions().findSignature("ClassWithFunctions·() → Unit").single()
 
         val receiver = sig.signature().receiver()
-        assertEquals(receiver.get().typ().dri().get(), DRI(
-            Some("tests"),
-            Some("ClassWithFunctions"),
-            Option.apply(null),
-            "tests/ClassWithFunctions//#/PointingToDeclaration/"
-        ))
+        assertEquals(
+            receiver.get().typ().dri().get(),
+            DRI(
+                Some("tests"),
+                Some("ClassWithFunctions"),
+                Option.apply(null),
+                "tests/ClassWithFunctions//#/PointingToDeclaration/"
+            )
+        )
     }
 
     @Test
@@ -294,13 +295,13 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         }
     }
 
-    private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(filter {
-        it.name() == name
-    })
+    private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(
+        filter {
+            it.name() == name
+        }
+    )
 
     private fun scala.collection.immutable.Map<DRI, Tuple2<Type, scala.collection.immutable.Seq<Type>>>.findType(name: String) = asJava(this).filter { (key, _) ->
         key.original() == name
     }.entries.toList()
 }
-
-

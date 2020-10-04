@@ -3,13 +3,11 @@ package org.virtuslab.inkuire.model.util
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import org.virtuslab.inkuire.model.*
-import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-
-class BoundSerializer : JsonSerializer<SBound>, JsonDeserializer<SBound>{
+class BoundSerializer : JsonSerializer<SBound>, JsonDeserializer<SBound> {
     override fun serialize(src: SBound?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-        return if(src != null && context != null) {
+        return if (src != null && context != null) {
             when (src) {
                 is STypeConstructor -> src.let {
                     context.serialize(it).asJsonObject.also { it.addProperty("boundkind", "typeconstructor") }
@@ -58,7 +56,7 @@ class BoundSerializer : JsonSerializer<SBound>, JsonDeserializer<SBound>{
     }
 }
 
-class VarianceSerializer : JsonSerializer<SVariance<*>>,JsonDeserializer<SVariance<*>>{
+class VarianceSerializer : JsonSerializer<SVariance<*>>, JsonDeserializer<SVariance<*>> {
 
     val scontravarianceType = object : TypeToken<SContravariance<SBound>>() {}.type
     val scovarianceType = object : TypeToken<SCovariance<SBound>>() {}.type
@@ -68,7 +66,7 @@ class VarianceSerializer : JsonSerializer<SVariance<*>>,JsonDeserializer<SVarian
         return if (json != null && context != null) {
             val obj = json.asJsonObject
             val toDeserialize = obj.deepCopy().also { it.remove("variancekind") }
-            when(val name = obj.get("variancekind").asString) {
+            when (val name = obj.get("variancekind").asString) {
                 "contravariance" -> context.deserialize<SContravariance<*>>(toDeserialize, scontravarianceType)
                 "covariance" -> context.deserialize<SCovariance<*>>(toDeserialize, scovarianceType)
                 "invariance" -> context.deserialize<SInvariance<*>>(toDeserialize, sinvarianceType)
@@ -78,7 +76,7 @@ class VarianceSerializer : JsonSerializer<SVariance<*>>,JsonDeserializer<SVarian
     }
 
     override fun serialize(src: SVariance<*>?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-        return if(src != null && context != null) {
+        return if (src != null && context != null) {
             when (src) {
                 is SContravariance -> src.let {
                     context.serialize(it, scontravarianceType).asJsonObject.also { it.addProperty("variancekind", "contravariance") }
@@ -94,13 +92,13 @@ class VarianceSerializer : JsonSerializer<SVariance<*>>,JsonDeserializer<SVarian
     }
 }
 
-class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProjection>{
+class ProjectionSerializer : JsonSerializer<SProjection>, JsonDeserializer<SProjection> {
 
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): SProjection {
         return if (json != null && context != null) {
             val obj = json.asJsonObject
             val toDeserialize = obj.deepCopy().also { it.remove("projectionkind") }
-            when(val name = obj.get("projectionkind").asString) { // Casts are there to bypass problems with implicits casts
+            when (val name = obj.get("projectionkind").asString) { // Casts are there to bypass problems with implicits casts
                 "star" -> context.deserialize<SStar>(toDeserialize, SStar::class.java)
                 "bound" -> context.deserialize<SBound>(toDeserialize, SBound::class.java)
                 "variance" -> context.deserialize<SVariance<*>>(toDeserialize, SVariance::class.java)
@@ -113,7 +111,7 @@ class ProjectionSerializer : JsonSerializer<SProjection>,JsonDeserializer<SProje
     val svarianceType = object : TypeToken<SVariance<*>>() {}.type
 
     override fun serialize(src: SProjection?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-        return if(src != null && context != null) {
+        return if (src != null && context != null) {
             when (src) {
                 is SStar -> src.let {
                     context.serialize(it).asJsonObject.also { it.addProperty("projectionkind", "star") }

@@ -16,10 +16,10 @@ import java.lang.IllegalStateException
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {
 
     private val uselessBound = Nullable(
-            TypeConstructor(
-                    DriOfAny,
-                    emptyList()
-            )
+        TypeConstructor(
+            DriOfAny,
+            emptyList()
+        )
     )
 
     override fun DRI.toSerializable(): SDRI = SDRI(
@@ -47,18 +47,20 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         parameters = parameters.map { it.toSerializable() },
         areParametersDefault = this.alternativeParametersLists(source),
         generics = generics
-                .map { p -> p.copy(
-                        bounds = p.bounds.filter { it != uselessBound }
-                )}
-                .map { it.toSerializable() },
+            .map { p ->
+                p.copy(
+                    bounds = p.bounds.filter { it != uselessBound }
+                )
+            }
+            .map { it.toSerializable() },
         receiver = receiver?.toSerializable(),
         type = type.toSerializable()
     )
 
-    override fun Projection.toSerializable(): SProjection = when(this) {
+    override fun Projection.toSerializable(): SProjection = when (this) {
         is Bound -> this.toSerializable()
         is Star -> SStar
-        is Variance<*> -> when(this) {
+        is Variance<*> -> when (this) {
             is Covariance<*> -> SCovariance(inner.toSerializable())
             is Contravariance<*> -> SContravariance(inner.toSerializable())
             is Invariance<*> -> SInvariance(inner.toSerializable())
@@ -66,12 +68,13 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
     }
 
     override fun FunctionModifiers.toSerializable(): SFunctionModifiers = SFunctionModifiers.valueOf(this.name)
-    override fun Bound.toSerializable() : SBound = when(this) {
+    override fun Bound.toSerializable(): SBound = when (this) {
         is TypeParameter -> STypeParameter(dri.toSerializable(), name)
         is TypeConstructor -> STypeConstructor(
             dri.toSerializable(),
             projections.map { it.toSerializable() },
-            modifier.toSerializable())
+            modifier.toSerializable()
+        )
         is Nullable -> SNullable(inner.toSerializable())
         is PrimitiveJavaType -> SPrimitiveJavaType(name)
         is Void -> SVoid
@@ -81,7 +84,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
     }
 
     private fun DFunction.alternativeParametersLists(source: DokkaConfiguration.DokkaSourceSet): List<Boolean> {
-        return when(val elem = this.sources[source]) {
+        return when (val elem = this.sources[source]) {
             is DescriptorDocumentableSource -> (elem.descriptor as FunctionDescriptor).valueParameters.map {
                 it.hasDefaultValue()
             }
