@@ -52,7 +52,7 @@ object InkuireDb {
   }
 
   private def functionFilesToExternalSignatures(functionFiles: List[URL]): Seq[ExternalSignature] =
-    functionFiles
+    getURLs(functionFiles, ".inkuire.fdb")
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
           .fromJson(
@@ -65,7 +65,7 @@ object InkuireDb {
       .flatMap(translationService.translateFunction)
 
   private def ancestryFilesToTypes(ancestryFiles: List[URL]): Map[DRI, (Type, Seq[Type])] =
-    ancestryFiles
+    getURLs(ancestryFiles, ".inkuire.adb")
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
           .fromJson(
@@ -79,6 +79,15 @@ object InkuireDb {
           .map(translationService.translateProjection))
       }
       .toMap
+
+  private def getURLs(files: List[URL], filesExtension: String): List[URL] = {
+    files
+      .flatMap { url =>
+        if (url.toURI.getScheme.toLowerCase == "file" && new File(url.toURI).isDirectory)
+          new File(url.toURI).listFiles(_.getName.endsWith(filesExtension)).map(_.toURI.toURL).toSeq
+        else Seq(url)
+      }
+  }
 
   def mapTypesParametersVariance(types: Map[DRI, (Type, Seq[Type])]): PartialFunction[Type, Type] = {
     case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
