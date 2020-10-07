@@ -1,11 +1,9 @@
 package tests
 
-
 // TODO: Rename to A, B, C or something like that and change that in tests
 interface Comparable<T>
 interface Collection<out T>
 interface List<T>
-
 
 class GenericClassWithFunctions<T : Comparable<T>>(s: String) {
 

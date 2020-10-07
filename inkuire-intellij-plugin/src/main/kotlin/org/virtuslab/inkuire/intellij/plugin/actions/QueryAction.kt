@@ -1,15 +1,12 @@
 package org.virtuslab.inkuire.intellij.plugin.actions
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.DialogBuilder
-import com.intellij.ui.components.JBList
 import com.intellij.ui.table.JBTable
 import org.apache.http.client.utils.URIBuilder
 import org.jdesktop.swingx.prompt.PromptSupport
-import org.jetbrains.annotations.NotNull
 import org.virtuslab.inkuire.model.OutputFormat
 import java.awt.Color
 import java.awt.Dimension
@@ -19,7 +16,6 @@ import java.net.http.HttpResponse
 import java.net.http.HttpResponse.BodyHandlers
 import javax.swing.*
 import javax.swing.table.DefaultTableModel
-
 
 class QueryAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -42,16 +38,16 @@ class QueryAction : AnAction() {
             uriBuilder.setParameter("signature", txt)
 
             val request: HttpRequest = HttpRequest
-                    .newBuilder(uriBuilder.build())
-                    .header("Content-Type", "application/json")
-                    .GET()
-                    .build()
+                .newBuilder(uriBuilder.build())
+                .header("Content-Type", "application/json")
+                .GET()
+                .build()
 
             val response: HttpResponse<String> = client.send(request, BodyHandlers.ofString())
 
             val parsed = gson.fromJson(response.body(), OutputFormat::class.java)
 
-            val (data,headers) = parseOutputToModel(parsed)
+            val (data, headers) = parseOutputToModel(parsed)
 
             resultArea.model = DefaultTableModel(headers, data)
             resultArea.setShowColumns(true)
@@ -61,12 +57,13 @@ class QueryAction : AnAction() {
             addActionListener { searchListener() }
         }
 
-
         val dialogPanel = JPanel().apply {
             preferredSize = Dimension(1050, 600)
-            add(JScrollPane(resultArea).apply {
-                preferredSize = Dimension(1025,550)
-            })
+            add(
+                JScrollPane(resultArea).apply {
+                    preferredSize = Dimension(1025, 550)
+                }
+            )
             add(searchButton)
             add(input)
         }
@@ -81,7 +78,7 @@ class QueryAction : AnAction() {
 
     private fun parseOutputToModel(output: OutputFormat): Pair<Array<String>, Array<Array<String>>> {
         val columnNames = arrayOf("Name", "Signature", "Localization")
-        val data = output.matches.map{
+        val data = output.matches.map {
             arrayOf(it.functionName, it.prettifiedSignature, it.localization)
         }.toTypedArray()
         return Pair(columnNames, data)
