@@ -13,8 +13,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation(project(":inkuire-dokka-plugin"))
-    testImplementation(project(":inkuire-engine"))
+    testImplementation(project(":dokka-common:db-generator"))
+    testImplementation(project(":engine"))
 
     val dokkaVersion: String by project
 

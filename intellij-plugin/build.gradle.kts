@@ -1,6 +1,5 @@
 plugins {
     id("org.jetbrains.intellij") version "0.4.21"
-    java
 }
 
 group = "org.virtuslab"
@@ -12,7 +11,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project(":inkuire-common"))
+    implementation(project(":common"))
     testCompile("junit", "junit", "4.12")
 }
 

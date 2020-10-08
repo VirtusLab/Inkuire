@@ -4,7 +4,7 @@ import org.jetbrains.dokka.CoreExtensions
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.plugability.DokkaPlugin
 
-class InkuireDokkaPlugin : DokkaPlugin() {
+class InkuireDbGeneratorDokkaPlugin : DokkaPlugin() {
 
     private val dokkaBase by lazy { plugin<DokkaBase>() }
 

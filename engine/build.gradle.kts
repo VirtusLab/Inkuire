@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 plugins {
-    scala
     id("com.github.maiflai.scalatest") version "0.26"
     application
+    scala
 }
+
+group = "org.virtuslab"
+version = "1.0-SNAPSHOT"
 
 repositories {
     jcenter()
@@ -52,7 +52,7 @@ dependencies {
 
     implementation("com.lihaoyi:scalatags_2.13:0.9.1")
 
-    implementation(project(":inkuire-common"))
+    implementation(project(":common"))
 }
 
 application.mainClassName = "org.virtuslab.inkuire.engine.Main"

@@ -9,7 +9,7 @@ import org.virtuslab.inkuire.engine.model.ConcreteType
 import org.virtuslab.inkuire.engine.model.ExternalSignature
 import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
-import org.virtuslab.inkuire.plugin.InkuireDokkaPlugin
+import org.virtuslab.inkuire.plugin.InkuireDbGeneratorDokkaPlugin
 import scala.Option
 import scala.Some
 import scala.Tuple2
@@ -66,7 +66,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         @JvmStatic
         fun setupTest() {
 
-            testFromData(configuration, pluginOverrides = listOf(InkuireDokkaPlugin())) {
+            testFromData(configuration, pluginOverrides = listOf(InkuireDbGeneratorDokkaPlugin())) {
                 renderingStage = { _, context ->
                     parent = context.configuration.outputDir
                 }
