@@ -1,9 +1,8 @@
-package org.virtuslab.inkuire.plugin
+package org.virtuslab.inkuire.plugin.translators
 
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.pages.*
-import org.jetbrains.dokka.transformers.documentation.DocumentableToPageTranslator
 import org.virtuslab.inkuire.model.*
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer
@@ -12,9 +11,9 @@ import org.virtuslab.inkuire.plugin.transformers.anyAndNothingAppender
 import org.virtuslab.inkuire.plugin.transformers.functionalTypesNormalizerTransformer
 import org.virtuslab.inkuire.plugin.transformers.javaPrimitivesMapper
 
-object InkuireDocumentableToPageTranslator : DocumentableToPageTranslator {
+object InkuireDocumentableToPageTranslator {
 
-    override fun invoke(module: DModule): ModulePageNode = module.packages.let { packages ->
+    fun invoke(module: DModule): ModulePageNode = module.packages.let { packages ->
         packages.flatMap {
             it.functions +
                 it.properties.mapNotNull { it.getter } +

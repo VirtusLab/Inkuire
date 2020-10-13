@@ -9,7 +9,7 @@ import org.virtuslab.inkuire.engine.model.ConcreteType
 import org.virtuslab.inkuire.engine.model.ExternalSignature
 import org.virtuslab.inkuire.engine.model.InkuireDb
 import org.virtuslab.inkuire.engine.model.Type
-import org.virtuslab.inkuire.plugin.InkuireDbGeneratorDokkaPlugin
+import org.virtuslab.inkuire.plugin.dbgenerator.InkuireDbGeneratorDokkaPlugin
 import scala.Option
 import scala.Some
 import scala.Tuple2

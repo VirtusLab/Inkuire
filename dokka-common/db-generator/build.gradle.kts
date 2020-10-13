@@ -12,12 +12,8 @@ dependencies {
 
     val dokkaVersion: String by project
 
-    implementation(kotlin("stdlib-jdk8"))
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
     compileOnly("org.jetbrains.dokka:dokka-base:$dokkaVersion")
-    testImplementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
-    testImplementation("org.jetbrains.dokka:dokka-test-api:$dokkaVersion")
-    implementation("junit:junit:4.13")
     implementation(project(":dokka-common"))
 }
 
