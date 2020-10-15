@@ -90,7 +90,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     @Test
     fun `serialize and deserialize`() {
         val expectedSources = listOf("common", "js", "jvm").let {
-            it.map { "ancestryGraph$it.json" } + it.map { "functions$it.json" }
+            it.map { "ancestryGraphexample#$it.json" } + it.map { "functionsexample#$it.json" }
         }
         assertTrue(parent.walkTopDown().map { it.name }.toList().containsAll(expectedSources))
         assertTrue(inkuireDb.functions().size() > 0)
