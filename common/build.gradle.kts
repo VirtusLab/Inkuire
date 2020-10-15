@@ -25,7 +25,7 @@ tasks {
 
 publishing {
     publications {
-        register<MavenPublication>("inkuireCommon") {
+        register<MavenPublication>("common") {
             artifactId = "inkuire-common"
             from(components["java"])
         }
