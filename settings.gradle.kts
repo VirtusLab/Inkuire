@@ -1,12 +1,16 @@
 rootProject.name = "Inkuire"
-include("inkuire-dokka-plugin")
-include("inkuire-integration-tests")
-include("inkuire-engine")
-include("inkuire-common")
-include("inkuire-intellij-plugin")
+include("common")
+include("dokka-common")
+include("dokka-common:db-generator")
+findProject(":dokka-common:db-generator")?.name = "db-generator"
+include("dokka-common:dokka-html-inkuire-extension")
+findProject(":dokka-common:dokka-html-inkuire-extension")?.name = "dokka-html-inkuire-extension"
+include("engine")
+include("integration-tests")
+include("intellij-plugin")
 
 pluginManagement {
     plugins {
-        id("org.jetbrains.kotlin.jvm") version "1.4.0"
+        id("org.jetbrains.kotlin.jvm") version "1.4.10"
     }
 }
