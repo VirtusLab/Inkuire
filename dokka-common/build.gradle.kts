@@ -30,7 +30,7 @@ dependencies {
 publishing {
     publications {
         register<MavenPublication>("dokkaCommon") {
-            artifactId = "dokka-common"
+            artifactId = "inkuire-dokka-common"
             from(components["java"])
         }
     }

@@ -24,7 +24,7 @@ dependencies {
 publishing {
     publications {
         register<MavenPublication>("dbGenerator") {
-            artifactId = "db-generator"
+            artifactId = "inkuire-db-generator"
             from(components["java"])
         }
     }

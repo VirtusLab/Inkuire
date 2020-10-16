@@ -15,6 +15,4 @@ class InkuireDbGeneratorDokkaPlugin : DokkaPlugin() {
     val renderer by extending {
         CoreExtensions.renderer providing ::InkuireJustDbRenderer override dokkaBase.htmlRenderer
     }
-
-    val x = listOf(1, 2, 3).get(1)
 }

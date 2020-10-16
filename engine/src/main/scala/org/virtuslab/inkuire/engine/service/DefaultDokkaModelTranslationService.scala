@@ -52,8 +52,6 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     Option(f.getReceiver)
       .map(receiver => translateBound(receiver.getType))
       .orElse {
-//        if(f.getDri.getClassName == "List") println(f.getDri, translateDRI(f.getDri))
-//        println(ancestryGraph.keys.filter(_.className == "List"))
         ancestryGraph.get(
           translateDRI(f.getDri).copy(
             callableName = None,
