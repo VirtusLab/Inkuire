@@ -52,12 +52,14 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     Option(f.getReceiver)
       .map(receiver => translateBound(receiver.getType))
       .orElse {
-        ancestryGraph.get(
-          translateDRI(f.getDri).copy(
-            callableName = None,
-            original = s"${f.getDri.getPackageName}/${f.getDri.getClassName}///PointingToDeclaration/"
+        ancestryGraph
+          .get(
+            translateDRI(f.getDri).copy(
+              callableName = None,
+              original     = s"${f.getDri.getPackageName}/${f.getDri.getClassName}///PointingToDeclaration/"
+            )
           )
-        ).map(_._1)
+          .map(_._1)
       }
   }
 

@@ -54,7 +54,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   private def resolvePossibleTypes(typ: Type): Seq[Type] = {
-    typ match {
+    val resolved = typ match {
       case t: TypeVariable =>
         Seq(
           t.modify(_.dri)
@@ -64,14 +64,15 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
         ancestryGraph.nodes.values.map(_._1).filter(_.name == t.name).toSeq
       case t: GenericType =>
         for {
-          base <- resolvePossibleTypes(t.base)
+          generic <- ancestryGraph.nodes.values.map(_._1).filter(_.name == t.name).toSeq
           params <- resolveMultipleTypes(t.params.map(_.typ))
-            .map(_.zip(inkuireDb.types(base.dri.get)._1.asInstanceOf[GenericType].params).map {
+            .map(_.zip(generic.params).map {
               case (p, v) => zipVariance(p, v)
             })
-        } yield copyDRI(t.modify(_.params).setTo(params), base.dri)
+        } yield copyDRI(t.modify(_.params).setTo(params), generic.dri)
       case t => Seq(t)
     }
+    resolved.filter(_.params.size == typ.params.size)
   }
 
   private def copyDRI(typ: Type, dri: Option[DRI]): Type = typ match {
