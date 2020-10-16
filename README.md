@@ -1,7 +1,7 @@
 ![CI](https://github.com/VirtusLab/Inkuire/workflows/CI/badge.svg)
 
 ---
-![image](inkuire-engine/src/main/resources/assets/logoinkuire.png)
+![image](engine/src/main/resources/assets/logoinkuire.png)
 
 # Inkuire - query engine and dokka plugin generating database for executing semantic queries
 
