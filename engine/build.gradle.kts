@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.github.maiflai.scalatest") version "0.26"
+    id("cz.alenkacz.gradle.scalafmt") version "1.5.1"
     application
     scala
 }
@@ -69,4 +70,8 @@ val fatJar = task("fatJar", type = Jar::class) {
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
+}
+
+scalafmt {
+    configFilePath = "../.scalafmt.conf"
 }
