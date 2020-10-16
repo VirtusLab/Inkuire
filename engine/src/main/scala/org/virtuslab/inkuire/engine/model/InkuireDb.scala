@@ -51,7 +51,10 @@ object InkuireDb {
     }
   }
 
-  private def functionFilesToExternalSignatures(functionFiles: List[URL], ancestryGraph: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
+  private def functionFilesToExternalSignatures(
+    functionFiles: List[URL],
+    ancestryGraph: Map[DRI, (Type, Seq[Type])]
+  ): Seq[ExternalSignature] =
     getURLs(functionFiles, ".inkuire.fdb")
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
