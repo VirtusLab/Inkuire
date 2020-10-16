@@ -41,5 +41,35 @@
         "modifier": "NONE"
       }
     ]
+  },
+  {
+    "dri": {
+      "packageName": "example",
+      "className": "Clock",
+      "original": "example/Clock///PointingToDeclaration/"
+    },
+    "type": {
+      "dri": {
+        "packageName": "example",
+        "className": "Clock",
+        "original": "example/Clock///PointingToDeclaration/"
+      },
+      "projections": [],
+      "modifier": "NONE",
+      "boundkind": "typeconstructor"
+    },
+    "superTypes": [
+      {
+        "dri": {
+          "packageName": "kotlin",
+          "className": "Any",
+          "original": "kotlin/Any///PointingToDeclaration/"
+        },
+        "projections": [],
+        "modifier": "NONE",
+        "boundkind": "typeconstructor",
+        "projectionkind":"bound"
+      }
+    ]
   }
 ]

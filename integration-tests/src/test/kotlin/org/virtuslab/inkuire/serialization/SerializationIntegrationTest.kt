@@ -3,6 +3,7 @@ package org.virtuslab.inkuire.serialization
 import org.jetbrains.dokka.testApi.testRunner.AbstractCoreTest
 import org.junit.Assert.*
 import org.junit.BeforeClass
+import org.junit.Ignore
 import org.junit.Test
 import org.virtuslab.inkuire.engine.model.*
 import org.virtuslab.inkuire.engine.model.ConcreteType
@@ -90,7 +91,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     @Test
     fun `serialize and deserialize`() {
         val expectedSources = listOf("common", "js", "jvm").let {
-            it.map { "ancestryGraphexample#$it.json" } + it.map { "functionsexample#$it.json" }
+            it.map { "ancestryGraphexample_$it.inkuire.adb" } + it.map { "functionsexample_$it.inkuire.fdb" }
         }
         assertTrue(parent.walkTopDown().map { it.name }.toList().containsAll(expectedSources))
         assertTrue(inkuireDb.functions().size() > 0)
@@ -205,6 +206,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         assertEquals(input.single().value._1.params().apply(0)::class.java, Covariance::class.java)
     }
 
+    @Ignore // this tests doesn't make sense anymore, since we don't have type parameters in AncestryGraph
     @Test
     fun `deserialize weirdFlexButOk covariance parameter`() {
         val r = inkuireDb.types().findType("tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(0)/").single()
@@ -229,8 +231,6 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         assertEquals(input.single().value._2.size(), 2)
         assertEquals(input.single().key, input.single().value._1.dri().get())
-        assertTrue(inkuireDb.types().get(input.single().value._1.params().apply(0).typ().dri().get()).isDefined)
-        assertTrue(inkuireDb.types().get(input.single().value._1.params().apply(1).typ().dri().get()).isDefined)
 
         assertEquals(input.single().value._2.apply(0).name().name(), "Comparable")
         assertEquals(input.single().value._2.apply(1).name().name(), "Collection")
@@ -244,7 +244,6 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         assertEquals(input.single().value._2.size(), 1)
         assertEquals(input.single().key, input.single().value._1.dri().get())
-        assertTrue(inkuireDb.types().get(input.single().value._1.params().apply(0).typ().dri().get()).isDefined)
 
         assertEquals(input.single().value._2.apply(0).name().name(), "Comparable")
     }
@@ -260,7 +259,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 Some("tests"),
                 Some("ClassWithFunctions"),
                 Option.apply(null),
-                "tests/ClassWithFunctions//#/PointingToDeclaration/"
+                "tests/ClassWithFunctions///PointingToDeclaration/"
             )
         )
     }

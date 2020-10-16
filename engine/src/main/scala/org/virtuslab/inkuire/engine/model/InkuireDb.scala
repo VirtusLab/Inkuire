@@ -41,7 +41,7 @@ object InkuireDb {
 
       val ancestryGraph = ancestryFilesToTypes(ancestryFiles).filterOutImmediateCycles
 
-      val functions = functionFilesToExternalSignatures(functionFiles)
+      val functions = functionFilesToExternalSignatures(functionFiles, ancestryGraph)
         .populateVariances(ancestryGraph)
 
       Right(new InkuireDb(functions, ancestryGraph))
@@ -51,7 +51,7 @@ object InkuireDb {
     }
   }
 
-  private def functionFilesToExternalSignatures(functionFiles: List[URL]): Seq[ExternalSignature] =
+  private def functionFilesToExternalSignatures(functionFiles: List[URL], ancestryGraph: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
     getURLs(functionFiles, ".inkuire.fdb")
       .flatMap { file =>
         CustomGson.INSTANCE.getInstance
@@ -62,7 +62,7 @@ object InkuireDb {
           .asInstanceOf[Array[SDFunction]]
           .toList
       }
-      .flatMap(translationService.translateFunction)
+      .flatMap(translationService.translateFunction(_, ancestryGraph))
 
   private def ancestryFilesToTypes(ancestryFiles: List[URL]): Map[DRI, (Type, Seq[Type])] =
     getURLs(ancestryFiles, ".inkuire.adb")

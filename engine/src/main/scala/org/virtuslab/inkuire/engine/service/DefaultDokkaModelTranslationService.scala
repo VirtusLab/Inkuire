@@ -48,26 +48,17 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     case _ => "Any" //TODO why is this needed?
   }
 
-  private def getReceiver(f: SDFunction): Option[Type] = {
+  private def getReceiver(f: SDFunction, ancestryGraph: Map[DRI, (Type, Seq[Type])]): Option[Type] = {
     Option(f.getReceiver)
       .map(receiver => translateBound(receiver.getType))
-      .orElse(
-        Option(f.getDri.getClassName).map { className =>
-          ConcreteType(
-            className,
-            dri = translateDRI(f.getDri)
-              .copy(
-                callableName = None,
-                original = {
-                  val array = f.getDri.getOriginal.split("/")
-                  array(2) = ""
-                  array.mkString(sep = "/") + "/"
-                }
-              )
-              .some
+      .orElse {
+        ancestryGraph.get(
+          translateDRI(f.getDri).copy(
+            callableName = None,
+            original = s"${f.getDri.getPackageName}/${f.getDri.getClassName}///PointingToDeclaration/"
           )
-        }
-      )
+        ).map(_._1)
+      }
   }
 
   private def translateProjectionVariance(projection: SProjection): Variance = projection match {
@@ -98,7 +89,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     sdri.getOriginal
   )
 
-  def translateFunction(f: SDFunction): List[ExternalSignature] = {
+  def translateFunction(f: SDFunction, ancestryGraph: Map[DRI, (Type, Seq[Type])]): List[ExternalSignature] = {
 
     val parametersCombinations = f.getAreParametersDefault
       .zip(f.getParameters.map(s => translateBound(s.getType)).toSeq)
@@ -114,7 +105,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     parametersCombinations.map { params =>
       ExternalSignature(
         Signature(
-          getReceiver(f),
+          getReceiver(f, ancestryGraph),
           params,
           translateBound(f.getType),
           translateTypeVariables(f)

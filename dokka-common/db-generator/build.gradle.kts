@@ -1,3 +1,7 @@
+plugins {
+    `maven-publish`
+}
+
 group = "org.virtuslab"
 version = "1.0-SNAPSHOT"
 
@@ -15,6 +19,15 @@ dependencies {
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
     compileOnly("org.jetbrains.dokka:dokka-base:$dokkaVersion")
     implementation(project(":dokka-common"))
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("dbGenerator") {
+            artifactId = "inkuire-db-generator"
+            from(components["java"])
+        }
+    }
 }
 
 tasks {

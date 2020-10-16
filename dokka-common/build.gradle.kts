@@ -29,8 +29,8 @@ dependencies {
 
 publishing {
     publications {
-        register<MavenPublication>("inkuirePlugin") {
-            artifactId = "inkuire-plugin"
+        register<MavenPublication>("dokkaCommon") {
+            artifactId = "inkuire-dokka-common"
             from(components["java"])
         }
     }

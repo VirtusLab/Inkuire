@@ -19,14 +19,14 @@ class InkuireRenderer(val outputWriter: OutputWriter) {
                     outputWriter.write(
                         "functions${it.name}",
                         it.toFunctionsJson(),
-                        ".json"
+                        ".inkuire.fdb"
                     )
                 }
                 launch {
                     outputWriter.write(
                         "ancestryGraph${it.name}",
                         it.toAncestryGraphJson(),
-                        ".json"
+                        ".inkuire.adb"
                     )
                 }
             }

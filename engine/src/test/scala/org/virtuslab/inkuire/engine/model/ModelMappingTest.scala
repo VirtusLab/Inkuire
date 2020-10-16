@@ -34,15 +34,15 @@ class ModelMappingTest extends BaseInkuireTest {
     //given
     val source = Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile.toURI.toURL
     val any    = Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL
-
+    val clock  = Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL
     //when
-    val inkuire = InkuireDb.read(List(source), List(any))
+    val inkuire = InkuireDb.read(List(source), List(any, clock))
 
     //then
     val expected = Seq(
       ExternalSignature(
         Signature(
-          Some(ConcreteType("Clock", dri = DRI("example".some, "Clock".some, None, "example/Clock//#/").some)),
+          Some(ConcreteType("Clock", dri = DRI("example".some, "Clock".some, None, "example/Clock///PointingToDeclaration/").some)),
           Seq.empty,
           ConcreteType("String", dri = DRI("kotlin".some, "String".some, None, "kotlin/String////").some),
           SignatureContext(Set.empty, Map.empty)
@@ -121,7 +121,55 @@ class ModelMappingTest extends BaseInkuireTest {
           ).some
         ),
         Seq.empty
-      )
+      ),
+    DRI(
+      "example".some,
+      "Clock".some,
+      None,
+      "example/Clock///PointingToDeclaration/"
+    ) ->
+      (
+        ConcreteType(
+          "Clock",
+          false,
+          DRI(
+            "example".some,
+            "Clock".some,
+            None,
+            "example/Clock///PointingToDeclaration/"
+          ).some
+        ),
+        Seq(
+          ConcreteType(
+            "Any",
+            false,
+            DRI(
+              "kotlin".some,
+              "Any".some,
+              None,
+              "kotlin/Any///PointingToDeclaration/"
+            ).some
+          )
+        )
+      ),
+    DRI(
+      "kotlin".some,
+      "Any".some,
+      None,
+      "kotlin/Any///PointingToDeclaration/"
+    ) -> (
+      ConcreteType(
+        "Any",
+        false,
+        DRI(
+          "kotlin".some,
+          "Any".some,
+          None,
+          "kotlin/Any///PointingToDeclaration/"
+        ).some
+      ),
+      Seq.empty
+    )
     )
 
     inkuire.toOption.get.types should matchTo(expected)
