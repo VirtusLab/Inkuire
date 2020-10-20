@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     testImplementation(project(":dokka-common:db-generator"))
-    testImplementation(project(":engine"))
+    testImplementation(project(":engine-common"))
 
     val dokkaVersion: String by project
 

@@ -5,11 +5,7 @@ import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
-import org.virtuslab.inkuire.engine.model.*
-import org.virtuslab.inkuire.engine.model.ConcreteType
-import org.virtuslab.inkuire.engine.model.ExternalSignature
-import org.virtuslab.inkuire.engine.model.InkuireDb
-import org.virtuslab.inkuire.engine.model.Type
+import org.virtuslab.inkuire.engine.common.model.*
 import org.virtuslab.inkuire.plugin.dbgenerator.InkuireDbGeneratorDokkaPlugin
 import scala.Option
 import scala.Some
