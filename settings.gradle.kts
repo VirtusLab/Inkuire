@@ -5,7 +5,8 @@ include("dokka-common:db-generator")
 findProject(":dokka-common:db-generator")?.name = "db-generator"
 include("dokka-common:dokka-html-inkuire-extension")
 findProject(":dokka-common:dokka-html-inkuire-extension")?.name = "dokka-html-inkuire-extension"
-include("engine")
+include("engine-common")
+include("engine-http")
 include("integration-tests")
 include("intellij-plugin")
 
