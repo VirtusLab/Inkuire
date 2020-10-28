@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="Gradle 2" modules="Inkuire.engine-common.main,Inkuire.engine-common.test,Inkuire.engine-http.main,Inkuire.engine-http.test,Inkuire.engine.main,Inkuire.engine.test,Inkuire.inkuire-engine.main,Inkuire.inkuire-engine.test,Inkuire.inkuire-integration-tests.main,Inkuire.inkuire-integration-tests.test,Inkuire.integration-tests.main,Inkuire.integration-tests.test">
+    <profile name="Gradle 2" modules="Inkuire.engine.main,Inkuire.engine.test,Inkuire.inkuire-engine.main,Inkuire.inkuire-engine.test,Inkuire.inkuire-integration-tests.main,Inkuire.inkuire-integration-tests.test,Inkuire.integration-tests.main,Inkuire.integration-tests.test">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
       <parameters>
