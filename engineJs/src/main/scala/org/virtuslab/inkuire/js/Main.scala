@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.js
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import org.virtuslab.inkuire.engine.common.parser.KotlinSignatureParserService
-import org.virtuslab.inkuire.engine.common.service.{FluffMatchService, KotlinExternalSignaturePrettifier}
+import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.js.handlers.{JSInputHandler, JSOutputHandler}
 
 object Main extends App {
@@ -13,6 +13,7 @@ object Main extends App {
   val out          = new JSOutputHandler
   val matchService = (db: InkuireDb) => new FluffMatchService(db)
   val prettifier   = new KotlinExternalSignaturePrettifier
+  val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)
   val parser       = new KotlinSignatureParserService
 
   //TODO: I don't know how to pass link to config dynamically, because JS doesn't have CLI params
@@ -24,7 +25,7 @@ object Main extends App {
           out
             .serveOutput()
             .runA(
-              Env(db, matchService(db), prettifier, parser, config)
+              Env(db, matchService(db), prettifier, parser, resolver(db), config)
             )
         }
     }

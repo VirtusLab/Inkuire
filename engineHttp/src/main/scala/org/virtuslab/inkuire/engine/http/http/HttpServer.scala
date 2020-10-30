@@ -30,8 +30,9 @@ class HttpServer extends OutputHandler {
     def results(signature: String): Either[String, OutputFormat] = {
       env.parser
         .parse(signature)
+        .map(env.resolver.resolve)
         .map(
-          fb => formatter.createOutput(signature, env.matcher |??| fb)
+          resolved => formatter.createOutput(signature, env.matcher |??| resolved)
         )
     }
 

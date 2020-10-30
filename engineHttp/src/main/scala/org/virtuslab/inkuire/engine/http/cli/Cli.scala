@@ -52,13 +52,20 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
     }.liftApp
   }
 
+  private def handleResolveError(err: String): Engine[Unit] = {
+    IO {
+      println("Resolve error:")
+      println(err)
+    }.liftApp
+  }
+
   private def handleCommand(input: String): Engine[Unit] = {
     StateT.get[IO, Env] >>= { env =>
       env.parser
         .parse(input)
         .fold(
           handleSyntaxError,
-          s => putStrLn(env.prettifier.prettify(env.matcher |??| s)).liftApp
+          s => putStrLn(env.prettifier.prettify(env.matcher |??| env.resolver.resolve(s))).liftApp
         )
     }
   }

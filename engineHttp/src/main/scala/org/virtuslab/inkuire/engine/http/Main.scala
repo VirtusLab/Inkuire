@@ -4,7 +4,7 @@ import org.virtuslab.inkuire.engine.http.cli.Cli
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import org.virtuslab.inkuire.engine.common.parser.KotlinSignatureParserService
-import org.virtuslab.inkuire.engine.common.service.{FluffMatchService, KotlinExternalSignaturePrettifier}
+import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.engine.http.http.HttpServer
 
 object Main extends App {
@@ -14,6 +14,7 @@ object Main extends App {
   val out          = new HttpServer
   val matchService = (db: InkuireDb) => new FluffMatchService(db)
   val prettifier   = new KotlinExternalSignaturePrettifier
+  val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)
   val parser       = new KotlinSignatureParserService
 
   configReader
@@ -24,7 +25,7 @@ object Main extends App {
           out
             .serveOutput()
             .runA(
-              Env(db, matchService(db), prettifier, parser, config)
+              Env(db, matchService(db), prettifier, parser, resolver(db), config)
             )
         }
     }
