@@ -3,8 +3,7 @@ package org.virtuslab.inkuire.engine.common.model
 import cats.data.StateT
 import cats.effect.IO
 import org.virtuslab.inkuire.engine.common.parser.BaseSignatureParserService
-import org.virtuslab.inkuire.engine.common.service.{BaseMatchService, SignaturePrettifier}
-import org.virtuslab.inkuire.engine.common.service.SignaturePrettifier
+import org.virtuslab.inkuire.engine.common.service.{BaseMatchService, BaseSignatureResolver, SignaturePrettifier}
 
 object Engine {
   case class Env(
@@ -12,6 +11,7 @@ object Engine {
     matcher:    BaseMatchService,
     prettifier: SignaturePrettifier,
     parser:     BaseSignatureParserService,
+    resolver:   BaseSignatureResolver,
     appConfig:  AppConfig
   )
 

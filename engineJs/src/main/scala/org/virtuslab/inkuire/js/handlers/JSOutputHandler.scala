@@ -11,6 +11,7 @@ class JSOutputHandler extends OutputHandler {
     def executeQuery(query: String): Either[String, String] = {
       env.parser
         .parse(query)
+        .map(env.resolver.resolve)
         .map(env.matcher.|??|)
         .map(env.prettifier.prettify)
     }
