@@ -27,7 +27,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
       )
     )
     //when
-    val res: Seq[ExternalSignature] = exactMatchService |??| equalsSignature
+    val res: Seq[ExternalSignature] = exactMatchService |??| ResolveResult(Seq(equalsSignature))
 
     //then
     res should matchTo[Seq[ExternalSignature]](Seq(equalsExternalSignature))
@@ -44,7 +44,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
       )
     )
     //when
-    val res: Seq[ExternalSignature] = exactMatchService |??| toStringSignature
+    val res: Seq[ExternalSignature] = exactMatchService |??| ResolveResult(Seq(toStringSignature))
 
     //then
     res should matchTo[Seq[ExternalSignature]](Seq.empty)
@@ -61,7 +61,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
       )
     )
     //when
-    val res: Seq[ExternalSignature] = exactMatchService |??| rangeSignature
+    val res: Seq[ExternalSignature] = exactMatchService |??| ResolveResult(Seq(rangeSignature))
 
     //then
     res should matchTo[Seq[ExternalSignature]](Seq(rangeExternalSignature))
@@ -78,7 +78,7 @@ class ExactMatchServiceTest extends BaseInkuireTest {
       )
     )
     //when
-    val res: Seq[ExternalSignature] = exactMatchService |??| mainSignature
+    val res: Seq[ExternalSignature] = exactMatchService |??| ResolveResult(Seq(mainSignature))
 
     //then
     res should matchTo[Seq[ExternalSignature]](Seq(mainExternalSignature))

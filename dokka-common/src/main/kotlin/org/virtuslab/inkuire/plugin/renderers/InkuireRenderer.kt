@@ -6,8 +6,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.dokka.base.renderers.OutputWriter
 import org.jetbrains.dokka.pages.ModulePageNode
 import org.jetbrains.dokka.pages.RootPageNode
-import org.jetbrains.dokka.plugability.plugin
-import org.virtuslab.inkuire.model.util.CustomGson
+import org.virtuslab.inkuire.kotlin.model.util.CustomGson
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 
 class InkuireRenderer(val outputWriter: OutputWriter) {

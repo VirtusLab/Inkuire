@@ -24,9 +24,9 @@ object AppConfig {
 }
 
 trait AppParam extends Any
-case class Address(address:        String) extends AnyVal with AppParam
-case class Port(port:              Int) extends AnyVal with AppParam
-case class DbPath(path:            String) extends AnyVal with AppParam
+case class Address(address: String) extends AnyVal with AppParam
+case class Port(port: Int) extends AnyVal with AppParam
+case class DbPath(path: String) extends AnyVal with AppParam
 case class AncestryGraphPath(path: String) extends AnyVal with AppParam
 
 object AppParam {

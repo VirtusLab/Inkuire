@@ -47,11 +47,12 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
     }.distinct)
     .toMap
 
-  private def retrieveVariables(t: Type): Seq[DRI] = t match {
-    case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
-    case t: TypeVariable => Seq(t.dri.get)
-    case _ => Seq()
-  }
+  private def retrieveVariables(t: Type): Seq[DRI] =
+    t match {
+      case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
+      case t: TypeVariable => Seq(t.dri.get)
+      case _ => Seq()
+    }
 
   def hasCyclicDependency: Boolean = {
     case class DfsState(visited: Set[DRI] = Set.empty, stack: Set[DRI] = Set.empty)
@@ -63,12 +64,13 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
         visited  = dfsState.visited.contains(current)
         newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
         _ <- State.set[DfsState](newState)
-        f <- if (!visited)
-          dependencyGraph
-            .getOrElse(current, Seq())
-            .toList
-            .traverse(loop)
-        else State.pure[DfsState, List[Boolean]](List())
+        f <-
+          if (!visited)
+            dependencyGraph
+              .getOrElse(current, Seq())
+              .toList
+              .traverse(loop)
+          else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
 

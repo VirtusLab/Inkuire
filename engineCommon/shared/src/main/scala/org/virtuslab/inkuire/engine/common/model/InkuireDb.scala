@@ -52,7 +52,11 @@ object InkuireDb {
     ancestryDbs
       .traverse { content =>
         import org.virtuslab.inkuire.model.util.Deserializer._
-        parse(content).flatMap(_.as[Seq[AncestryGraph]])
+        val parsed = parse(content)
+        parsed.flatMap { x =>
+          println(x)
+          x.as[Seq[AncestryGraph]]
+        }
       }
       .map(_.flatten.map { a =>
         translateDRI(a.dri) -> (translationService.translateProjection(a.`type`) -> a.superTypes
@@ -90,7 +94,7 @@ object InkuireDb {
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           import com.softwaremill.quicklens._
-          val rcv  = receiver.map(r  => r.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
           val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
           val rst = result.modify(_.typ).using {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
@@ -102,18 +106,22 @@ object InkuireDb {
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
     if (types.contains(typ.base.dri.get)) {
-      GenericType(typ.base, types(typ.base.dri.get)._1.params.zip(typ.params).map {
-        case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
-      })
+      GenericType(
+        typ.base,
+        types(typ.base.dri.get)._1.params.zip(typ.params).map {
+          case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
+        }
+      )
     } else typ
   }
 
-  private def wrapWithVariance(typ: Type, variance: Variance) = variance match {
-    case _: Covariance         => Covariance(typ)
-    case _: Contravariance     => Contravariance(typ)
-    case _: Invariance         => Invariance(typ)
-    case _: UnresolvedVariance => UnresolvedVariance(typ)
-  }
+  private def wrapWithVariance(typ: Type, variance: Variance) =
+    variance match {
+      case _: Covariance         => Covariance(typ)
+      case _: Contravariance     => Contravariance(typ)
+      case _: Invariance         => Invariance(typ)
+      case _: UnresolvedVariance => UnresolvedVariance(typ)
+    }
 }
 
 case class ExternalSignature(

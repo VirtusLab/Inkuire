@@ -75,8 +75,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
                 "functions" in it.name
             }.let {
                 Pair(
-                    it.first.map { it.toURI().toURL() },
-                    it.second.map { it.toURI().toURL() }
+                    it.first.map { it.readText() },
+                    it.second.map { it.readText() }
                 )
             }
 

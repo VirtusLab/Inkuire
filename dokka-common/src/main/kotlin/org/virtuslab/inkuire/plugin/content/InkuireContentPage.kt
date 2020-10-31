@@ -3,7 +3,8 @@ package org.virtuslab.inkuire.plugin.content
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.Documentable
 import org.jetbrains.dokka.pages.*
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.AncestryGraph
+import org.virtuslab.inkuire.kotlin.model.SDFunction
 
 data class InkuireContentPage(
     override val name: String,

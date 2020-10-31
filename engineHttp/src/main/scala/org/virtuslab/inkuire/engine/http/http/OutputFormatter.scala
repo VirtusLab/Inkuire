@@ -7,10 +7,11 @@ import org.virtuslab.inkuire.model.{Match, OutputFormat}
 import collection.JavaConverters._
 
 class OutputFormatter(prettifier: SignaturePrettifier) {
-  def createOutput(query: String, signatures: Seq[ExternalSignature]): OutputFormat = new OutputFormat(
-    query,
-    fromSignatures(signatures).toList
-  )
+  def createOutput(query: String, signatures: Seq[ExternalSignature]): OutputFormat =
+    new OutputFormat(
+      query,
+      fromSignatures(signatures).toList
+    )
 
   private def fromSignatures(signatures: Seq[ExternalSignature]): Seq[Match] =
     signatures

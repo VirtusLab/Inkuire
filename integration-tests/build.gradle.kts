@@ -14,8 +14,7 @@ repositories {
 
 dependencies {
     testImplementation(project(":dokka-common:db-generator"))
-    testImplementation(project(":engine-common"))
-
+    testImplementation("org.virtuslab.inkuire:inkuire-engine-common_2.13:0.1-SNAPSHOT")
     val dokkaVersion: String by project
 
     testImplementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
@@ -32,3 +31,4 @@ dependencies {
     testRuntimeOnly("org.scala-lang.modules:scala-xml_$scalaVersion:1.3.0")
     testRuntimeOnly("com.vladsch.flexmark:flexmark-all:0.35.10")
 }
+

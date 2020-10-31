@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.model
+package org.virtuslab.inkuire.kotlin.model
 
 sealed class SProjection
 

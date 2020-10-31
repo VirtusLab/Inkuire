@@ -19,7 +19,7 @@ class FluffMatchServiceTest extends BaseInkuireTest {
       )
     )
     //when
-    val res: Seq[ExternalSignature] = fluffMatchService |??| mapGetSignature.signature
+    val res: Seq[ExternalSignature] = fluffMatchService |??| ResolveResult(Seq(mapGetSignature.signature))
     //then
     res should matchTo[Seq[ExternalSignature]](Seq(mapGetSignature))
   }
