@@ -94,7 +94,9 @@ lazy val engineJS = project
       "org.typelevel" %%% "cats-mtl-core" % "0.7.1",
       "io.circe" %%% "circe-core" % "0.13.0",
       "io.circe" %%% "circe-parser" % "0.13.0",
-      "io.circe" %%% "circe-generic" % "0.13.0"
+      "io.circe" %%% "circe-generic" % "0.13.0",
+      "io.monix" %%% "monix" % "3.2.2",
+      "io.monix" %%% "monix-reactive" % "3.2.2"
     ),
     scalaJSUseMainModuleInitializer := true
   )
