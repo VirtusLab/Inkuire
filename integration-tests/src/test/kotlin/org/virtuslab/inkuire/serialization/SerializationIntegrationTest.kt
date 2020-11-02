@@ -71,8 +71,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
             val (functions, ancestors) = parent.walkTopDown().filter {
                 "jvm" in it.name || "common" in it.name
-            }.partition {
-                "functions" in it.name
+            }.flatMap { sequenceOf(*it.listFiles()) }.partition {
+                "fdb" in it.name
             }.let {
                 Pair(
                     it.first.map { it.readText() },
@@ -86,13 +86,9 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
     @Test
     fun `serialize and deserialize`() {
-        val expectedSources = listOf("common", "js", "jvm").let {
-            it.map { "ancestryGraphexample_$it.inkuire.adb" } + it.map { "functionsexample_$it.inkuire.fdb" }
+        parent.walkTopDown().filter { it.name in listOf("common", "js", "jvm") }.forEach {
+            assertEquals(listOf("example.inkuire.adb", "example.inkuire.fdb").sorted(), it.listFiles().map { it.name }.sorted())
         }
-        assertTrue(parent.walkTopDown().map { it.name }.toList().containsAll(expectedSources))
-        assertTrue(inkuireDb.functions().size() > 0)
-        assertTrue(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
-
         assertTrue(inkuireDb.functions().size() > 0)
         assertTrue(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
 
