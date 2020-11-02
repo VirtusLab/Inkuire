@@ -159,7 +159,7 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
         Signature(
           "A".typeVariable.some,
           Seq(
-            "B".typeVariable,
+            "B".typeVariable
           ),
           GenericType(
             "List".concreteType,
