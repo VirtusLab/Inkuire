@@ -12,8 +12,10 @@ class ModelMappingTest extends BaseInkuireTest {
 
   ignore should "map global function" in {
     //given
-    val source = urlToContent(Paths.get("src/test", "resources", "modelTestData", "functions", "1.json").toFile.toURI.toURL)
-    val any    = urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
+    val source =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "functions", "1.json").toFile.toURI.toURL)
+    val any =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
 
     //when
     val inkuire = InkuireDb.read(List(source), List(any))
@@ -36,9 +38,12 @@ class ModelMappingTest extends BaseInkuireTest {
 
   ignore should "map method" in {
     //given
-    val source = urlToContent(Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile.toURI.toURL)
-    val any    = urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
-    val clock  = urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL)
+    val source =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "functions", "2.json").toFile.toURI.toURL)
+    val any =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
+    val clock =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL)
     //when
     val inkuire = InkuireDb.read(List(source), List(any, clock))
 
@@ -66,8 +71,10 @@ class ModelMappingTest extends BaseInkuireTest {
   ignore should "load ancestors" in {
     def urlToContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
     //given
-    val ancestors = urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL)
-    val any       = urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
+    val ancestors =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "1.json").toFile.toURI.toURL)
+    val any =
+      urlToContent(Paths.get("src/test", "resources", "modelTestData", "ancestors", "any.json").toFile.toURI.toURL)
 
     //when
     val inkuire = InkuireDb.read(List.empty, List(ancestors, any))

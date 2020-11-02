@@ -13,9 +13,7 @@ class InputElement(input: html.Input) extends BaseInput with BaseOutput {
       .create[String](OverflowStrategy.DropOld(10)) { subscriber =>
         val func = (event: Event) => subscriber.onNext(event.target.asInstanceOf[html.Input].value)
         input.addEventListener("input", func)
-        Cancelable(
-          () => input.removeEventListener("input", func)
-        )
+        Cancelable(() => input.removeEventListener("input", func))
       }
       .debounce(1.seconds)
 
