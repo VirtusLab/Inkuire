@@ -7,7 +7,6 @@ import org.jetbrains.dokka.analysis.PsiDocumentableSource
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
-import org.jetbrains.dokka.model.TypeConstructor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.kotlin.model.*
@@ -16,7 +15,7 @@ import java.lang.IllegalStateException
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {
 
     private val uselessBound = Nullable(
-        TypeConstructor(
+        GenericTypeConstructor(
             DriOfAny,
             emptyList()
         )
@@ -67,13 +66,17 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         }
     }
 
-    override fun FunctionModifiers.toSerializable(): SFunctionModifiers = SFunctionModifiers.valueOf(this.name)
     override fun Bound.toSerializable(): SBound = when (this) {
         is TypeParameter -> STypeParameter(dri.toSerializable(), name)
-        is TypeConstructor -> STypeConstructor(
+        is GenericTypeConstructor -> STypeConstructor(
             dri.toSerializable(),
             projections.map { it.toSerializable() },
-            modifier.toSerializable()
+            SFunctionModifiers.NONE
+        )
+        is FunctionalTypeConstructor -> STypeConstructor(
+            dri.toSerializable(),
+            projections.map { it.toSerializable() },
+            SFunctionModifiers.EXTENSION.takeIf { isExtensionFunction } ?: SFunctionModifiers.FUNCTION
         )
         is Nullable -> SNullable(inner.toSerializable())
         is PrimitiveJavaType -> SPrimitiveJavaType(name)
@@ -81,6 +84,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         is JavaObject -> SJavaObject
         is Dynamic -> SDynamic
         is UnresolvedBound -> SUnresolvedBound(name)
+        is TypeAliased -> typeAlias.toSerializable()
     }
 
     private fun DFunction.alternativeParametersLists(source: DokkaConfiguration.DokkaSourceSet): List<Boolean> {

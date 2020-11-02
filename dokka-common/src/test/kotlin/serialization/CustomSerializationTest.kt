@@ -39,18 +39,50 @@ class CustomSerializationTest {
     }
 
     @Test
-    fun `type constructor as bound`() {
-        val input = TypeConstructor(DRI("package", "Class"), emptyList(), FunctionModifiers.NONE).toSerializable()
+    fun `generic type constructor as bound`() {
+        val input = GenericTypeConstructor(DRI("package", "Class"), emptyList()).toSerializable()
         val actual = gson.toJson(input, SBound::class.java)
         val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"NONE","boundkind":"typeconstructor"}"""
         assertEquals(expect, actual)
     }
 
     @Test
-    fun `type constructor as projection`() {
-        val input = TypeConstructor(DRI("package", "Class"), emptyList(), FunctionModifiers.NONE).toSerializable()
+    fun `generic type constructor as projection`() {
+        val input = GenericTypeConstructor(DRI("package", "Class"), emptyList()).toSerializable()
         val actual = gson.toJson(input, SProjection::class.java)
         val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"NONE","boundkind":"typeconstructor","projectionkind":"bound"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `functional type constructor as bound`() {
+        val input = FunctionalTypeConstructor(DRI("package", "Class"), emptyList()).toSerializable()
+        val actual = gson.toJson(input, SBound::class.java)
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"FUNCTION","boundkind":"typeconstructor"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `functional type constructor as projection`() {
+        val input = FunctionalTypeConstructor(DRI("package", "Class"), emptyList()).toSerializable()
+        val actual = gson.toJson(input, SProjection::class.java)
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"FUNCTION","boundkind":"typeconstructor","projectionkind":"bound"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `functional type constructor as extenion as bound`() {
+        val input = FunctionalTypeConstructor(DRI("package", "Class"), emptyList(), isExtensionFunction = true).toSerializable()
+        val actual = gson.toJson(input, SBound::class.java)
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"EXTENSION","boundkind":"typeconstructor"}"""
+        assertEquals(expect, actual)
+    }
+
+    @Test
+    fun `functional type constructor as extension as projection`() {
+        val input = FunctionalTypeConstructor(DRI("package", "Class"), emptyList(), isExtensionFunction = true).toSerializable()
+        val actual = gson.toJson(input, SProjection::class.java)
+        val expect = """{"dri":{"packageName":"package","className":"Class","original":"package/Class///PointingToDeclaration/"},"projections":[],"modifier":"EXTENSION","boundkind":"typeconstructor","projectionkind":"bound"}"""
         assertEquals(expect, actual)
     }
 
