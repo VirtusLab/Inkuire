@@ -25,6 +25,7 @@ internal fun simpleFunction(
     generics = generics,
     modifier = emptyMap(),
     sourceSets = emptySet(),
+    isExpectActual = false,
     extra = PropertyContainer.empty()
 )
 

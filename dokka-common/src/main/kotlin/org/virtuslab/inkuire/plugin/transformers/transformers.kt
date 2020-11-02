@@ -31,16 +31,16 @@ fun List<DFunction>.functionalTypesNormalizerTransformer(): List<DFunction> = ma
 }
 
 private val mappings: Map<Bound, Bound> = mapOf(
-    PrimitiveJavaType("int") to TypeConstructor(DRI("kotlin", "Int"), emptyList()),
-    PrimitiveJavaType("boolean") to TypeConstructor(DRI("kotlin", "Boolean"), emptyList()),
-    PrimitiveJavaType("byte") to TypeConstructor(DRI("kotlin", "Byte"), emptyList()),
-    PrimitiveJavaType("char") to TypeConstructor(DRI("kotlin", "Char"), emptyList()),
-    PrimitiveJavaType("short") to TypeConstructor(DRI("kotlin", "Short"), emptyList()),
-    PrimitiveJavaType("long") to TypeConstructor(DRI("kotlin", "Long"), emptyList()),
-    PrimitiveJavaType("float") to TypeConstructor(DRI("kotlin", "Float"), emptyList()),
-    PrimitiveJavaType("double") to TypeConstructor(DRI("kotlin", "Double"), emptyList()),
-    Void to TypeConstructor(DRI("kotlin", "Unit"), emptyList()),
-    JavaObject to TypeConstructor(DRI("kotlin", "Any"), emptyList())
+    PrimitiveJavaType("int") to GenericTypeConstructor(DRI("kotlin", "Int"), emptyList()),
+    PrimitiveJavaType("boolean") to GenericTypeConstructor(DRI("kotlin", "Boolean"), emptyList()),
+    PrimitiveJavaType("byte") to GenericTypeConstructor(DRI("kotlin", "Byte"), emptyList()),
+    PrimitiveJavaType("char") to GenericTypeConstructor(DRI("kotlin", "Char"), emptyList()),
+    PrimitiveJavaType("short") to GenericTypeConstructor(DRI("kotlin", "Short"), emptyList()),
+    PrimitiveJavaType("long") to GenericTypeConstructor(DRI("kotlin", "Long"), emptyList()),
+    PrimitiveJavaType("float") to GenericTypeConstructor(DRI("kotlin", "Float"), emptyList()),
+    PrimitiveJavaType("double") to GenericTypeConstructor(DRI("kotlin", "Double"), emptyList()),
+    Void to GenericTypeConstructor(DRI("kotlin", "Unit"), emptyList()),
+    JavaObject to GenericTypeConstructor(DRI("kotlin", "Any"), emptyList())
 )
 
 private fun mapIfPrimitive(bound: Bound): Bound = mappings[bound] ?: bound
@@ -52,7 +52,7 @@ private fun mapIfFunctionalType(projection: Projection): Projection = if (projec
 else
     projection
 
-private fun mapIfFunctionalType(bound: Bound): Bound = if (bound is TypeConstructor && bound.dri.classNames?.matches(Regex("Function.*")) == true)
+private fun mapIfFunctionalType(bound: Bound): Bound = if (bound is FunctionalTypeConstructor)
     bound.copy(dri = bound.dri.copy(packageName = "kotlin"), projections = bound.projections.map(::mapIfFunctionalType))
 else
     bound

@@ -48,20 +48,20 @@ class PrimitivesMappingTest {
                     simpleParameter(
                         DRI("some", "int"),
                         "int",
-                        TypeConstructor(DRI("kotlin", "Int"), emptyList())
+                        GenericTypeConstructor(DRI("kotlin", "Int"), emptyList())
                     ),
                     simpleParameter(
                         DRI("some", "char"),
                         "char",
-                        TypeConstructor(DRI("kotlin", "Char"), emptyList())
+                        GenericTypeConstructor(DRI("kotlin", "Char"), emptyList())
                     ),
                     simpleParameter(
                         DRI("some", "object"),
                         "object",
-                        TypeConstructor(DRI("kotlin", "Any"), emptyList())
+                        GenericTypeConstructor(DRI("kotlin", "Any"), emptyList())
                     ),
                 ),
-                TypeConstructor(DRI("kotlin", "Unit"), emptyList()),
+                GenericTypeConstructor(DRI("kotlin", "Unit"), emptyList()),
                 null,
                 emptyList()
             )

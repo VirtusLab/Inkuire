@@ -11,6 +11,5 @@ abstract class DokkaToSerializableModelTransformer {
     abstract fun DTypeParameter.toSerializable(): SDTypeParameter
     abstract fun Bound.toSerializable(): SBound
     abstract fun Projection.toSerializable(): SProjection
-    abstract fun FunctionModifiers.toSerializable(): SFunctionModifiers
     abstract fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet): SDFunction
 }

@@ -1,10 +1,7 @@
 package serialization
 
 import org.jetbrains.dokka.links.DRI
-import org.jetbrains.dokka.model.Covariance
-import org.jetbrains.dokka.model.FunctionModifiers
-import org.jetbrains.dokka.model.TypeConstructor
-import org.jetbrains.dokka.model.TypeParameter
+import org.jetbrains.dokka.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.virtuslab.inkuire.plugin.transformers.functionalTypesNormalizerTransformer
@@ -24,116 +21,98 @@ class FunctionalTypesNormalizerTest {
                 simpleParameter(
                     DRI("some", "parameter1"),
                     "parameter1",
-                    TypeConstructor(
+                    FunctionalTypeConstructor(
                         DRI("kotlin", "Function1"),
                         listOf(
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "Int"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             ),
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "String"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             )
-                        ),
-                        FunctionModifiers.FUNCTION
+                        )
                     )
                 )
             ),
-            TypeConstructor(
+            FunctionalTypeConstructor(
                 DRI("kotlin.jvm.functions", "Function2"),
                 listOf(
-                    TypeConstructor(
+                    GenericTypeConstructor(
                         DRI("kotlin", "Int"),
-                        emptyList(),
-                        FunctionModifiers.NONE
+                        emptyList()
                     ),
-                    TypeConstructor(
+                    GenericTypeConstructor(
                         DRI("kotlin", "String"),
-                        emptyList(),
-                        FunctionModifiers.NONE
+                        emptyList()
                     ),
-                    TypeConstructor(
+                    FunctionalTypeConstructor(
                         DRI("kotlin.jvm.functions", "Function1"),
                         listOf(
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "Int"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             ),
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "String"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             )
-                        ),
-                        FunctionModifiers.FUNCTION
+                        )
                     )
-                ),
-                FunctionModifiers.FUNCTION
+                )
             ),
             simpleParameter(
                 DRI("some", "receiver"),
                 "receiver",
-                TypeConstructor(
+                FunctionalTypeConstructor(
                     DRI("kotlin.jvm.functions", "Function1"),
                     listOf(
-                        TypeConstructor(
+                        GenericTypeConstructor(
                             DRI("kotlin", "Int"),
-                            emptyList(),
-                            FunctionModifiers.NONE
+                            emptyList()
                         ),
-                        TypeConstructor(
+                        GenericTypeConstructor(
                             DRI("kotlin", "String"),
-                            emptyList(),
-                            FunctionModifiers.NONE
+                            emptyList()
                         )
-                    ),
-                    FunctionModifiers.FUNCTION
+                    )
                 )
             ),
             listOf(
                 simpleTypeParameter(
                     Covariance(TypeParameter(DRI("some", "typeparam1"), "T")),
                     listOf(
-                        TypeConstructor(
+                        FunctionalTypeConstructor(
                             DRI("kotlin.jvm.functions", "Function1"),
                             listOf(
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "Int"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 ),
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "String"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 )
-                            ),
-                            FunctionModifiers.FUNCTION
+                            )
                         )
                     )
                 ),
                 simpleTypeParameter(
                     Covariance(TypeParameter(DRI("some", "typeparam1"), "T")),
                     listOf(
-                        TypeConstructor(
+                        FunctionalTypeConstructor(
                             DRI("kotlin", "Function1"),
                             listOf(
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "Int"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 ),
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "String"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 )
-                            ),
-                            FunctionModifiers.FUNCTION
+                            )
                         )
                     )
                 ),
@@ -150,116 +129,98 @@ class FunctionalTypesNormalizerTest {
                     simpleParameter(
                         DRI("some", "parameter1"),
                         "parameter1",
-                        TypeConstructor(
+                        FunctionalTypeConstructor(
                             DRI("kotlin", "Function1"),
                             listOf(
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "Int"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 ),
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "String"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 )
-                            ),
-                            FunctionModifiers.FUNCTION
+                            )
                         )
                     )
                 ),
-                TypeConstructor(
+                FunctionalTypeConstructor(
                     DRI("kotlin", "Function2"),
                     listOf(
-                        TypeConstructor(
+                        GenericTypeConstructor(
                             DRI("kotlin", "Int"),
-                            emptyList(),
-                            FunctionModifiers.NONE
+                            emptyList()
                         ),
-                        TypeConstructor(
+                        GenericTypeConstructor(
                             DRI("kotlin", "String"),
-                            emptyList(),
-                            FunctionModifiers.NONE
+                            emptyList()
                         ),
-                        TypeConstructor(
+                        FunctionalTypeConstructor(
                             DRI("kotlin", "Function1"),
                             listOf(
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "Int"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 ),
-                                TypeConstructor(
+                                GenericTypeConstructor(
                                     DRI("kotlin", "String"),
-                                    emptyList(),
-                                    FunctionModifiers.NONE
+                                    emptyList()
                                 )
-                            ),
-                            FunctionModifiers.FUNCTION
+                            )
                         )
-                    ),
-                    FunctionModifiers.FUNCTION
+                    )
                 ),
                 simpleParameter(
                     DRI("some", "receiver"),
                     "receiver",
-                    TypeConstructor(
+                    FunctionalTypeConstructor(
                         DRI("kotlin", "Function1"),
                         listOf(
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "Int"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             ),
-                            TypeConstructor(
+                            GenericTypeConstructor(
                                 DRI("kotlin", "String"),
-                                emptyList(),
-                                FunctionModifiers.NONE
+                                emptyList()
                             )
-                        ),
-                        FunctionModifiers.FUNCTION
+                        )
                     )
                 ),
                 listOf(
                     simpleTypeParameter(
                         Covariance(TypeParameter(DRI("some", "typeparam1"), "T")),
                         listOf(
-                            TypeConstructor(
+                            FunctionalTypeConstructor(
                                 DRI("kotlin", "Function1"),
                                 listOf(
-                                    TypeConstructor(
+                                    GenericTypeConstructor(
                                         DRI("kotlin", "Int"),
-                                        emptyList(),
-                                        FunctionModifiers.NONE
+                                        emptyList()
                                     ),
-                                    TypeConstructor(
+                                    GenericTypeConstructor(
                                         DRI("kotlin", "String"),
-                                        emptyList(),
-                                        FunctionModifiers.NONE
+                                        emptyList()
                                     )
-                                ),
-                                FunctionModifiers.FUNCTION
+                                )
                             )
                         )
                     ),
                     simpleTypeParameter(
                         Covariance(TypeParameter(DRI("some", "typeparam1"), "T")),
                         listOf(
-                            TypeConstructor(
+                            FunctionalTypeConstructor(
                                 DRI("kotlin", "Function1"),
                                 listOf(
-                                    TypeConstructor(
+                                    GenericTypeConstructor(
                                         DRI("kotlin", "Int"),
-                                        emptyList(),
-                                        FunctionModifiers.NONE
+                                        emptyList()
                                     ),
-                                    TypeConstructor(
+                                    GenericTypeConstructor(
                                         DRI("kotlin", "String"),
-                                        emptyList(),
-                                        FunctionModifiers.NONE
+                                        emptyList()
                                     )
-                                ),
-                                FunctionModifiers.FUNCTION
+                                )
                             )
                         )
                     ),
