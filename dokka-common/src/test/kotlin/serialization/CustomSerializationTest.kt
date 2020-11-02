@@ -4,10 +4,10 @@ import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.virtuslab.inkuire.model.SBound
-import org.virtuslab.inkuire.model.SProjection
-import org.virtuslab.inkuire.model.SVariance
-import org.virtuslab.inkuire.model.util.CustomGson
+import org.virtuslab.inkuire.kotlin.model.SBound
+import org.virtuslab.inkuire.kotlin.model.SProjection
+import org.virtuslab.inkuire.kotlin.model.SVariance
+import org.virtuslab.inkuire.kotlin.model.util.CustomGson
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
 
 class CustomSerializationTest {

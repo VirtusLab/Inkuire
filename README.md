@@ -90,3 +90,14 @@ IntelliJ plugin is in early developement, but if you want to try it, you need to
 
 ---
 
+#### Importing project in IntelliJ IDEA
+
+There are two build tools included in building project. To obtain best experinece of developing the code while having
+code completion and type inference one should import project to IDEA following these steps:
+
+1. Import the project from build.sbt and wait for IntelliJ to index all the files. You should be able to see sbt ont the right panel as well as the submodules it is governing.
+2. Go to File -> Project Structure -> Modules and select Add -> Import module
+3. Import project from build.gradle.kts and wait for IntelliJ to index all files.
+4. You should be able to see both sbt and gradle widgets on right bar.
+5. When developing sbt sources or gradle sources make sure to have project reloaded for your build tool project schema. Just open sbt/gradle sidemenu and click `Reload all [sbt/Gradle] projects`
+

@@ -10,7 +10,7 @@ import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.model.TypeConstructor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.*
 import java.lang.IllegalStateException
 
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {

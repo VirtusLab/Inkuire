@@ -6,10 +6,11 @@ case class SignatureContext(
   vars:        Set[String],
   constraints: Map[String, Seq[Type]]
 ) {
-  override def equals(obj: Any): Boolean = obj match {
-    case other: SignatureContext if this.vars.size == other.vars.size => true
-    case _ => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case other: SignatureContext if this.vars.size == other.vars.size => true
+      case _ => false
+    }
 }
 
 object SignatureContext {

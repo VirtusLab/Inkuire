@@ -10,7 +10,7 @@ trait Type {
   def nullable:   Boolean
   def params:     Seq[Variance]
   def dri:        Option[DRI]
-  def ?         : Type
+  def ?          : Type
   def isVariable: Boolean
 }
 
@@ -70,10 +70,11 @@ case class TypeVariable(
   override def isVariable: Boolean = true
 
   // TODO: Issue #28
-  override def equals(obj: Any): Boolean = obj match {
-    case t: TypeVariable => t.nullable == this.nullable
-    case _ => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case t: TypeVariable => t.nullable == this.nullable
+      case _ => false
+    }
 }
 
 case object StarProjection extends Type {

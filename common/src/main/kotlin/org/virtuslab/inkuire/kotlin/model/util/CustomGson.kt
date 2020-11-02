@@ -1,7 +1,9 @@
-package org.virtuslab.inkuire.model.util
+package org.virtuslab.inkuire.kotlin.model.util
 
 import com.google.gson.Gson
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.SBound
+import org.virtuslab.inkuire.kotlin.model.SProjection
+import org.virtuslab.inkuire.kotlin.model.SVariance
 
 object CustomGson {
 

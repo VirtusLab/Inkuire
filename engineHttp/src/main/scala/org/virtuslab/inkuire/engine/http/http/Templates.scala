@@ -7,41 +7,45 @@ import scalatags.Text.all._
 import collection.JavaConverters._
 
 object Templates {
-  private def logoHtml = div(id := "logo-div")(
-    img(id := "logo", src := s"/assets/logoinkuire.png")
-  )
+  private def logoHtml =
+    div(id := "logo-div")(
+      img(id := "logo", src := s"/assets/logoinkuire.png")
+    )
 
-  private def resources = List(
-    link(href := "https://fonts.googleapis.com/icon?family=Material+Icons", rel := "stylesheet"),
-    link(rel := "stylesheet", href := "https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"),
-    link(
-      rel := "stylesheet",
-      href := "https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
-    ),
-    link(
-      rel := "stylesheet",
-      href := "https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
-    ),
-    link(rel := "stylesheet", href := "/assets/bootstrap-theme.css"),
-    link(rel := "stylesheet", href := "/assets/styles.css"),
-    link(rel := "icon", `type` := "image/png", href := "/assets/favicon.png")
-  )
+  private def resources =
+    List(
+      link(href := "https://fonts.googleapis.com/icon?family=Material+Icons", rel := "stylesheet"),
+      link(rel := "stylesheet", href := "https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"),
+      link(
+        rel := "stylesheet",
+        href := "https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+      ),
+      link(
+        rel := "stylesheet",
+        href := "https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+      ),
+      link(rel := "stylesheet", href := "/assets/bootstrap-theme.css"),
+      link(rel := "stylesheet", href := "/assets/styles.css"),
+      link(rel := "icon", `type` := "image/png", href := "/assets/favicon.png")
+    )
 
   def formTemplate(): String = {
-    def generateExamples(queries: String*): Seq[Text.TypedTag[String]] = queries.zipWithIndex.map {
-      case (q, i) => example(q, s"exampleform$i")
-    }
+    def generateExamples(queries: String*): Seq[Text.TypedTag[String]] =
+      queries.zipWithIndex.map {
+        case (q, i) => example(q, s"exampleform$i")
+      }
 
-    def example(query: String, formId: String): Text.TypedTag[String] = div(cls := "form-div")(
-      form(id := formId, cls := "query-form")(method := "post")(
-        div(cls := "query-input code")(
-          input(name := "query", cls := "form-control", value := query, readonly := true)
-        ),
-        div(cls := "query-button")(
-          input(`type` := "submit", value := "Query", cls := "btn btn-primary")
-        ),
+    def example(query: String, formId: String): Text.TypedTag[String] =
+      div(cls := "form-div")(
+        form(id := formId, cls := "query-form")(method := "post")(
+          div(cls := "query-input code")(
+            input(name := "query", cls := "form-control", value := query, readonly := true)
+          ),
+          div(cls := "query-button")(
+            input(`type` := "submit", value := "Query", cls := "btn btn-primary")
+          )
+        )
       )
-    )
 
     html(
       head(
@@ -56,7 +60,7 @@ object Templates {
             ),
             div(cls := "query-button")(
               input(`type` := "submit", value := "Send", cls := "btn btn-primary")
-            ),
+            )
           )
         ),
         div(id := "examples")(

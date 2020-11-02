@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.plugin.transformers
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.*
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.*
 
 abstract class DokkaToSerializableModelTransformer {
     abstract fun DRI.toSerializable(): SDRI

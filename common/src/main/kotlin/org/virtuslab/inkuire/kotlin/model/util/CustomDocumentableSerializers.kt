@@ -1,8 +1,8 @@
-package org.virtuslab.inkuire.model.util
+package org.virtuslab.inkuire.kotlin.model.util
 
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.*
 import java.lang.reflect.Type
 
 class BoundSerializer : JsonSerializer<SBound>, JsonDeserializer<SBound> {

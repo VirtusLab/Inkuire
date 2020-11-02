@@ -14,24 +14,25 @@ class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
 
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {
-      receiver <- signature.receiver
-        .fold[Seq[Option[Type]]](Seq(None))(r => resolvePossibleTypes(r.typ).map(_.some))
-        .map(_.map(Contravariance))
+      receiver <-
+        signature.receiver
+          .fold[Seq[Option[Type]]](Seq(None))(r => resolvePossibleTypes(r.typ).map(_.some))
+          .map(_.map(Contravariance))
       args <- resolveMultipleTypes(signature.arguments.map(_.typ)).map(_.map(Contravariance))
       result <- resolvePossibleTypes(signature.result.typ).map(Covariance)
-      constraints = signature.context.constraints.view
-        .mapValues(resolveMultipleTypes(_).head)
-        .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
-    } yield
-      signature
-        .modify(_.receiver)
-        .setTo(receiver)
-        .modify(_.arguments)
-        .setTo(args)
-        .modify(_.result)
-        .setTo(result)
-        .modify(_.context.constraints)
-        .setTo(constraints)
+      constraints =
+        signature.context.constraints.view
+          .mapValues(resolveMultipleTypes(_).head)
+          .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
+    } yield signature
+      .modify(_.receiver)
+      .setTo(receiver)
+      .modify(_.arguments)
+      .setTo(args)
+      .modify(_.result)
+      .setTo(result)
+      .modify(_.context.constraints)
+      .setTo(constraints)
   }
 
   private def resolvePossibleTypes(typ: Type): Seq[Type] = {
@@ -56,11 +57,12 @@ class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
     resolved.filter(_.params.size == typ.params.size)
   }
 
-  private def copyDRI(typ: Type, dri: Option[DRI]): Type = typ match {
-    case t: GenericType  => t.modify(_.base).using(copyDRI(_, dri))
-    case t: ConcreteType => t.modify(_.dri).setTo(dri)
-    case _ => typ
-  }
+  private def copyDRI(typ: Type, dri: Option[DRI]): Type =
+    typ match {
+      case t: GenericType  => t.modify(_.base).using(copyDRI(_, dri))
+      case t: ConcreteType => t.modify(_.dri).setTo(dri)
+      case _ => typ
+    }
 
   private def resolveMultipleTypes(args: Seq[Type]): Seq[Seq[Type]] = {
     args match {

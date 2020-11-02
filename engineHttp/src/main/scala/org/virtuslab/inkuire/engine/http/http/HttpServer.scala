@@ -31,9 +31,7 @@ class HttpServer extends OutputHandler {
       env.parser
         .parse(signature)
         .map(env.resolver.resolve)
-        .map(
-          resolved => formatter.createOutput(signature, env.matcher |??| resolved)
-        )
+        .map(resolved => formatter.createOutput(signature, env.matcher |??| resolved))
     }
 
     def static(file: String, blocker: Blocker, request: Request[IO]) =
@@ -60,7 +58,7 @@ class HttpServer extends OutputHandler {
                 Ok(
                   fb.asJson.toString,
                   `Content-Type`(MediaType.application.json)
-              )
+                )
             )
           case GET -> Root =>
             Found(
@@ -74,10 +72,11 @@ class HttpServer extends OutputHandler {
 
     val app = for {
       blocker <- Blocker[IO]
-      server <- BlazeServerBuilder[IO]
-        .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
-        .withHttpApp(appService(blocker))
-        .resource
+      server <-
+        BlazeServerBuilder[IO]
+          .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
+          .withHttpApp(appService(blocker))
+          .resource
     } yield server
 
     app.use(_ => IO.never).as(ExitCode.Success)

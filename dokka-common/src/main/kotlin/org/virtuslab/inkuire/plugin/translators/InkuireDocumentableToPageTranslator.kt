@@ -4,7 +4,8 @@ import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.base.signatures.KotlinSignatureUtils.modifiers
 import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.pages.*
-import org.virtuslab.inkuire.model.*
+import org.virtuslab.inkuire.kotlin.model.AncestryGraph
+import org.virtuslab.inkuire.kotlin.model.STypeConstructor
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable

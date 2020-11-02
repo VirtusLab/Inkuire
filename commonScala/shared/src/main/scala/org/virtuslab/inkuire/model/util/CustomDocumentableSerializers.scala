@@ -45,11 +45,10 @@ object Deserializer {
   implicit val decodeFunctionModifiers: Decoder[SFunctionModifiers] = (src: HCursor) =>
     for {
       name <- src.as[String]
-    } yield
-      name match {
-        case "NONE"      => SFunctionModifiers.NONE
-        case "FUNCTION"  => SFunctionModifiers.FUNCTION
-        case "EXTENSION" => SFunctionModifiers.EXTENSION
+    } yield name match {
+      case "NONE"      => SFunctionModifiers.NONE
+      case "FUNCTION"  => SFunctionModifiers.FUNCTION
+      case "EXTENSION" => SFunctionModifiers.EXTENSION
     }
 
 }

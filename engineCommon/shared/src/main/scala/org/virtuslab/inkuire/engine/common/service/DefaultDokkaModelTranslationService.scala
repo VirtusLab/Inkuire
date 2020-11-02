@@ -12,11 +12,10 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
 
   private def translateTypeVariables(f: SDFunction): SignatureContext = {
     val generics = f.generics
-      .map(
-        p =>
-          (
-            p.variantTypeParameter.inner.asInstanceOf[STypeParameter].name,
-            p.bounds.map(translateBound).toSeq
+      .map(p =>
+        (
+          p.variantTypeParameter.inner.asInstanceOf[STypeParameter].name,
+          p.bounds.map(translateBound).toSeq
         )
       )
       .toMap
@@ -56,19 +55,20 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           .get(
             translateDRI(f.dri).copy(
               callableName = None,
-              original     = s"${f.dri.packageName.getOrElse("")}/${f.dri.className.getOrElse("")}///PointingToDeclaration/"
+              original = s"${f.dri.packageName.getOrElse("")}/${f.dri.className.getOrElse("")}///PointingToDeclaration/"
             )
           )
           .map(_._1)
       }
   }
 
-  private def translateProjectionVariance(projection: SProjection): Variance = projection match {
-    case s: SVariance =>
-      translateVariance(s)(translateBound(s.inner))
-    case b: SBound     => Invariance(translateBound(b))
-    case _: SStar.type => Invariance(StarProjection)
-  }
+  private def translateProjectionVariance(projection: SProjection): Variance =
+    projection match {
+      case s: SVariance =>
+        translateVariance(s)(translateBound(s.inner))
+      case b: SBound     => Invariance(translateBound(b))
+      case _: SStar.type => Invariance(StarProjection)
+    }
 
   private def translateVariance(variance: SVariance): Type => Variance = {
     variance match {
@@ -78,18 +78,20 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     }
   }
 
-  def translateProjection(projection: SProjection): Type = projection match {
-    case _: SStar.type => StarProjection
-    case s: SVariance  => translateBound(s.inner)
-    case b: SBound     => translateBound(b)
-  }
+  def translateProjection(projection: SProjection): Type =
+    projection match {
+      case _: SStar.type => StarProjection
+      case s: SVariance  => translateBound(s.inner)
+      case b: SBound     => translateBound(b)
+    }
 
-  def translateDRI(sdri: SDRI): DRI = DRI(
-    sdri.packageName,
-    sdri.className,
-    sdri.callableName,
-    sdri.original
-  )
+  def translateDRI(sdri: SDRI): DRI =
+    DRI(
+      sdri.packageName,
+      sdri.className,
+      sdri.callableName,
+      sdri.original
+    )
 
   def translateFunction(f: SDFunction, ancestryGraph: Map[DRI, (Type, Seq[Type])]): List[ExternalSignature] = {
 

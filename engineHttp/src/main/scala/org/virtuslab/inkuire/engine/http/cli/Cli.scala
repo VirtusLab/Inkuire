@@ -98,7 +98,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     InkuireDb
       .read(
-        appConfig.dbPaths.toList.map(path            => new URL(path.path)).map(getURLContent),
+        appConfig.dbPaths.toList.map(path => new URL(path.path)).map(getURLContent),
         appConfig.ancestryGraphPaths.toList.map(path => new URL(path.path)).map(getURLContent)
       )
       .traverse(value => IO { value })
