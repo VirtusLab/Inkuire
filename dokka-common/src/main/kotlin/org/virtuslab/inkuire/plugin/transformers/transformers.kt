@@ -2,8 +2,8 @@ package org.virtuslab.inkuire.plugin.transformers
 
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.*
-import org.virtuslab.inkuire.model.AncestryGraph
-import org.virtuslab.inkuire.model.STypeConstructor
+import org.virtuslab.inkuire.kotlin.model.AncestryGraph
+import org.virtuslab.inkuire.kotlin.model.STypeConstructor
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
 
 fun List<AncestryGraph>.anyAndNothingAppender(): List<AncestryGraph> = map {

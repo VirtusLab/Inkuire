@@ -3,9 +3,9 @@ package serialization
 import org.jetbrains.dokka.links.DRI
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.virtuslab.inkuire.model.AncestryGraph
-import org.virtuslab.inkuire.model.SFunctionModifiers
-import org.virtuslab.inkuire.model.STypeConstructor
+import org.virtuslab.inkuire.kotlin.model.AncestryGraph
+import org.virtuslab.inkuire.kotlin.model.SFunctionModifiers
+import org.virtuslab.inkuire.kotlin.model.STypeConstructor
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
 import org.virtuslab.inkuire.plugin.transformers.anyAndNothingAppender
 

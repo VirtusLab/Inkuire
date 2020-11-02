@@ -7,7 +7,7 @@ import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.ui.table.JBTable
 import org.apache.http.client.utils.URIBuilder
 import org.jdesktop.swingx.prompt.PromptSupport
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.kotlin.model.OutputFormat
 import java.awt.Color
 import java.awt.Dimension
 import java.net.http.HttpClient
