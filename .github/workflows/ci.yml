@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - master
-      - small-refactor # TODO: REMOVE
 env:
   branch-name: ${GITHUB_REF#refs/heads/}
   bucket-name: 'inkuire-db'

@@ -52,11 +52,7 @@ object InkuireDb {
     ancestryDbs
       .traverse { content =>
         import org.virtuslab.inkuire.model.util.Deserializer._
-        val parsed = parse(content)
-        parsed.flatMap { x =>
-          println(x)
-          x.as[Seq[AncestryGraph]]
-        }
+        parse(content).flatMap(_.as[Seq[AncestryGraph]])
       }
       .map(_.flatten.map { a =>
         translateDRI(a.dri) -> (translationService.translateProjection(a.`type`) -> a.superTypes
