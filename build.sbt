@@ -17,6 +17,13 @@ ThisBuild / catsDependency := Seq(
   "org.typelevel" %%% "cats-mtl-core" % "0.7.1"
 )
 
+val stage = taskKey[Unit]("Stage task")
+
+val Stage = config("stage")
+
+stage := {
+  assembly.in(engineHttp).value
+}
 
 ThisBuild / circeDependency := Seq(
   "io.circe" %%% "circe-core" % "0.13.0",
