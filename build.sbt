@@ -25,6 +25,8 @@ stage := {
   assembly.in(engineHttp).value
 }
 
+(engineJS / Compile / fastOptJS) := (engineJS / Compile / fastOptJS).dependsOn(engineJS / Compile / compile).value
+
 ThisBuild / circeDependency := Seq(
   "io.circe" %%% "circe-core" % "0.13.0",
   "io.circe" %%% "circe-parser" % "0.13.0",
