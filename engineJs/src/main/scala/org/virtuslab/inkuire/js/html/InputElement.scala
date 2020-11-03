@@ -4,6 +4,7 @@ import monix.eval.Task
 import monix.execution.{Ack, Cancelable}
 import monix.reactive.{Observable, OverflowStrategy}
 import org.scalajs.dom._
+import org.virtuslab.inkuire.model.OutputFormat
 
 import scala.concurrent.duration.DurationInt
 
@@ -17,7 +18,7 @@ class InputElement(input: html.Input) extends BaseInput with BaseOutput {
       }
       .debounce(1.seconds)
 
-  def handleResults(results: String): Task[Unit] = Task.now { println(results) }
+  def handleResults(results: OutputFormat): Task[Unit] = Task.now { println(results.matches.mkString) }
 
   def handleNewQuery: Task[Unit] = Task.now { console.clear() }
 }

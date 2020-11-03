@@ -7,16 +7,17 @@ import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
-import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput, InputElement}
+import org.virtuslab.inkuire.engine.http.http.OutputFormatter
+import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput, DokkaSearchbar}
+import org.virtuslab.inkuire.model.OutputFormat
 
-class JSOutputHandler extends OutputHandler {
-  private val subject = PublishSubject[Observable[String]]()
-  private val input:     InputElement = InputElement()
-  private val inputApi:  BaseInput    = input
-  private val outputApi: BaseOutput   = input
+class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: BaseOutput) extends OutputHandler {
+  private val subject = PublishSubject[Observable[OutputFormat]]()
 
   override def serveOutput(env: Engine.Env): IO[Unit] = {
-    def executeQuery(query: String): Either[String, Observable[String]] = {
+    val outputFormatter = new OutputFormatter(env.prettifier)
+
+    def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
       env.parser
         .parse(query)
         .map(env.resolver.resolve)
@@ -24,7 +25,7 @@ class JSOutputHandler extends OutputHandler {
           Observable
             .fromIterable(env.db.functions)
             .filterEvalF(eSgn => IO.async[Boolean](_(Right(env.matcher.|?|(r)(eSgn)))))
-            .map(eSgn => env.prettifier.prettify(Seq(eSgn)))
+            .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))
         }
     }
 

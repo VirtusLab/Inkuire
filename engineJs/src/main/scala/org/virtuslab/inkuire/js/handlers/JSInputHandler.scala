@@ -15,7 +15,7 @@ import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class JSInputHandler extends InputHandler with ConfigReader {
+class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
   private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future("[]"))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
@@ -35,8 +35,8 @@ class JSInputHandler extends InputHandler with ConfigReader {
   }
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    val functionSources = appConfig.dbPaths.map(_.path).map(getURLContent)
-    val graphsSources   = appConfig.ancestryGraphPaths.map(_.path).map(getURLContent)
+    val functionSources = appConfig.dbPaths.map(_.path).map(scriptPath + _).map(getURLContent)
+    val graphsSources   = appConfig.ancestryGraphPaths.map(_.path).map(scriptPath + _).map(getURLContent)
 
     val db = for {
       functions <- Future.sequence(functionSources)
