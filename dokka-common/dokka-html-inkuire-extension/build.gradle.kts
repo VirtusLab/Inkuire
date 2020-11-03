@@ -36,6 +36,20 @@ publishing {
     }
 }
 
+val copy by tasks.creating(Copy::class) {
+    from("$rootDir/engineJs/target/scala-2.13/enginejs-fastopt", "$rootDir/engineJs/src/main/resources")
+    into("$rootDir/dokka-common/dokka-html-inkuire-extension/src/main/resources/inkuire")
+    include("main.js", "inkuire-styles.css", "inkuire-search.png")
+    rename("main.js", "scripts/inkuire.js")
+    rename("inkuire-styles.css", "styles/inkuire-styles.css")
+    rename("inkuire-search.png", "images/inkuire-search.png")
+}
+
+
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    this.dependsOn(copy)
+}
+
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
