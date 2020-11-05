@@ -7,6 +7,7 @@ import org.jetbrains.dokka.analysis.PsiDocumentableSource
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
+import org.jetbrains.dokka.pages.LocationResolver
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.kotlin.model.*
@@ -39,7 +40,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         type = type.toSerializable()
     )
 
-    override fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet) = SDFunction(
+    override fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet, locationResolver: LocationResolver?) = SDFunction(
         dri = dri.toSerializable(),
         name = name,
         isConstructor = isConstructor,
@@ -53,7 +54,8 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
             }
             .map { it.toSerializable() },
         receiver = receiver?.toSerializable(),
-        type = type.toSerializable()
+        type = type.toSerializable(),
+        location = locationResolver?.let { it(dri, setOf(source.toDisplaySourceSet())) } ?: dri.packageName.toString()
     )
 
     override fun Projection.toSerializable(): SProjection = when (this) {

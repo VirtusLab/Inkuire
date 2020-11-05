@@ -1,5 +1,6 @@
 package org.virtuslab.inkuire.plugin.html
 
+import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.model.DModule
 import org.jetbrains.dokka.model.childrenOfType
 import org.jetbrains.dokka.pages.*
@@ -11,7 +12,14 @@ object InkuireJsInstaller : PageTransformer {
     override fun invoke(input: RootPageNode): RootPageNode {
         val resources = listOf("scripts/inkuire.js", "styles/inkuire-styles.css", "images/inkuire-search.png")
         val dbFiles = input.childrenOfType<ModulePageNode>().flatMap {
-            InkuireDocumentableToPageTranslator.invoke(it.documentable as DModule)
+            (
+                object : InkuireDocumentableToPageTranslator() {
+                    override fun renderingStrategy(callback: (LocationResolver?, DokkaConfiguration.DokkaSourceSet) -> String, sourceSet: DokkaConfiguration.DokkaSourceSet): RenderingStrategy =
+                        RenderingStrategy.LocationResolvableWrite { locationResolver ->
+                            callback(locationResolver, sourceSet)
+                        }
+                }
+                ).invoke(it.documentable as DModule)
         }
         return input.modified(
             children = input.children + resources.map {
