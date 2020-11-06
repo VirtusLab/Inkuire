@@ -115,7 +115,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           translateTypeVariables(f)
         ),
         f.name,
-        Seq(dri.packageName, dri.className).flatten.mkString(".")
+        f.location
       )
     }
   }

@@ -17,7 +17,8 @@ data class SDFunction(
     val areParametersDefault: List<Boolean>,
     val type: SBound,
     val generics: List<SDTypeParameter>,
-    val receiver: SDParameter?
+    val receiver: SDParameter?,
+    val location: String
 )
 
 data class SDParameter(

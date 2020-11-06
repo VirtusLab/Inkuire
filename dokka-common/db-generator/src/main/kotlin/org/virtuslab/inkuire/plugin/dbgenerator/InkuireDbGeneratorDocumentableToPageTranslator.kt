@@ -10,7 +10,9 @@ object InkuireDbGeneratorDocumentableToPageTranslator : DocumentableToPageTransl
     override fun invoke(module: DModule): RootPageNode = ModulePageNode(
         name = "root",
         content = ContentText("", DCI(emptySet(), ContentKind.Empty), emptySet()),
-        children = InkuireDocumentableToPageTranslator.invoke(module),
+        children = InkuireDocumentableToPageTranslator { callback, sourceSet ->
+            RenderingStrategy.Write(callback(null, sourceSet))
+        }.invoke(module),
         documentable = module
     )
 }

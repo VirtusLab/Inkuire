@@ -11,7 +11,11 @@ object InkuireJsInstaller : PageTransformer {
     override fun invoke(input: RootPageNode): RootPageNode {
         val resources = listOf("scripts/inkuire.js", "styles/inkuire-styles.css", "images/inkuire-search.png")
         val dbFiles = input.childrenOfType<ModulePageNode>().flatMap {
-            InkuireDocumentableToPageTranslator.invoke(it.documentable as DModule)
+            InkuireDocumentableToPageTranslator { callback, sourceSet ->
+                RenderingStrategy.LocationResolvableWrite { locationResolver ->
+                    callback(locationResolver, sourceSet)
+                }
+            }.invoke(it.documentable as DModule)
         }
         return input.modified(
             children = input.children + resources.map {

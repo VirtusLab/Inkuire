@@ -17,7 +17,8 @@ case class SDFunction(
   areParametersDefault: List[Boolean],
   `type`:               SBound,
   generics:             List[SDTypeParameter],
-  receiver:             Option[SDParameter]
+  receiver:             Option[SDParameter],
+  location:             String
 )
 
 case class SDParameter(
