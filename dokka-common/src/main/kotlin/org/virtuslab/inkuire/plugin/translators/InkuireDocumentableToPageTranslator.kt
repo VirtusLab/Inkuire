@@ -17,9 +17,7 @@ import org.virtuslab.inkuire.plugin.transformers.anyAndNothingAppender
 import org.virtuslab.inkuire.plugin.transformers.functionalTypesNormalizerTransformer
 import org.virtuslab.inkuire.plugin.transformers.javaPrimitivesMapper
 
-abstract class InkuireDocumentableToPageTranslator {
-
-    abstract fun renderingStrategy(callback: (LocationResolver?, DokkaConfiguration.DokkaSourceSet) -> String, sourceSet: DokkaConfiguration.DokkaSourceSet): RenderingStrategy
+class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (LocationResolver?, DokkaConfiguration.DokkaSourceSet) -> String, sourceSet: DokkaConfiguration.DokkaSourceSet) -> RenderingStrategy) {
 
     fun invoke(module: DModule): List<PageNode> = module.packages.let { packages ->
         packages.flatMap {
