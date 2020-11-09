@@ -92,7 +92,7 @@ object InkuireDb {
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           import com.softwaremill.quicklens._
-          val rcv  = receiver.map(r  => r.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
           val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
           val rst = result.modify(_.typ).using {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)

@@ -64,12 +64,13 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
         visited  = dfsState.visited.contains(current)
         newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
         _ <- State.set[DfsState](newState)
-        f <- if (!visited)
-          dependencyGraph
-            .getOrElse(current, Seq())
-            .toList
-            .traverse(loop)
-        else State.pure[DfsState, List[Boolean]](List())
+        f <-
+          if (!visited)
+            dependencyGraph
+              .getOrElse(current, Seq())
+              .toList
+              .traverse(loop)
+          else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
 
