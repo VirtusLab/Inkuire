@@ -10,7 +10,31 @@ class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
 
   val parsedDriPrefix = "iri-" // IRI stands for Inkuire Resource Identifier
   // TODO Consider reporting errors for specific types
-  override def resolve(parsed: Signature): ResolveResult = ResolveResult(resolveAllPossibleSignatures(parsed))
+  override def resolve(parsed: Signature): ResolveResult =
+    ResolveResult {
+      resolveAllPossibleSignatures(parsed).toList >>= { sgn =>
+        permutateParams(sgn).toList
+      }
+    }
+
+  private def permutateParams(signature: Signature): Seq[Signature] = {
+    (signature.receiver ++ signature.arguments).toList.permutations
+      .map { params =>
+        if (signature.receiver.nonEmpty) {
+          signature
+            .modify(_.receiver)
+            .setTo(params.headOption)
+            .modify(_.arguments)
+            .setTo(params.drop(1))
+        } else {
+          signature
+            .modify(_.arguments)
+            .setTo(params)
+        }
+      }
+      .distinct
+      .toSeq
+  }
 
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {

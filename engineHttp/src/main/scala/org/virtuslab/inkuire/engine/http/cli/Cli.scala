@@ -84,13 +84,10 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
     }
   }
 
-  private def getURLs(files: List[URL], filesExtension: String): List[URL] = {
-    files
-      .flatMap { url =>
-        if (url.toURI.getScheme.toLowerCase == "file" && new File(url.toURI).isDirectory)
-          new File(url.toURI).listFiles(_.getName.endsWith(filesExtension)).map(_.toURI.toURL).toSeq
-        else Seq(url)
-      }
+  private def getURLs(url: URL, filesExtension: String): List[URL] = {
+    if (url.toURI.getScheme.toLowerCase == "file" && new File(url.toURI).isDirectory)
+      new File(url.toURI).listFiles(_.getName.endsWith(filesExtension)).map(_.toURI.toURL).toList
+    else List(url)
   }
 
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
@@ -98,8 +95,10 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     InkuireDb
       .read(
-        appConfig.dbPaths.toList.map(path => new URL(path.path)).map(getURLContent),
-        appConfig.ancestryGraphPaths.toList.map(path => new URL(path.path)).map(getURLContent)
+        appConfig.dbPaths.toList.flatMap(path => getURLs(new URL(path.path), ".inkuire.fdb")).map(getURLContent),
+        appConfig.ancestryGraphPaths.toList
+          .flatMap(path => getURLs(new URL(path.path), ".inkuire.adb"))
+          .map(getURLContent)
       )
       .traverse(value => IO { value })
       .pure[Id]

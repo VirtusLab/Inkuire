@@ -204,7 +204,11 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps
       case (Contravariance(typParam), Contravariance(suprParam)) =>
         isSubType(suprParam, typParam, context)
       case (Invariance(typParam), Invariance(suprParam)) =>
-        State.pure[VariableBindings, Boolean](typParam == suprParam)
+        isSubType(typParam, suprParam, context) >>= { res1 =>
+          isSubType(suprParam, typParam, context).fmap { res2 =>
+            res1 && res2
+          }
+        }
     }
   }
 
