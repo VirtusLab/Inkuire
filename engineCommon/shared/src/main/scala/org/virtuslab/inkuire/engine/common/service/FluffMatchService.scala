@@ -64,13 +64,12 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
         visited  = dfsState.visited.contains(current)
         newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
         _ <- State.set[DfsState](newState)
-        f <-
-          if (!visited)
-            dependencyGraph
-              .getOrElse(current, Seq())
-              .toList
-              .traverse(loop)
-          else State.pure[DfsState, List[Boolean]](List())
+        f <- if (!visited)
+          dependencyGraph
+            .getOrElse(current, Seq())
+            .toList
+            .traverse(loop)
+        else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
 
@@ -204,7 +203,11 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps
       case (Contravariance(typParam), Contravariance(suprParam)) =>
         isSubType(suprParam, typParam, context)
       case (Invariance(typParam), Invariance(suprParam)) =>
-        State.pure[VariableBindings, Boolean](typParam == suprParam)
+        isSubType(typParam, suprParam, context) >>= { res1 =>
+          isSubType(suprParam, typParam, context).fmap { res2 =>
+            res1 && res2
+          }
+        }
     }
   }
 

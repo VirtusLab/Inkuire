@@ -33,6 +33,7 @@ object InkuireDb {
 
       functions <- functionFilesToExternalSignatures(functionDbs, ancestryGraph)
         .map(_.populateVariances(ancestryGraph))
+        .map(_.remapVariableDRIs)
     } yield new InkuireDb(functions, ancestryGraph)
     res.leftMap(e => e.show)
   }
@@ -85,12 +86,13 @@ object InkuireDb {
   }
 
   implicit class FunctionsOps(receiver: Seq[ExternalSignature]) {
+    import com.softwaremill.quicklens._
 
     def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           import com.softwaremill.quicklens._
-          val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
+          val rcv  = receiver.map(r  => r.modify(_.typ).using(mapTypesParametersVariance(types)))
           val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
           val rst = result.modify(_.typ).using {
             case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
@@ -98,6 +100,32 @@ object InkuireDb {
           }
           ExternalSignature(Signature(rcv, args, rst, context), name, uri)
       }
+
+    def remapVariableDRIs: Seq[ExternalSignature] =
+      receiver.map(remapFunctionVariableDRIs)
+
+    private def remapFunctionVariableDRIs(externalSignature: ExternalSignature): ExternalSignature = {
+      externalSignature
+        .modify(_.signature)
+        .using { s =>
+          s.modifyAll(_.receiver.each.typ, _.arguments.each.typ, _.result.typ)
+            .using(remapTypeVariableDRIs)
+            .modify(_.context.constraints)
+            .using { constraints =>
+              constraints.toList.map(_.modify(_._2.each).using(remapTypeVariableDRIs)).toMap
+            }
+        }
+    }
+
+    private final val externalVariableDRI = "external-iri-"
+
+    private def remapTypeVariableDRIs: Type => Type = {
+      case t: TypeVariable =>
+        t.modify(_.dri.each).setTo(DRI(None, None, None, externalVariableDRI + t.name.name))
+      case g: GenericType =>
+        g.modifyAll(_.base, _.params.each.typ).using(remapTypeVariableDRIs)
+      case t => t
+    }
   }
 
   private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
