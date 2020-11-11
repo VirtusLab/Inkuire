@@ -126,7 +126,7 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
 
   private def doParse(str: String): Either[String, Signature] = {
     import kotlinSignatureParser._
-    kotlinSignatureParser.parse(signature, str) match {
+    kotlinSignatureParser.parseAll(signature, str) match {
       case Success(matched, _) => Right(matched)
       case Failure(msg, _)     => Left(msg)
       case Error(msg, _)       => Left(msg)
