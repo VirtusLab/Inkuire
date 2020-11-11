@@ -122,7 +122,7 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
   private val kotlinSignatureParser = new KotlinSignatureParser
 
   override def parse(str: String): Either[String, Signature] =
-    doParse(str) >>= (sgn => convert(sgn)) >>= (sgn => validate(sgn))
+    doParse(str) >>= convert >>= validate
 
   private def doParse(str: String): Either[String, Signature] = {
     import kotlinSignatureParser._
@@ -165,7 +165,6 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
   private def validate(sgn: Signature): Either[String, Signature] = {
     for {
       _ <- validateConstraintsForNonVariables(sgn)
-      _ <- validateTypeParamsArgs(sgn)
     } yield sgn
   }
 

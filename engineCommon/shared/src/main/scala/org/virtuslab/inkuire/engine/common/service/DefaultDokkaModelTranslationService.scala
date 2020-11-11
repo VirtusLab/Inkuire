@@ -29,10 +29,10 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     b match {
       case n: SNullable => translateBound(n.inner).?
       case t: STypeConstructor =>
-        val core = ConcreteType(TypeName(t.dri.className.get), dri = translateDRI(t.dri).some)
+        val core = ConcreteType(TypeName(t.dri.className.get), itid = translateDRI(t.dri).some)
         if (t.projections.isEmpty) core
         else GenericType(core, t.projections.map(translateProjectionVariance).toSeq)
-      case t: STypeParameter => TypeVariable(getTypeName(t), dri = translateDRI(t.dri).some)
+      case t: STypeParameter => TypeVariable(getTypeName(t), itid = translateDRI(t.dri).some)
       case _ => getTypeName(b).concreteType
     }
   }
@@ -47,16 +47,17 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     case _ => "Any" //TODO why is this needed?
   }
 
-  private def getReceiver(f: SDFunction, ancestryGraph: Map[DRI, (Type, Seq[Type])]): Option[Type] = {
+  private def getReceiver(f: SDFunction, ancestryGraph: Map[ITID, (Type, Seq[Type])]): Option[Type] = {
     f.receiver
       .map(receiver => translateBound(receiver.`type`))
       .orElse {
         ancestryGraph
           .get(
-            translateDRI(f.dri).copy(
-              callableName = None,
-              original = s"${f.dri.packageName.getOrElse("")}/${f.dri.className.getOrElse("")}///PointingToDeclaration/"
-            )
+            translateDRI(f.dri)
+              .copy(
+                uuid = s"${f.dri.packageName.getOrElse("")}/${f.dri.className.getOrElse("")}///PointingToDeclaration/",
+                isParsed = false
+              )
           )
           .map(_._1)
       }
@@ -85,15 +86,10 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       case b: SBound     => translateBound(b)
     }
 
-  def translateDRI(sdri: SDRI): DRI =
-    DRI(
-      sdri.packageName,
-      sdri.className,
-      sdri.callableName,
-      sdri.original
-    )
+  def translateDRI(sdri: SDRI): ITID =
+    ITID(sdri.original, isParsed = false)
 
-  def translateFunction(f: SDFunction, ancestryGraph: Map[DRI, (Type, Seq[Type])]): List[ExternalSignature] = {
+  def translateFunction(f: SDFunction, ancestryGraph: Map[ITID, (Type, Seq[Type])]): List[ExternalSignature] = {
 
     val parametersCombinations = f.areParametersDefault
       .zip(f.parameters.map(s => translateBound(s.`type`)).toSeq)

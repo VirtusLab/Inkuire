@@ -187,18 +187,6 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
     res should matchTo[Either[String, Signature]](expectedRes)
   }
 
-  it should "return error when type arguments are used for type parameters" in {
-    //given
-    val str = "<A> A<String>.(Int) -> String"
-
-    //when
-    val res = parser.parse(str)
-
-    //then
-
-    res should be(Symbol("left"))
-  }
-
   it should "return error when parameter list in generic return type is not closed" in {
     //given
     val str = "String.(Int) -> List<Int<"

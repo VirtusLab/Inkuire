@@ -28,37 +28,42 @@ class FluffMatchServiceTest extends BaseInkuireTest {
 object FluffMatchServiceTest {
   trait Fixture {
     import com.softwaremill.quicklens._
-    def generateDriForName(name: String): DRI = DRI("test".some, s"test-$name".some, None, "original")
-    def createGenericType(name:  String, vars: Seq[Variance], nullable: Boolean = false): GenericType =
+    def createGenericType(
+      name:     String,
+      vars:     Seq[Variance],
+      nullable: Boolean = false,
+      isParsed: Boolean
+    ): GenericType =
       GenericType(
         name.concreteType
           .modify(_.nullable)
           .setTo(nullable)
-          .modify(_.dri)
-          .setTo(generateDriForName(name).some),
+          .modify(_.itid)
+          .setTo(ITID(name, isParsed).some),
         vars
       )
-    def createTypeVariable(name: String, nullable: Boolean = false): TypeVariable =
+    def createTypeVariable(name: String, nullable: Boolean = false, isParsed: Boolean): TypeVariable =
       TypeVariable(
         name,
         nullable,
-        generateDriForName(name).some
+        ITID(name, isParsed).some
       )
     val mapType: Type = createGenericType(
       "Map",
       Seq(
         Invariance(
-          createTypeVariable("K")
+          createTypeVariable("K", isParsed = false)
         ),
         Covariance(
-          createTypeVariable("V")
+          createTypeVariable("V", isParsed = false)
         )
-      )
+      ),
+      isParsed = false
     )
 
     val ancestryGraph: AncestryGraph = AncestryGraph(
       Map(
-        mapType.dri.get -> (mapType, Seq.empty)
+        mapType.itid.get -> (mapType, Seq.empty)
       )
     )
 
@@ -67,9 +72,9 @@ object FluffMatchServiceTest {
         Signature(
           mapType.some,
           Seq(
-            createTypeVariable("K")
+            createTypeVariable("K", isParsed = false)
           ),
-          createTypeVariable("V", nullable = true),
+          createTypeVariable("V", nullable = true, isParsed = false),
           SignatureContext(
             Set("K", "V"),
             Map.empty

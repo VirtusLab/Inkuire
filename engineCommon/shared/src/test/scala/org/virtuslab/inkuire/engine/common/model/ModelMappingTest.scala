@@ -26,7 +26,7 @@ class ModelMappingTest extends BaseInkuireTest {
         Signature(
           None,
           Seq.empty,
-          ConcreteType("Unit", dri = DRI("kotlin".some, "Unit".some, None, "kotlin/Unit////").some),
+          ConcreteType("Unit", itid = ITID("kotlin/Unit////", isParsed = false).some),
           SignatureContext(Set.empty, Map.empty)
         ),
         "main",
@@ -54,11 +54,11 @@ class ModelMappingTest extends BaseInkuireTest {
           Some(
             ConcreteType(
               "Clock",
-              dri = DRI("example".some, "Clock".some, None, "example/Clock///PointingToDeclaration/").some
+              itid = ITID("example/Clock///PointingToDeclaration/", isParsed = false).some
             )
           ),
           Seq.empty,
-          ConcreteType("String", dri = DRI("kotlin".some, "String".some, None, "kotlin/String////").some),
+          ConcreteType("String", itid = ITID("kotlin/String////", isParsed = false).some),
           SignatureContext(Set.empty, Map.empty)
         ),
         "getTime",
@@ -80,110 +80,55 @@ class ModelMappingTest extends BaseInkuireTest {
     val inkuire = InkuireDb.read(List.empty, List(ancestors, any))
 
     //then
-    val expected: Map[DRI, (Type, Seq[Type])] = Map(
-      DRI(
-        "example".some,
-        "ParticularClock".some,
-        None,
-        "example/ParticularClock///PointingToDeclaration/"
-      ) ->
+    val expected: Map[ITID, (Type, Seq[Type])] = Map(
+      ITID("example/ParticularClock///PointingToDeclaration/", isParsed = false) ->
         (
           ConcreteType(
             "ParticularClock",
             false,
-            DRI(
-              "example".some,
-              "ParticularClock".some,
-              None,
-              "example/ParticularClock///PointingToDeclaration/"
-            ).some
+            ITID("example/ParticularClock///PointingToDeclaration/", isParsed = false).some
           ),
           Seq(
             ConcreteType(
               "InterfaceToInheritFrom",
               false,
-              DRI(
-                "example".some,
-                "InterfaceToInheritFrom".some,
-                None,
-                "example/InterfaceToInheritFrom///PointingToDeclaration/"
-              ).some
+              ITID("example/InterfaceToInheritFrom///PointingToDeclaration/", isParsed = false).some
             ),
             ConcreteType(
               "Clock",
               false,
-              DRI(
-                "example".some,
-                "Clock".some,
-                None,
-                "example/Clock///PointingToDeclaration/"
-              ).some
+              ITID("example/Clock///PointingToDeclaration/", isParsed = false).some
             )
           )
       ),
-      DRI(
-        "kotlin".some,
-        "Any".some,
-        None,
-        "kotlin/Any///PointingToDeclaration/"
-      ) -> (
+      ITID("kotlin/Any///PointingToDeclaration/", isParsed = false) -> (
         ConcreteType(
           "Any",
           false,
-          DRI(
-            "kotlin".some,
-            "Any".some,
-            None,
-            "kotlin/Any///PointingToDeclaration/"
-          ).some
+          ITID("kotlin/Any///PointingToDeclaration/", isParsed = false).some
         ),
         Seq.empty
       ),
-      DRI(
-        "example".some,
-        "Clock".some,
-        None,
-        "example/Clock///PointingToDeclaration/"
-      ) ->
+      ITID("example/Clock///PointingToDeclaration/", isParsed = false) ->
         (
           ConcreteType(
             "Clock",
             false,
-            DRI(
-              "example".some,
-              "Clock".some,
-              None,
-              "example/Clock///PointingToDeclaration/"
-            ).some
+            ITID("example/Clock///PointingToDeclaration/", isParsed = false).some
           ),
           Seq(
             ConcreteType(
               "Any",
               false,
-              DRI(
-                "kotlin".some,
-                "Any".some,
-                None,
-                "kotlin/Any///PointingToDeclaration/"
-              ).some
+              ITID("kotlin/Any///PointingToDeclaration/", isParsed = false).some
             )
           )
       ),
-      DRI(
-        "kotlin".some,
-        "Any".some,
-        None,
-        "kotlin/Any///PointingToDeclaration/"
-      ) -> (
+      ITID("kotlin/Any///PointingToDeclaration/", isParsed = false) -> (
         ConcreteType(
           "Any",
           false,
-          DRI(
-            "kotlin".some,
-            "Any".some,
-            None,
-            "kotlin/Any///PointingToDeclaration/"
-          ).some
+          ITID("kotlin/Any///PointingToDeclaration/", isParsed = false).some
         ),
         Seq.empty
       )

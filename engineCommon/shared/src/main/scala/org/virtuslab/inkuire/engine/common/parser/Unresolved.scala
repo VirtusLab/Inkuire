@@ -1,8 +1,8 @@
 package org.virtuslab.inkuire.engine.common.parser
 
-import org.virtuslab.inkuire.engine.common.model.DRI
+import org.virtuslab.inkuire.engine.common.model.ITID
 import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.common.model.{ConcreteType, DRI, Type, TypeName, TypeVariable, Variance}
+import org.virtuslab.inkuire.engine.common.model.{ConcreteType, ITID, Type, TypeName, TypeVariable, Variance}
 
 private[parser] case class Unresolved(
   name:     TypeName,
@@ -16,7 +16,7 @@ private[parser] case class Unresolved(
 
   override def params: Seq[Variance] = Seq.empty
 
-  override def dri: Option[DRI] = None
+  override def itid: Option[ITID] = None
 
   override def ? : Type = this.modify(_.nullable).setTo(true)
 

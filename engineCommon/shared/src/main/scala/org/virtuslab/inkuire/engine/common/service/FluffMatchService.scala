@@ -33,7 +33,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
       types
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil => a.dri == b.dri
+          case a :: b :: Nil => a.itid == b.itid
           case _             => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
@@ -41,24 +41,24 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 }
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
-  val dependencyGraph: Map[DRI, Seq[DRI]] = variableBindings.bindings.view
+  val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view
     .mapValues(_.flatMap {
       case g: GenericType => retrieveVariables(g)
       case _ => Seq()
     }.distinct)
     .toMap
 
-  private def retrieveVariables(t: Type): Seq[DRI] =
+  private def retrieveVariables(t: Type): Seq[ITID] =
     t match {
       case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
-      case t: TypeVariable => Seq(t.dri.get)
+      case t: TypeVariable => Seq(t.itid.get)
       case _ => Seq()
     }
 
   def hasCyclicDependency: Boolean = {
-    case class DfsState(visited: Set[DRI] = Set.empty, stack: Set[DRI] = Set.empty)
+    case class DfsState(visited: Set[ITID] = Set.empty, stack: Set[ITID] = Set.empty)
 
-    def loop(current: DRI): State[DfsState, Boolean] =
+    def loop(current: ITID): State[DfsState, Boolean] =
       for {
         dfsState <- State.get[DfsState]
         cycle    = dfsState.stack.contains(current)
@@ -88,7 +88,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps {
+case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
 
   //TODO #55 Consider making a common context for constraints from both signatures
   def isSubType(
@@ -102,12 +102,12 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps
       case (typ: TypeVariable, supr: TypeVariable) =>
         val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
         val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
-        State.modify[VariableBindings](_.add(typ.dri.get, supr).add(supr.dri.get, typ)) >>
+        State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
           State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
       case (typ, supr: TypeVariable) =>
         val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
         for {
-          _ <- State.modify[VariableBindings](_.add(supr.dri.get, typ))
+          _ <- State.modify[VariableBindings](_.add(supr.itid.get, typ))
           checks <- constraints.traverse { t =>
             isSubType(typ, t, context)
           }
@@ -115,18 +115,18 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps
       case (typ: TypeVariable, supr) =>
         val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
         for {
-          _ <- State.modify[VariableBindings](_.add(typ.dri.get, supr))
+          _ <- State.modify[VariableBindings](_.add(typ.itid.get, supr))
           checks <- constraints.traverse { t =>
             isSubType(t, supr, context)
           }
         } yield constraints.isEmpty || checks.exists(identity)
       case (typ: GenericType, _) if typ.isVariable =>
-        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
+        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (_, supr: GenericType) if supr.isVariable =>
-        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes
-      case (typ, supr) if typ.dri == supr.dri => checkTypeParamsByVariance(typ, supr, context)
+        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
+      case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ, supr) =>
-        typ.dri.fold {
+        typ.itid.fold {
           // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
           val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1)).toList
           ts.traverse(n => isSubType(n, supr, context)).map(_.exists(identity))
@@ -218,8 +218,8 @@ case class AncestryGraph(nodes: Map[DRI, (Type, Seq[Type])]) extends VarianceOps
       typ
         .modify(_.params)
         .using { params =>
-          if (typ.dri.nonEmpty && nodes.contains(typ.dri.get)) {
-            params.zip(nodes(typ.dri.get)._1.params).map {
+          if (typ.itid.nonEmpty && nodes.contains(typ.itid.get)) {
+            params.zip(nodes(typ.itid.get)._1.params).map {
               case (t, v) => zipVariance(t.typ, v)
             }
           } else params
@@ -238,8 +238,8 @@ trait VarianceOps {
   }
 }
 
-case class VariableBindings(bindings: Map[DRI, Seq[Type]]) {
-  def add(dri: DRI, typ: Type): VariableBindings = {
+case class VariableBindings(bindings: Map[ITID, Seq[Type]]) {
+  def add(dri: ITID, typ: Type): VariableBindings = {
     VariableBindings {
       val types = bindings.getOrElse(dri, Seq.empty)
       bindings.updated(dri, types :+ typ)
