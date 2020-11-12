@@ -198,4 +198,16 @@ class GenericKotlinSignatureParserTest extends BaseInkuireTest {
 
     res should be(Symbol("left"))
   }
+
+  it should "return error when parameter list in generic return type is not closed" in {
+    //given
+    val str = "String.(Int) -> List<Int<"
+
+    //when
+    val res = parser.parse(str)
+
+    //then
+
+    res should be(Symbol("left"))
+  }
 }
