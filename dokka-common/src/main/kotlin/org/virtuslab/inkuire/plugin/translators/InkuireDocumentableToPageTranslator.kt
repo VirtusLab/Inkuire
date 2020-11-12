@@ -38,13 +38,13 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
                 ),
                 InkuireContentPage(
                     name = "${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb",
-                    strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).anyAndNothingAppender().toAncestryGraphJson())
+                    strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).distinct().anyAndNothingAppender().toAncestryGraphJson())
                 )
             )
         }
     }
 
-    private fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
+    internal fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
         return documentable.children.filter { sourceSet in it.sourceSets }.fold(emptyList<AncestryGraph>()) { acc, elem ->
             acc + typesAncestryGraph(elem, sourceSet)
         } + documentable.toAncestryEntry(sourceSet, documentable)
@@ -68,8 +68,17 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
         is DTypeAlias ->
             listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable()))) +
                 (underlyingType[sourceSet]?.possibleFunctionAncestryEntry() ?: emptyList())
-        is DProperty -> getter?.toAncestryEntry(sourceSet, this) ?: emptyList()
-        is DFunction -> type.possibleFunctionAncestryEntry()
+        is DProperty -> listOfNotNull(
+            receiver?.type,
+            type,
+            *(generics.flatMap { it.bounds }.toTypedArray())
+        ).flatMap { it.possibleFunctionAncestryEntry() } + (getter?.toAncestryEntry(sourceSet, this) ?: emptyList())
+        is DFunction -> listOfNotNull(
+            receiver?.type,
+            type,
+            *(parameters.map { it.type }.toTypedArray()),
+            *(generics.flatMap { it.bounds }.toTypedArray())
+        ).flatMap { it.possibleFunctionAncestryEntry() }
         else -> emptyList()
     } + if (this is WithGenerics)
         generics.flatMap { it.toAncestryEntry(sourceSet, this) }
@@ -104,10 +113,10 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
         }
     }
 
-    private fun Bound.possibleFunctionAncestryEntry(): List<AncestryGraph> = when (this) {
+    private fun Projection.possibleFunctionAncestryEntry(): List<AncestryGraph> = when (this) {
         is TypeParameter -> emptyList()
         is GenericTypeConstructor -> emptyList()
-        is FunctionalTypeConstructor -> listOf(toFunctionAncestryEntry())
+        is FunctionalTypeConstructor -> listOf(toFunctionAncestryEntry()) + projections.flatMap { it.possibleFunctionAncestryEntry() }
         is Nullable -> this.inner.possibleFunctionAncestryEntry()
         is TypeAliased -> this.inner.possibleFunctionAncestryEntry()
         is PrimitiveJavaType -> emptyList()
@@ -115,6 +124,8 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
         JavaObject -> emptyList()
         Dynamic -> emptyList()
         is UnresolvedBound -> emptyList()
+        Star -> emptyList()
+        is Variance<*> -> this.inner.possibleFunctionAncestryEntry()
     }
 
     private fun FunctionalTypeConstructor.toFunctionAncestryEntry(): AncestryGraph = AncestryGraph(

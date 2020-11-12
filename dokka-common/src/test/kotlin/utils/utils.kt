@@ -54,3 +54,29 @@ internal fun simpleTypeParameter(
     sourceSets = emptySet(),
     extra = PropertyContainer.empty()
 )
+
+internal fun simpleProperty(
+    dri: DRI,
+    name: String,
+    type: Bound,
+    receiver: DParameter?,
+    generics: List<DTypeParameter>,
+    getter: DFunction? = null,
+    setter: DFunction? = null,
+): DProperty = DProperty(
+    dri = dri,
+    name = name,
+    documentation = emptyMap(),
+    expectPresentInSet = null,
+    sources = emptyMap(),
+    visibility = emptyMap(),
+    type = type,
+    receiver = receiver,
+    generics = generics,
+    modifier = emptyMap(),
+    sourceSets = emptySet(),
+    isExpectActual = false,
+    extra = PropertyContainer.empty(),
+    setter = setter,
+    getter = getter,
+)
