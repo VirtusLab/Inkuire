@@ -3,6 +3,7 @@ import monix.eval.Task
 import monix.execution.Cancelable
 import monix.reactive.{Observable, OverflowStrategy}
 import org.scalajs.dom._
+import org.virtuslab.inkuire.js.Globals
 import org.virtuslab.inkuire.model.{Match, OutputFormat}
 
 import scala.concurrent.duration.DurationInt
@@ -69,11 +70,21 @@ class DokkaSearchbar extends BaseInput with BaseOutput {
   }
 
   private def matchToResult(mtch: Match) = {
+    val wrapper = document.createElement("div")
+    wrapper.classList.add("inkuire-result")
+
     val resultA = document.createElement("a").asInstanceOf[html.Anchor]
-    resultA.classList.add("inkuire-result")
-    resultA.href = mtch.localization
+    resultA.href = Globals.pathToRoot + mtch.localization
     resultA.text = s"${mtch.functionName}: ${mtch.prettifiedSignature}"
-    resultA
+
+    val location = document.createElement("span")
+    location.classList.add("pull-right")
+    location.classList.add("inkuire-location")
+    location.textContent = mtch.localization
+
+    wrapper.appendChild(resultA)
+    wrapper.appendChild(location)
+    wrapper
   }
 
 }

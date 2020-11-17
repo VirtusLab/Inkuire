@@ -55,7 +55,9 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
             .map { it.toSerializable() },
         receiver = receiver?.toSerializable(),
         type = type.toSerializable(),
-        location = locationResolver?.let { it(dri, setOf(source.toDisplaySourceSet())) } ?: dri.packageName.toString()
+        location = try { locationResolver?.let { it(dri, setOf(source.toDisplaySourceSet())) } ?: dri.packageName.toString() } catch (e: Exception) {
+            ""
+        }
     )
 
     override fun Projection.toSerializable(): SProjection = when (this) {

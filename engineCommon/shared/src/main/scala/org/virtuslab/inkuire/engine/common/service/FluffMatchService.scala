@@ -18,6 +18,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           sgn.typesWithVariances,
           against.signature.context |+| sgn.context
         )
+
         bindings <- State.get[VariableBindings]
         okBindings = checkBindings(bindings)
       } yield okTypes && okBindings
