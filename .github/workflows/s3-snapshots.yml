@@ -19,7 +19,11 @@ jobs:
         with:
           java-version: 11
 
-      - name: Publish plugin to maven local
+      - name: Scala FastOptJs
+        run: sbt engineJS/fastOptJS
+        working-directory: ./inkuire
+
+      - name: Publish Dokka plugin to maven local
         run: ./gradlew clean publishToMavenLocal --stacktrace
         working-directory: ./inkuire
 
