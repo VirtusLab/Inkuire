@@ -7,9 +7,7 @@ import org.jetbrains.dokka.model.*
 import org.jetbrains.dokka.pages.*
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
-import org.virtuslab.inkuire.kotlin.model.AncestryGraph
-import org.virtuslab.inkuire.kotlin.model.SDFunction
-import org.virtuslab.inkuire.kotlin.model.STypeConstructor
+import org.virtuslab.inkuire.kotlin.model.*
 import org.virtuslab.inkuire.kotlin.model.util.CustomGson
 import org.virtuslab.inkuire.plugin.content.InkuireContentPage
 import org.virtuslab.inkuire.plugin.transformers.DefaultDokkaToSerializableModelTransformer.toSerializable
@@ -40,13 +38,13 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
                 ),
                 InkuireContentPage(
                     name = "${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb",
-                    strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).anyAndNothingAppender().toAncestryGraphJson())
+                    strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).distinct().anyAndNothingAppender().toAncestryGraphJson())
                 )
             )
         }
     }
 
-    private fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
+    internal fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
         return documentable.children.filter { sourceSet in it.sourceSets }.fold(emptyList<AncestryGraph>()) { acc, elem ->
             acc + typesAncestryGraph(elem, sourceSet)
         } + documentable.toAncestryEntry(sourceSet, documentable)
@@ -63,12 +61,24 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
                                 ?: emptyList()
                             )
                     )
-                )
+                ) + (supertypes[sourceSet]?.flatMap { it.typeConstructor.possibleFunctionAncestryEntry() } ?: emptyList())
             } else {
                 listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), emptyList()))
             }
         is DTypeAlias ->
-            listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable())))
+            listOf(AncestryGraph(dri.toSerializable(), (STypeConstructor(dri.toSerializable(), getPossibleGenerics())), listOfNotNull(underlyingType[sourceSet]?.toSerializable()))) +
+                (underlyingType[sourceSet]?.possibleFunctionAncestryEntry() ?: emptyList())
+        is DProperty -> listOfNotNull(
+            receiver?.type,
+            type,
+            *(generics.flatMap { it.bounds }.toTypedArray())
+        ).flatMap { it.possibleFunctionAncestryEntry() } + (getter?.toAncestryEntry(sourceSet, this) ?: emptyList())
+        is DFunction -> listOfNotNull(
+            receiver?.type,
+            type,
+            *(parameters.map { it.type }.toTypedArray()),
+            *(generics.flatMap { it.bounds }.toTypedArray())
+        ).flatMap { it.possibleFunctionAncestryEntry() }
         else -> emptyList()
     } + if (this is WithGenerics)
         generics.flatMap { it.toAncestryEntry(sourceSet, this) }
@@ -92,7 +102,7 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
         )
     }
 
-    protected fun DFunction.isNotOverrideOrInherited(sourceSet: DokkaConfiguration.DokkaSourceSet): Boolean {
+    private fun DFunction.isNotOverrideOrInherited(sourceSet: DokkaConfiguration.DokkaSourceSet): Boolean {
         return when (val src = this.sources[sourceSet]) {
             is DescriptorDocumentableSource -> {
                 val desc = src.descriptor as CallableMemberDescriptor
@@ -103,6 +113,39 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
         }
     }
 
-    protected fun List<SDFunction>.toFunctionsJson(): String = CustomGson.instance.toJson(this)
-    protected fun List<AncestryGraph>.toAncestryGraphJson(): String = CustomGson.instance.toJson(this)
+    private fun Projection.possibleFunctionAncestryEntry(): List<AncestryGraph> = when (this) {
+        is TypeParameter -> emptyList()
+        is GenericTypeConstructor -> emptyList()
+        is FunctionalTypeConstructor -> listOf(toFunctionAncestryEntry()) + projections.flatMap { it.possibleFunctionAncestryEntry() }
+        is Nullable -> this.inner.possibleFunctionAncestryEntry()
+        is TypeAliased -> this.inner.possibleFunctionAncestryEntry()
+        is PrimitiveJavaType -> emptyList()
+        Void -> emptyList()
+        JavaObject -> emptyList()
+        Dynamic -> emptyList()
+        is UnresolvedBound -> emptyList()
+        Star -> emptyList()
+        is Variance<*> -> this.inner.possibleFunctionAncestryEntry()
+    }
+
+    private fun FunctionalTypeConstructor.toFunctionAncestryEntry(): AncestryGraph = AncestryGraph(
+        dri.toSerializable(),
+        STypeConstructor(
+            dri.toSerializable(),
+            (0..projections.size - 2).map {
+                SContravariance(STypeParameter(SDRI("kotlin", "Function${projections.size - 1}", original = "kotlin/Function${projections.size - 1}///PointingToTypeParameter($it)/"), "P$it"))
+            } + SCovariance(STypeParameter(SDRI("kotlin", "Function${projections.size - 1}", original = "kotlin/Function${projections.size - 1}///PointingToTypeParameter(${projections.size - 1})/"), "R")),
+            SFunctionModifiers.FUNCTION
+        ),
+        listOf(
+            STypeConstructor(
+                SDRI("kotlin", "Function", original = "kotlin/Function///PointingToDeclaration/"),
+                listOf(STypeParameter(SDRI("kotlin", "Function", original = "kotlin/Function///PointingToTypeParameter(0)/"), "R")),
+                SFunctionModifiers.FUNCTION
+            )
+        )
+    )
+
+    private fun List<SDFunction>.toFunctionsJson(): String = CustomGson.instance.toJson(this)
+    private fun List<AncestryGraph>.toAncestryGraphJson(): String = CustomGson.instance.toJson(this)
 }

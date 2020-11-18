@@ -11,7 +11,6 @@ import org.jetbrains.dokka.pages.LocationResolver
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.kotlin.model.*
-import java.lang.IllegalStateException
 
 object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTransformer() {
 
@@ -99,7 +98,9 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
             is PsiDocumentableSource -> (elem.psi as PsiMethod).parameterList.parameters.map {
                 false
             }
-            else -> throw IllegalStateException("Unknown translator. Please provide custom implementation for obtaining default values.")
+            else -> this.parameters.map { false }.also {
+                println("Unknown translator. Please provide custom implementation for obtaining default values.")
+            }
         }
     }
 }
