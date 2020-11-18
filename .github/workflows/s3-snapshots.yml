@@ -19,6 +19,10 @@ jobs:
         with:
           java-version: 11
 
+      - name: Compile Inkuire to JavaScript
+        run: sbt engineJS/fastOptJS
+        working-directory: ./inkuire
+
       - name: Publish plugin to maven local
         run: ./gradlew clean publishToMavenLocal --stacktrace
         working-directory: ./inkuire
