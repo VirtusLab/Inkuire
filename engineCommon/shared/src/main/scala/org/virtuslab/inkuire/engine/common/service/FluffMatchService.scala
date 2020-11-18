@@ -5,7 +5,6 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 
-//TODO handle case where one variable depends on the other like e.g. <A, B : List<A>> A.() -> B
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
@@ -90,7 +89,6 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
 
 case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
 
-  //TODO #55 Consider making a common context for constraints from both signatures
   def isSubType(
     typ:     Type,
     supr:    Type,
@@ -105,38 +103,44 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
           State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
       case (typ, supr: TypeVariable) =>
-        val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
-        for {
-          _ <- State.modify[VariableBindings](_.add(supr.itid.get, typ))
-          checks <- constraints.traverse { t =>
-            isSubType(typ, t, context)
-          }
-        } yield checks.forall(identity)
+        if (supr.itid.get.isParsed) {
+          State.pure(false)
+        } else {
+          val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
+          State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+            constraints
+              .traverse { t =>
+                isSubType(typ, t, context)
+              }
+              .map { checks =>
+                checks.forall(identity)
+              }
+        }
       case (typ: TypeVariable, supr) =>
-        val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
-        for {
-          _ <- State.modify[VariableBindings](_.add(typ.itid.get, supr))
-          checks <- constraints.traverse { t =>
-            isSubType(t, supr, context)
-          }
-        } yield constraints.isEmpty || checks.exists(identity)
+        if (typ.itid.get.isParsed) {
+          val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
+          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
+            constraints
+              .traverse { t =>
+                isSubType(t, supr, context)
+              }
+              .map { checks =>
+                constraints.isEmpty || checks.exists(identity)
+              }
+        } else {
+          State.pure(true)
+        }
       case (typ: GenericType, _) if typ.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (_, supr: GenericType) if supr.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ, supr) =>
-        typ.itid.fold {
-          // TODO having an empty dri here shouldn't be possible, after fixing db, this should be refactored
-          val ts = nodes.values.filter(_._1.name == typ.name).map(t => specializeType(typ, t._1)).toList
-          ts.traverse(n => isSubType(n, supr, context)).map(_.exists(identity))
-        } { dri =>
-          if (nodes.contains(dri))
-            specializeParents(typ, nodes(dri)).toList
-              .traverse(isSubType(_, supr, context))
-              .map(_.exists(identity))
-          else State.pure(false) //TODO remove when everything is correctly resolved
-        }
+        if (nodes.contains(typ.itid.get))
+          specializeParents(typ, nodes(typ.itid.get)).toList
+            .traverse(isSubType(_, supr, context))
+            .map(_.exists(identity))
+        else State.pure(false) //TODO remove when everything is correctly resolved
     }
   }
 

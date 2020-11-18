@@ -7,8 +7,6 @@ import org.junit.Ignore
 import org.junit.Test
 import org.virtuslab.inkuire.engine.common.model.*
 import org.virtuslab.inkuire.plugin.dbgenerator.InkuireDbGeneratorDokkaPlugin
-import scala.Option
-import scala.Some
 import scala.Tuple2
 import scala.collection.Seq
 import scala.jdk.javaapi.CollectionConverters.asJava
@@ -212,7 +210,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         assertEquals((c.value._2.apply(0) as GenericType).params().apply(0)::class.java, Contravariance::class.java)
         assertEquals(((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).name().name(), "R")
         assertEquals(
-            ((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).dri().get().original(),
+            ((c.value._2.apply(0) as GenericType).params().apply(0).typ() as TypeVariable).itid().get().uuid(),
             "tests//weirdFlexButOk/kotlin.CharSequence#TypeParam(bounds=[tests.B2[TypeParam(bounds=[kotlin.Any])]])#kotlin.Function2[kotlin.Int,kotlin.Char,TypeParam(bounds=[kotlin.Any])?]/PointingToGenericParameters(0)/"
         )
     }
@@ -222,7 +220,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val input = inkuireDb.types().findType("tests/InheritingClassFromGenericType///PointingToDeclaration/")
 
         assertEquals(input.single().value._2.size(), 2)
-        assertEquals(input.single().key, input.single().value._1.dri().get())
+        assertEquals(input.single().key, input.single().value._1.itid().get())
 
         assertEquals(input.single().value._2.apply(0).name().name(), "Comparable")
         assertEquals(input.single().value._2.apply(1).name().name(), "Collection")
@@ -235,7 +233,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         val input = inkuireDb.types().findType("tests/TypeAlias///PointingToDeclaration/")
 
         assertEquals(input.single().value._2.size(), 1)
-        assertEquals(input.single().key, input.single().value._1.dri().get())
+        assertEquals(input.single().key, input.single().value._1.itid().get())
 
         assertEquals(input.single().value._2.apply(0).name().name(), "Comparable")
     }
@@ -246,13 +244,8 @@ class SerializationIntegrationTest : AbstractCoreTest() {
 
         val receiver = sig.signature().receiver()
         assertEquals(
-            receiver.get().typ().dri().get(),
-            DRI(
-                Some("tests"),
-                Some("ClassWithFunctions"),
-                Option.apply(null),
-                "tests/ClassWithFunctions///PointingToDeclaration/"
-            )
+            receiver.get().typ().itid().get(),
+            ITID.external("tests/ClassWithFunctions///PointingToDeclaration/")
         )
     }
 
@@ -292,7 +285,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
         }
     )
 
-    private fun scala.collection.immutable.Map<DRI, Tuple2<Type, scala.collection.immutable.Seq<Type>>>.findType(name: String) = asJava(this).filter { (key, _) ->
-        key.original() == name
+    private fun scala.collection.immutable.Map<ITID, Tuple2<Type, scala.collection.immutable.Seq<Type>>>.findType(name: String) = asJava(this).filter { (key, _) ->
+        key.uuid() == name
     }.entries.toList()
 }

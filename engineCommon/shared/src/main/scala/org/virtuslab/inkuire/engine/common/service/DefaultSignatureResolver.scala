@@ -8,8 +8,6 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   extends BaseSignatureResolver
   with VarianceOps {
 
-  val parsedDriPrefix = "iri-" // IRI stands for Inkuire Resource Identifier
-  // TODO Consider reporting errors for specific types
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
       resolveAllPossibleSignatures(parsed).toList >>= { sgn =>
@@ -64,7 +62,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
       case t: TypeVariable =>
         Seq(
           t.modify(_.itid)
-            .setTo(ITID(parsedDriPrefix + t.name.name, isParsed = true).some)
+            .setTo(ITID(t.name.name, isParsed = true).some)
         )
       case t: ConcreteType =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
@@ -86,15 +84,15 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
             .map(_.zip(generic.params).map {
               case (p, v) => zipVariance(p, v)
             })
-        } yield copyDRI(t.modify(_.params).setTo(params), generic.itid)
+        } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
       case t => Seq(t)
     }
     resolved.filter(_.params.size == typ.params.size)
   }
 
-  private def copyDRI(typ: Type, dri: Option[ITID]): Type =
+  private def copyITID(typ: Type, dri: Option[ITID]): Type =
     typ match {
-      case t: GenericType  => t.modify(_.base).using(copyDRI(_, dri))
+      case t: GenericType  => t.modify(_.base).using(copyITID(_, dri))
       case t: ConcreteType => t.modify(_.itid).setTo(dri)
       case _ => typ
     }
