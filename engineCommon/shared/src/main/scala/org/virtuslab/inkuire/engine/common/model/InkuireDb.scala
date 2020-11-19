@@ -11,17 +11,8 @@ import org.virtuslab.inkuire.model._
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
-  types:     Map[DRI, (Type, Seq[Type])]
+  types:     Map[ITID, (Type, Seq[Type])]
 )
-
-case class DRI( // This mirror class of SDRI is done on purpose, to eliminate any future inconveniences when accessing Kotlin code from Scala
-  packageName:  Option[String],
-  className:    Option[String],
-  callableName: Option[String],
-  original:     String
-) {
-  override def toString(): String = original
-}
 
 object InkuireDb {
 
@@ -40,7 +31,7 @@ object InkuireDb {
 
   private def functionFilesToExternalSignatures(
     functionDbs:   List[String],
-    ancestryGraph: Map[DRI, (Type, Seq[Type])]
+    ancestryGraph: Map[ITID, (Type, Seq[Type])]
   ): Either[Error, Seq[ExternalSignature]] =
     functionDbs
       .traverse { content =>
@@ -49,7 +40,7 @@ object InkuireDb {
       }
       .map(_.flatten.flatMap(translationService.translateFunction(_, ancestryGraph)))
 
-  private def ancestryFilesToTypes(ancestryDbs: List[String]): Either[Error, Map[DRI, (Type, Seq[Type])]] =
+  private def ancestryFilesToTypes(ancestryDbs: List[String]): Either[Error, Map[ITID, (Type, Seq[Type])]] =
     ancestryDbs
       .traverse { content =>
         import org.virtuslab.inkuire.model.util.Deserializer._
@@ -60,17 +51,17 @@ object InkuireDb {
           .map(translationService.translateProjection))
       }.toMap)
 
-  def mapTypesParametersVariance(types: Map[DRI, (Type, Seq[Type])]): PartialFunction[Type, Type] = {
+  def mapTypesParametersVariance(types: Map[ITID, (Type, Seq[Type])]): PartialFunction[Type, Type] = {
     case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
     case typ => typ
   }
 
-  implicit class AncestryGraphOps(receiver: Map[DRI, (Type, Seq[Type])]) {
+  implicit class AncestryGraphOps(receiver: Map[ITID, (Type, Seq[Type])]) {
 
-    def filterOutImmediateCycles: Map[DRI, (Type, Seq[Type])] = {
+    def filterOutImmediateCycles: Map[ITID, (Type, Seq[Type])] = {
       receiver.map {
         case (dri, (typ, parents)) =>
-          dri -> (typ, parents.filter(_.dri != dri.some))
+          dri -> (typ, parents.filter(_.itid != dri.some))
       }
     }
 
@@ -88,7 +79,7 @@ object InkuireDb {
   implicit class FunctionsOps(receiver: Seq[ExternalSignature]) {
     import com.softwaremill.quicklens._
 
-    def populateVariances(types: Map[DRI, (Type, Seq[Type])]): Seq[ExternalSignature] =
+    def populateVariances(types: Map[ITID, (Type, Seq[Type])]): Seq[ExternalSignature] =
       receiver.map {
         case ExternalSignature(Signature(receiver, arguments, result, context), name, uri) =>
           import com.softwaremill.quicklens._
@@ -121,18 +112,18 @@ object InkuireDb {
 
     private def remapTypeVariableDRIs: Type => Type = {
       case t: TypeVariable =>
-        t.modify(_.dri.each).setTo(DRI(None, None, None, externalVariableDRI + t.name.name))
+        t.modify(_.itid.each).setTo(ITID(externalVariableDRI + t.name.name, isParsed = false))
       case g: GenericType =>
         g.modifyAll(_.base, _.params.each.typ).using(remapTypeVariableDRIs)
       case t => t
     }
   }
 
-  private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[DRI, (Type, Seq[Type])]): GenericType = {
-    if (types.contains(typ.base.dri.get)) {
+  private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[ITID, (Type, Seq[Type])]): GenericType = {
+    if (types.contains(typ.base.itid.get)) {
       GenericType(
         typ.base,
-        types(typ.base.dri.get)._1.params.zip(typ.params).map {
+        types(typ.base.itid.get)._1.params.zip(typ.params).map {
           case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
         }
       )

@@ -9,7 +9,7 @@ trait Type {
   def name:       TypeName
   def nullable:   Boolean
   def params:     Seq[Variance]
-  def dri:        Option[DRI]
+  def itid:       Option[ITID]
   def ?          : Type
   def isVariable: Boolean
 }
@@ -17,7 +17,7 @@ trait Type {
 case class ConcreteType(
   name:     TypeName,
   nullable: Boolean = false,
-  dri:      Option[DRI] = None
+  itid:     Option[ITID] = None
 ) extends Type {
   import io.scalaland.chimney.dsl._
 
@@ -45,7 +45,7 @@ case class GenericType(
 
   override def name: TypeName = base.name
 
-  override def dri: Option[DRI] = base.dri
+  override def itid: Option[ITID] = base.itid
 
   override def ? : Type = this.modify(_.base).using(_.?)
 
@@ -55,7 +55,7 @@ case class GenericType(
 case class TypeVariable(
   name:     TypeName,
   nullable: Boolean = false,
-  dri:      Option[DRI] = None
+  itid:     Option[ITID] = None
 ) extends Type {
   import io.scalaland.chimney.dsl._
 
@@ -89,7 +89,7 @@ case object StarProjection extends Type {
 
   override def params: Seq[Variance] = Seq.empty
 
-  override def dri: Option[DRI] = None //TODO not sure
+  override def itid: Option[ITID] = None //TODO not sure
 
   override def ? : Type = throw new RuntimeException("Operation not allowed!")
 

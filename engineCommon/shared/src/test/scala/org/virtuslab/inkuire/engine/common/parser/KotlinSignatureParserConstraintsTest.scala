@@ -225,17 +225,6 @@ class KotlinSignatureParserConstraintsTest extends BaseInkuireTest {
     res should be(Symbol("left"))
   }
 
-  it should "return error when type arguments are used for type parameters in constraints" in {
-    //given
-    val str = "<A, B> A.(Int) -> String where A : B<Int>"
-
-    //when
-    val res = parser.parse(str)
-
-    //then
-    res should be(Symbol("left"))
-  }
-
   it should "parse function as upper bound" in {
     //given
     val str = "<A> A.(Int) -> String where A : (Int) -> String"

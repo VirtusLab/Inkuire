@@ -4,12 +4,10 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 
-class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
+class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   extends BaseSignatureResolver
   with VarianceOps {
 
-  val parsedDriPrefix = "iri-" // IRI stands for Inkuire Resource Identifier
-  // TODO Consider reporting errors for specific types
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
       resolveAllPossibleSignatures(parsed).toList >>= { sgn =>
@@ -63,11 +61,22 @@ class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
     val resolved = typ match {
       case t: TypeVariable =>
         Seq(
-          t.modify(_.dri)
-            .setTo(DRI(None, None, None, parsedDriPrefix + t.name.name).some)
+          t.modify(_.itid)
+            .setTo(ITID(t.name.name, isParsed = true).some)
         )
       case t: ConcreteType =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
+      case t: GenericType if t.isVariable =>
+        for {
+          kind <-
+            ancestryGraph.values
+              .map(_._1)
+              .filter(_.name == t.name)
+              .filter(_.params.size == t.params.size - 1)
+              .filter(_.isInstanceOf[GenericType])
+              .toSeq
+          params <- resolveMultipleTypes(t.params.map(_.typ))
+        } yield kind.asInstanceOf[GenericType].modify(_.params).setTo((t.base +: params).map(Invariance.apply))
       case t: GenericType =>
         for {
           generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
@@ -75,16 +84,16 @@ class DefaultSignatureResolver(ancestryGraph: Map[DRI, (Type, Seq[Type])])
             .map(_.zip(generic.params).map {
               case (p, v) => zipVariance(p, v)
             })
-        } yield copyDRI(t.modify(_.params).setTo(params), generic.dri)
+        } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
       case t => Seq(t)
     }
     resolved.filter(_.params.size == typ.params.size)
   }
 
-  private def copyDRI(typ: Type, dri: Option[DRI]): Type =
+  private def copyITID(typ: Type, dri: Option[ITID]): Type =
     typ match {
-      case t: GenericType  => t.modify(_.base).using(copyDRI(_, dri))
-      case t: ConcreteType => t.modify(_.dri).setTo(dri)
+      case t: GenericType  => t.modify(_.base).using(copyITID(_, dri))
+      case t: ConcreteType => t.modify(_.itid).setTo(dri)
       case _ => typ
     }
 
