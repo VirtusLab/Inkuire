@@ -6,6 +6,7 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.virtuslab.inkuire.engine.common.model.*
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 import org.virtuslab.inkuire.plugin.dbgenerator.InkuireDbGeneratorDokkaPlugin
 import scala.Tuple2
 import scala.collection.Seq
@@ -277,6 +278,20 @@ class SerializationIntegrationTest : AbstractCoreTest() {
             assertTrue((result().typ() as ConcreteType).name().name().contains("Int"))
             assertEquals(arguments().size(), 0)
         }
+    }
+
+    @Test
+    fun `deserialize and serialize engine model`() {
+        val serialized = EngineModelSerializers.serialize(inkuireDb)
+        val deserialized = EngineModelSerializers.deserialize(serialized)
+        deserialized.fold(
+            {
+                throw AssertionError("Deserialization failed with message: $it")
+            },
+            {
+                assertEquals(inkuireDb, it)
+            }
+        )
     }
 
     private fun Seq<ExternalSignature>.findSignature(name: String) = asJava(

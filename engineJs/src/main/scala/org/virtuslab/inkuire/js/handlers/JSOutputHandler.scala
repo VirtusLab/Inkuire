@@ -30,7 +30,6 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
     }
 
     IO.async(_ => {
-
       outputApi.registerOutput(subject)
       inputApi.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
@@ -40,6 +39,7 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
           println(s"From output: $v")
           Ack.Continue
       }
+      inputApi.notifyEngineReady
     })
   }
 }

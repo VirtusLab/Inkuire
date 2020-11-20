@@ -33,11 +33,11 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
             }
             listOf(
                 InkuireContentPage(
-                    name = "${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.fdb",
+                    name = "scripts/inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.fdb",
                     strategy = renderingStrategy(callback, sourceSet)
                 ),
                 InkuireContentPage(
-                    name = "${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb",
+                    name = "scripts/inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb",
                     strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).distinct().anyAndNothingAppender().toAncestryGraphJson())
                 )
             )

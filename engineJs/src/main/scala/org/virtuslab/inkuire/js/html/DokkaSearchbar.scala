@@ -1,34 +1,52 @@
 package org.virtuslab.inkuire.js.html
+import io.circe.syntax._
+import io.circe.parser._
+import io.circe.generic.auto._
 import monix.eval.Task
 import monix.execution.Cancelable
 import monix.reactive.{Observable, OverflowStrategy}
 import org.scalajs.dom._
+import org.scalajs.dom.webworkers.Worker
 import org.virtuslab.inkuire.js.Globals
 import org.virtuslab.inkuire.model.{Match, OutputFormat}
+import monix.execution.Scheduler.Implicits.global
+import org.scalajs.dom.html.Input
 
 import scala.concurrent.duration.DurationInt
 
 //TODO: Separate it to another project
-class DokkaSearchbar extends BaseInput with BaseOutput {
-  override def inputChanges: Observable[String] =
-    Observable
-      .create[String](OverflowStrategy.DropOld(10)) { subscriber =>
-        val func = (event: Event) => subscriber.onNext(event.target.asInstanceOf[html.Input].value)
-        input.addEventListener("input", func)
-        Cancelable(() => input.removeEventListener("input", func))
-      }
-      .debounce(1.seconds)
-
-  override def handleResults(results: OutputFormat): Task[Unit] =
+class DokkaSearchbar(val worker: Worker) {
+  private def handleResults(results: OutputFormat): Task[Unit] =
     Task.now {
       val res = results.matches.map(matchToResult)
       res.foreach(resultsDiv.appendChild)
     }
 
-  override def handleNewQuery: Task[Unit] =
+  private def handleNewQuery: Task[Unit] =
     Task.now {
       while (resultsDiv.hasChildNodes()) resultsDiv.removeChild(resultsDiv.lastChild)
     }
+
+  def lockInput(input: Input): Unit = {
+    input.placeholder = "Wait until Inkuire engines initializes"
+    input.disabled = true
+  }
+
+  def unlockInput(input: Input): Unit = {
+    input.placeholder = "Search for function by signature..."
+    input.disabled = false
+  }
+
+  private val registerOnMessage: Unit = {
+    val func = (msg: MessageEvent) => {
+      msg.data.asInstanceOf[String] match {
+        case "engine_ready" => registerInputChanges
+        case "new_query"    => handleNewQuery
+        case other          => parse(other).map(_.as[OutputFormat]).map(_.map(handleResults))
+      }
+    }
+    worker.addEventListener("message", func)
+  }
 
   private val logoClick: html.Span = {
     val element = document.createElement("span").asInstanceOf[html.Span]
@@ -44,7 +62,7 @@ class DokkaSearchbar extends BaseInput with BaseOutput {
   private val input: html.Input = {
     val element = document.createElement("input").asInstanceOf[html.Input]
     element.id = "inkuire-input"
-    element.placeholder = "Search for function by signature..."
+    lockInput(element)
     element
   }
 
@@ -85,6 +103,19 @@ class DokkaSearchbar extends BaseInput with BaseOutput {
     wrapper.appendChild(resultA)
     wrapper.appendChild(location)
     wrapper
+  }
+
+  def registerInputChanges: Unit = {
+
+    Observable
+      .create[String](OverflowStrategy.DropOld(10)) { subscriber =>
+        val func = (event: Event) => subscriber.onNext(event.target.asInstanceOf[html.Input].value)
+        input.addEventListener("input", func)
+        Cancelable(() => input.removeEventListener("input", func))
+      }
+      .debounce(1.seconds)
+      .doOnSubscribe { Task.now { unlockInput(input) } }
+      .foreach((query) => worker.postMessage(query))
   }
 
 }
