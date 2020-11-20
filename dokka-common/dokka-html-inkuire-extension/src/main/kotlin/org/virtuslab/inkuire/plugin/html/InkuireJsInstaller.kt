@@ -9,7 +9,7 @@ import org.virtuslab.inkuire.plugin.translators.InkuireDocumentableToPageTransla
 object InkuireJsInstaller : PageTransformer {
 
     override fun invoke(input: RootPageNode): RootPageNode {
-        val resources = listOf("scripts/inkuire-worker.js", "scripts/inkuire.js", "styles/inkuire-styles.css", "images/inkuire-search.png")
+        val resources = listOf("scripts/inkuire.js", "styles/inkuire-styles.css", "images/inkuire-search.png")
         val dbFiles = input.childrenOfType<ModulePageNode>().flatMap {
             InkuireDocumentableToPageTranslator { callback, sourceSet ->
                 RenderingStrategy.LocationResolvableWrite { locationResolver ->
@@ -20,7 +20,7 @@ object InkuireJsInstaller : PageTransformer {
         return input.modified(
             children = input.children + resources.map {
                 RendererSpecificResourcePage(it, emptyList(), RenderingStrategy.Copy("/inkuire/$it"))
-            } + dbFiles
+            } + dbFiles + RendererSpecificResourcePage("scripts/inkuire-worker.js", emptyList(), RenderingStrategy.Copy("/inkuire/scripts/inkuire-worker.js"))
         ).transformContentPagesTree {
             it.modified(
                 embeddedResources = it.embeddedResources + resources
