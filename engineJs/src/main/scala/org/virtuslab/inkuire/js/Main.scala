@@ -24,7 +24,7 @@ object Main extends App {
 
   def startApp(): Unit = {
     val scriptPath = Globals.pathToRoot + "scripts/"
-    val worker     = new Worker(s"$scriptPath/inkuire-worker.js")
+    val worker     = new Worker(s"${scriptPath}inkuire-worker.js")
     val searchbar  = new DokkaSearchbar(worker)
   }
 }
