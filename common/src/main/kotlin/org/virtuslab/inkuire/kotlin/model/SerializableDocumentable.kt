@@ -18,6 +18,7 @@ data class SDFunction(
     val type: SBound,
     val generics: List<SDTypeParameter>,
     val receiver: SDParameter?,
+    val packageName: String,
     val location: String
 )
 

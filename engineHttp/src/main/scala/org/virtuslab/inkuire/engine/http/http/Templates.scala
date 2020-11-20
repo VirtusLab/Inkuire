@@ -96,7 +96,7 @@ object Templates {
                     th(scoped := "row")(i + 1),
                     td(res.functionName),
                     td(res.prettifiedSignature),
-                    td(res.localization)
+                    td(res.packageLocation)
                   )
               }
             )

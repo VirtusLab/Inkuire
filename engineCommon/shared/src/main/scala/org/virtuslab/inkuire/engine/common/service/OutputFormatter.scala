@@ -8,7 +8,7 @@ import collection.JavaConverters._
 
 class OutputFormatter(prettifier: SignaturePrettifier) {
   def createOutput(query: String, signatures: Seq[ExternalSignature]): OutputFormat =
-    new OutputFormat(
+    OutputFormat(
       query,
       fromSignatures(signatures).toList
     )
@@ -18,9 +18,10 @@ class OutputFormatter(prettifier: SignaturePrettifier) {
       .zip(prettifier.prettify(signatures).split("\n"))
       .map {
         case (sgn, pretty) =>
-          new Match(
+          Match(
             pretty,
             sgn.name,
+            sgn.packageName,
             sgn.uri
           )
       }

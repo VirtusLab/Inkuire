@@ -18,6 +18,7 @@ case class SDFunction(
   `type`:               SBound,
   generics:             List[SDTypeParameter],
   receiver:             Option[SDParameter],
+  packageName:          String,
   location:             String
 )
 
