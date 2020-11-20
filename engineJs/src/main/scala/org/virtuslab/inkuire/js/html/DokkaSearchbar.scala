@@ -74,13 +74,13 @@ class DokkaSearchbar extends BaseInput with BaseOutput {
     wrapper.classList.add("inkuire-result")
 
     val resultA = document.createElement("a").asInstanceOf[html.Anchor]
-    resultA.href = Globals.pathToRoot + mtch.localization
+    resultA.href = Globals.pathToRoot + mtch.pageLocation
     resultA.text = s"${mtch.functionName}: ${mtch.prettifiedSignature}"
 
     val location = document.createElement("span")
     location.classList.add("pull-right")
     location.classList.add("inkuire-location")
-    location.textContent = mtch.localization
+    location.textContent = mtch.packageLocation
 
     wrapper.appendChild(resultA)
     wrapper.appendChild(location)

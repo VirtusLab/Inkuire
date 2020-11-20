@@ -3,7 +3,8 @@ package org.virtuslab.inkuire.model
 case class Match(
   prettifiedSignature: String,
   functionName:        String,
-  localization:        String
+  packageLocation:     String,
+  pageLocation:        String
 )
 
 case class OutputFormat(

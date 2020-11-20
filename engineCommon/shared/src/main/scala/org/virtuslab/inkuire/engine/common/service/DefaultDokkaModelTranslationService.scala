@@ -111,6 +111,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
           translateTypeVariables(f)
         ),
         f.name,
+        f.packageName,
         f.location
       )
     }

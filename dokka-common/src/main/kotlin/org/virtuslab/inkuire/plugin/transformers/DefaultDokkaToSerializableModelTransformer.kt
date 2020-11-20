@@ -54,6 +54,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
             .map { it.toSerializable() },
         receiver = receiver?.toSerializable(),
         type = type.toSerializable(),
+        packageName = dri.toSerializable().packageName ?: "",
         location = try { locationResolver?.let { it(dri, setOf(source.toDisplaySourceSet())) } ?: dri.packageName.toString() } catch (e: Exception) {
             ""
         }
