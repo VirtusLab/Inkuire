@@ -24,4 +24,5 @@ trait BaseOutput {
   def handleResults(results: OutputFormat): Task[Unit]
 
   def handleNewQuery: Task[Unit]
+
 }
