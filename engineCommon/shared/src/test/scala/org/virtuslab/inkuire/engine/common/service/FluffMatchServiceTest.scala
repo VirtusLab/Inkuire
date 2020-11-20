@@ -81,6 +81,7 @@ object FluffMatchServiceTest {
           )
         ),
         "get",
+        "kotlin.Collections",
         "uri"
       )
     }

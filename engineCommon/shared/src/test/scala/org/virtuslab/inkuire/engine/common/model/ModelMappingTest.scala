@@ -30,7 +30,8 @@ class ModelMappingTest extends BaseInkuireTest {
           SignatureContext(Set.empty, Map.empty)
         ),
         "main",
-        "example"
+        "example",
+        ""
       )
     )
     inkuire.toOption.get.functions should matchTo(expected)
@@ -62,7 +63,8 @@ class ModelMappingTest extends BaseInkuireTest {
           SignatureContext(Set.empty, Map.empty)
         ),
         "getTime",
-        "example.Clock"
+        "example.Clock",
+        ""
       )
     )
     inkuire.toOption.get.functions should matchTo(expected)

@@ -79,7 +79,7 @@ class QueryAction : AnAction() {
     private fun parseOutputToModel(output: OutputFormat): Pair<Array<String>, Array<Array<String>>> {
         val columnNames = arrayOf("Name", "Signature", "Localization")
         val data = output.matches.map {
-            arrayOf(it.functionName, it.prettifiedSignature, it.localization)
+            arrayOf(it.functionName, it.prettifiedSignature, it.packageLocation)
         }.toTypedArray()
         return Pair(columnNames, data)
     }

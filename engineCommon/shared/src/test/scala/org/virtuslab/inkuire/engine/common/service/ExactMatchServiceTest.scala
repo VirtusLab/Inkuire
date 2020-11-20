@@ -99,6 +99,7 @@ object ExactMatchServiceTest {
     val equalsExternalSignature: ExternalSignature = ExternalSignature(
       equalsSignature,
       "equals",
+      "Int",
       "/Int/equals"
     )
 
@@ -111,6 +112,7 @@ object ExactMatchServiceTest {
     val toStringExternalSignature: ExternalSignature = ExternalSignature(
       toStringSignature,
       "toString",
+      "Int",
       "/Int/toString"
     )
 
@@ -132,6 +134,7 @@ object ExactMatchServiceTest {
     val rangeExternalSignature: ExternalSignature = ExternalSignature(
       rangeSignature,
       "range",
+      "Long",
       "/Long/range"
     )
 
@@ -153,6 +156,7 @@ object ExactMatchServiceTest {
     val mainExternalSignature: ExternalSignature = ExternalSignature(
       mainSignature,
       "main",
+      "Main",
       "/Main/main"
     )
   }
