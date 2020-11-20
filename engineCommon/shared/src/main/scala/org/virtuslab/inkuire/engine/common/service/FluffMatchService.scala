@@ -128,7 +128,8 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
                 constraints.isEmpty || checks.exists(identity)
               }
         } else {
-          State.pure(true)
+          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
+            State.pure(true)
         }
       case (typ: GenericType, _) if typ.isVariable =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
