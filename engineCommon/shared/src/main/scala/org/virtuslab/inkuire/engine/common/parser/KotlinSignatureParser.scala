@@ -100,20 +100,20 @@ class KotlinSignatureParser extends BaseSignatureParser {
       ("(" ~> types <~ ")") ~
       ("->" ~> singleType) ~
       whereClause ^^ {
-      case typeVars ~ rcvr ~ args ~ result ~ where =>
-        Signature(
-          rcvr,
-          args,
-          result,
-          SignatureContext(
-            typeVars._1.toSet,
-            (typeVars._2.keys ++ where.keys)
-              .map(k => k -> (where.get(k).toSeq.flatten ++ typeVars._2.get(k).toSeq.flatten))
-              .toMap
-              .filter(_._2.nonEmpty)
+        case typeVars ~ rcvr ~ args ~ result ~ where =>
+          Signature(
+            rcvr,
+            args,
+            result,
+            SignatureContext(
+              typeVars._1.toSet,
+              (typeVars._2.keys ++ where.keys)
+                .map(k => k -> (where.get(k).toSeq.flatten ++ typeVars._2.get(k).toSeq.flatten))
+                .toMap
+                .filter(_._2.nonEmpty)
+            )
           )
-        )
-    } |
+      } |
       ("(" ~> signature <~ ")")
 }
 
