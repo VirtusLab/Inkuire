@@ -52,9 +52,8 @@ Since our tool is not yet published anywhere, you need to publish it locally by 
 Inkuire Engine is the main module of this project. It provides HTTP service that allows you to run queries using its endpoints.
 
 
-Inkuire Engine can be run in two ways:
-* Using Gradle - `./gradlew run --args'(Place for CLI args)'`
-* JAR - You can generate fatJar with `./gradlew fatJar` and then run JAR by `java -jar jar_name.jar (Place for CLI args)`
+Inkuire Engine can be run by:
+* Using sbt - `sbt engineHttp/run (Place for CLI args)`
 
 ##### CLI Arguments
 
@@ -63,7 +62,8 @@ Inkuire Engine can be run in two ways:
 * Ancestry graph paths - `{ --ancestry | -a }` - Arguments that define URLs to ancestry graph JSONs
 * Function database paths - `{ --database | -d }` - Arguments that define URLs to function database JSONs
 
-Don't forget that URLs need to have protocol prefix, so if you want to provide path to a local file, it needs to be in `file://(path)` format
+Don't forget that URLs need to have protocol prefix, so if you want to provide path to a local file, it needs to be in `file://(path)` format.
+Also if the paths point to directories, all files with extensions `.inkuire.adb` and `.inkuire.fdb` respectively for ancestry graph and database will be loaded.
 
 ##### API Endpoints
 
@@ -82,7 +82,8 @@ Output format is JSON with fields:
 * `matches` - Contains array of objects with fields: 
     * `prettifiedSignature` - Matched signature
     * `functionName` - Name of matched function
-    * `localization` - Localization of matched function
+    * `packageLocation` - Location of matched function (package wise)
+    * `pageLocation`- Location of matched function (dokka wise)
     
 #### Inkuire IntelliJ Plugin
 
