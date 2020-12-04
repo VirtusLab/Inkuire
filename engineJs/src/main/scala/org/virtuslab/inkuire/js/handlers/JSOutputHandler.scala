@@ -13,7 +13,7 @@ import org.virtuslab.inkuire.model.OutputFormat
 import scala.scalajs.js.Date
 
 class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: BaseOutput) extends OutputHandler {
-  private val subject = PublishSubject[Observable[OutputFormat]]()
+  private val subject = PublishSubject[(Double, Observable[OutputFormat])]()
 
   override def serveOutput(env: Engine.Env): IO[Unit] = {
     val outputFormatter = new OutputFormatter(env.prettifier)
@@ -32,10 +32,10 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
     }
 
     IO.async(_ => {
+      outputApi.registerOutput(subject)
       inputApi.inputChanges.map(executeQuery).subscribe {
         case Right((start: Double, v: Observable[OutputFormat])) =>
-          outputApi.registerOutput(start, subject)
-          subject.onNext(v)
+          subject.onNext((start, v))
           Ack.Continue
         case Left(v) =>
           println(s"From output: $v")

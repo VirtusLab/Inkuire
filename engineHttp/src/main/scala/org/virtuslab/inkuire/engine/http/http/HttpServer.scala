@@ -55,14 +55,14 @@ class HttpServer extends OutputHandler {
           case req @ POST -> Root / "query" =>
             req.decode[UrlForm] { m =>
               val signature = m.values("query").headOption.get
-              val res       = results(signature)
+              val res       = resultsTimed(signature, results)
               res.fold(
                 fa => BadRequest(fa),
                 fb => Ok(Templates.result(fb), `Content-Type`(MediaType.text.html))
               )
             }
           case GET -> Root / "forSignature" :? SignatureParameter(signature) =>
-            results(signature).fold(
+            resultsTimed(signature, results).fold(
               fa => BadRequest(fa),
               fb =>
                 Ok(
