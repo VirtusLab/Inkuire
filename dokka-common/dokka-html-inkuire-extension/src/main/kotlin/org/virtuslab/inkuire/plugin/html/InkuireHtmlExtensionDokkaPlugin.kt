@@ -7,6 +7,6 @@ class InkuireHtmlExtensionDokkaPlugin : DokkaPlugin() {
     private val dokkaBase by lazy { plugin<DokkaBase>() }
 
     val inkuireJsInstaller by extending {
-        dokkaBase.htmlPreprocessors with InkuireJsInstaller
+        dokkaBase.htmlPreprocessors with InkuireJsInstaller order { after(dokkaBase.rootCreator) }
     }
 }
