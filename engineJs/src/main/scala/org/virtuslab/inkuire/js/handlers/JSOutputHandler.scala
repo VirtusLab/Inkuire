@@ -10,6 +10,7 @@ import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput, DokkaSearchbar}
 import org.virtuslab.inkuire.model.OutputFormat
+import scala.scalajs.js.Date
 
 class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: BaseOutput) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
@@ -17,22 +18,23 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
   override def serveOutput(env: Engine.Env): IO[Unit] = {
     val outputFormatter = new OutputFormatter(env.prettifier)
 
-    def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
+    def executeQuery(query: String): Either[String, (Double, Observable[OutputFormat])] = {
+      val start = Date.now()
       env.parser
         .parse(query)
         .map(env.resolver.resolve)
         .map { r =>
-          Observable
+          (start, Observable
             .fromIterable(env.db.functions)
             .filterEvalF(eSgn => IO.async[Boolean](_(Right(env.matcher.|?|(r)(eSgn)))))
-            .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))
+            .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn))))
         }
     }
 
     IO.async(_ => {
-      outputApi.registerOutput(subject)
       inputApi.inputChanges.map(executeQuery).subscribe {
-        case Right(v) =>
+        case Right((start: Double, v: Observable[OutputFormat])) =>
+          outputApi.registerOutput(start, subject)
           subject.onNext(v)
           Ack.Continue
         case Left(v) =>

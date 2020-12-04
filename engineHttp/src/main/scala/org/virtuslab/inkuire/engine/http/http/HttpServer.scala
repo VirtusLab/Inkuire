@@ -29,6 +29,14 @@ class HttpServer extends OutputHandler {
 
     val formatter = new OutputFormatter(env.prettifier)
 
+    def resultsTimed(input: String, block: String => Either[String, OutputFormat]): Either[String, OutputFormat] = {
+      val start = System.currentTimeMillis()
+      val res = block(input)
+      val end = System.currentTimeMillis()
+      println(end - start)
+      res
+    }
+
     def results(signature: String): Either[String, OutputFormat] = {
       env.parser
         .parse(signature)
