@@ -1,0 +1,43 @@
+name: Gradle Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Inkuire
+        uses: actions/checkout@v2
+        with:
+          path: inkuire
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build with sbt
+        run: sbt test
+
+      - name: Compile Inkuire to JavaScript
+        run: sbt engineJS/fastOptJS
+        working-directory: ./inkuire
+
+      - name: Build with Gradle
+        run: gradle build
+
+      - name: Upload to Bintray Gradle artifacts
+        run: gradle bintrayUpload
+        env:
+          ORG_GRADLE_PROJECT_bintrayUser: ${{ secrets.BINTRAY_USER }}
+          ORG_GRADLE_PROJECT_bintrayKey: ${{ secrets.BINTRAY_PASS }}
+
+      - name: Upload to Bintray sbt artifacts
+        run: sbt publish
+        env:
+          ORG_GRADLE_PROJECT_bintrayUser: ${{ secrets.BINTRAY_USER }}
+          ORG_GRADLE_PROJECT_bintrayKey: ${{ secrets.BINTRAY_PASS }}

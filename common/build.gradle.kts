@@ -2,9 +2,6 @@ plugins {
     `maven-publish`
 }
 
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
@@ -25,7 +22,7 @@ tasks {
 
 publishing {
     publications {
-        register<MavenPublication>("common") {
+        register<MavenPublication>("MavenJava") {
             artifactId = "inkuire-common"
             from(components["java"])
         }

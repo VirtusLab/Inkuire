@@ -1,8 +1,6 @@
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 plugins {
     scala
+    `maven-publish`
 }
 
 repositories {
@@ -14,7 +12,7 @@ repositories {
 
 dependencies {
     testImplementation(project(":dokka-common:db-generator"))
-    testImplementation("org.virtuslab.inkuire:inkuire-engine-common_2.13:0.1-SNAPSHOT")
+    testImplementation("org.virtuslab.inkuire:engine-common_2.13:$version")
     val dokkaVersion: String by project
 
     testImplementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
@@ -32,3 +30,11 @@ dependencies {
     testRuntimeOnly("com.vladsch.flexmark:flexmark-all:0.35.10")
 }
 
+publishing {
+    publications {
+        register<MavenPublication>("MavenJava") {
+            artifactId = "integration-tests"
+            from(components["java"])
+        }
+    }
+}

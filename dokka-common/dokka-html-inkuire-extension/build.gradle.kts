@@ -2,9 +2,6 @@ plugins {
     `maven-publish`
 }
 
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
     jcenter()
@@ -30,7 +27,7 @@ dependencies {
 
 publishing {
     publications {
-        register<MavenPublication>("htmlExtension") {
+        register<MavenPublication>("MavenJava") {
             artifactId = "inkuire-html-extension"
             from(components["java"])
         }
@@ -40,13 +37,13 @@ publishing {
 val copy by tasks.creating(Copy::class) {
     from("$rootDir/engineJs/target/scala-2.13/", "$rootDir/engineJs/src/main/resources")
     into("$rootDir/dokka-common/dokka-html-inkuire-extension/src/main/resources/inkuire")
-    include("enginejs-opt.js", "inkuire-styles.css", "inkuire-search.png", "inkuire-worker.js")
+    include("engine-js-opt.js", "engine-js-opt.js.map", "inkuire-styles.css", "inkuire-search.png", "inkuire-worker.js")
     rename("inkuire-worker.js", "scripts/inkuire-worker.js")
-    rename("enginejs-opt.js", "scripts/inkuire.js")
+    rename("engine-js-opt.js", "scripts/inkuire.js")
+    rename("engine-js-opt.js.map", "scripts/inkuire.js.map")
     rename("inkuire-styles.css", "styles/inkuire-styles.css")
     rename("inkuire-search.png", "images/inkuire-search.png")
 }
-
 
 tasks.withType<AbstractPublishToMaven>().configureEach {
     this.dependsOn(copy)

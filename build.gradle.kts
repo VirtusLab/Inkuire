@@ -1,14 +1,21 @@
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 plugins {
     kotlin("jvm") apply false
+    id("com.jfrog.bintray")
+}
+
+val globalProperties = java.util.Properties()
+file("global.properties").inputStream().run {
+    globalProperties.load(this)
 }
 
 subprojects {
     apply {
         plugin("org.jetbrains.kotlin.jvm")
+        plugin("com.jfrog.bintray")
     }
+
+    group = "org.virtuslab.inkuire"
+    version = globalProperties.getProperty("version")
 
     repositories {
         jcenter()
@@ -33,4 +40,20 @@ subprojects {
         classpath = ktlint
         args = listOf("-F", "src/**/*.kt")
     }
+
+    bintray {
+        user = System.getenv("BINTRAY_USER")
+        key = System.getenv("BINTRAY_PASS")
+        setPublications("MavenJava")
+        publish = true
+        pkg(delegateClosureOf<com.jfrog.bintray.gradle.BintrayExtension.PackageConfig> {
+            repo = "Inkuire"
+            userOrg = "virtuslab"
+            name = project.name
+            setLicenses("Apache-2.0")
+            vcsUrl = "https://github.com/VirtusLab/Inkuire.git"
+        })
+    }
 }
+
+
