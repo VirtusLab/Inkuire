@@ -15,7 +15,14 @@ Currently supported langauge is Kotlin. Including Scala is taken into account.
 
 ---
 
+Inkuire currently supports two different ways of serving. The first one is HTTP service.
 Feel free to test tool locally or remotely at [inkuire.me](https://inkuire.herokuapp.com) which is hosted instance of engine fed with Kotlin Standard Library.
+
+![](./docs/http_example.gif)
+
+The latter is embeding inkuire directly into dokka output. You can also try it out using this [kotlin-stdlib](http://inkuire.s3.eu-central-1.amazonaws.com/master/stdlib/latest/kotlin-stdlib/kotlin-stdlib/index.html) instance
+
+![](./docs/js_example.gif)
 
 If you see any bugs, please inform us about it by creating issue in our repository [Github](https://github.com/VirtusLab/Inkuire)
 
@@ -32,7 +39,7 @@ Inkuire consists of four modules:
 ---
 ### Input signatures
 
-Currently tool accepts any correct Kotlin signature. Additionally, it supports `*` character as wildcard, which matches any type
+Currently tool accepts any correct Kotlin signature. Additionally, it supports `*` wildcard as a top-level star projection.
 
 ---
 
@@ -59,19 +66,25 @@ Make sure you configure proper version of Dokka.
 Depending on whether you want to run HTTP instance or embed search engine inside Dokka, you can use two different Dokka plugins.
 In both cases you need to add to your `build.gradle` repository containing plugin JAR: it can be local Maven repository or Bintray.
 
+```Kotlin
+repositories {
+    maven("https://dl.bintray.com/virtuslab/Inkuire")
+}
+```
+
 EngineJS:
 If you want to generate Dokka documentation with embedded Inkuire search engine, add this line to `build.gradle` dependencies block:
-```Groovy
+```Kotlin
 dependencies {
-    dokkaPlugin("org.virtuslab:inkuire-html-extension:1.0-SNAPSHOT")
+    dokkaPlugin("org.virtuslab:inkuire-html-extension:0.1.0")
 }
 ```
 
 Engine HTTP:
 If you want to generate only Inkuire db files, add this line to `build.gradle` dependencies block:
-```Groovy
+```Kotlin
 dependencies {
-    dokkaPlugin("org.virtuslab:inkuire-db-generator:1.0-SNAPSHOT")
+    dokkaPlugin("org.virtuslab:inkuire-db-generator:0.1.0")
 }
 ```
 
@@ -102,8 +115,10 @@ After generating Dokka documentation with embedded search engine, you need to cr
 }
 ```
 First two options are mandatory, but have no influence on engine runtime.
-Last two options are most important. There's limitation coming from implementation that db files need to be in scope of `scripts` folder.
+Last two options are the most important. There's limitation coming from implementation that db files need to be in scope of `scripts` folder.
 In default, they are generated in `scripts/inkuiredb/...` path which is correct.
+The database files cannot be autoconfigured yet, because of Inkuire supports only single platform at the moment, so it's up to user to define config.
+We hope that in future release Inkuire will support multiplatform and autoconfiguration as well.
 
 ##### CLI Arguments
 
