@@ -15,7 +15,14 @@ Currently supported langauge is Kotlin. Including Scala is taken into account.
 
 ---
 
+Inkuire currently supports two different ways of serving. The first one is HTTP service.
 Feel free to test tool locally or remotely at [inkuire.me](https://inkuire.herokuapp.com) which is hosted instance of engine fed with Kotlin Standard Library.
+
+![](./docs/http_example.gif)
+
+The latter is embeding inkuire directly into dokka output. You can also try it out using this [kotlin-stdlib](http://inkuire.s3.eu-central-1.amazonaws.com/master/stdlib/latest/kotlin-stdlib/kotlin-stdlib/index.html) instance
+
+![](./docs/js_example.gif)
 
 If you see any bugs, please inform us about it by creating issue in our repository [Github](https://github.com/VirtusLab/Inkuire)
 
@@ -23,17 +30,30 @@ If you see any bugs, please inform us about it by creating issue in our reposito
 
 ### Basics
 
-Inkuire consists of three modules:
+Inkuire consists of four modules:
 1. Inkuire Dokka Plugin - This module is responsible for generating functions and types database from source code.
-2. Inkuire Engine - This module is responsible for executing queries.
-3. Inkuire IntelliJ Plugin - This module allows you to run queries from IntelliJ.
+2. Inkuire HTTP Engine - This module is responsible for executing queries using REST API
+3. Inkuire JS Engine - This module is responsible for embedding search engine in Dokka documentation.
+4. Inkuire IntelliJ Plugin - This module allows you to run queries from IntelliJ.
 
 ---
 ### Input signatures
 
-Currently tool accepts any correct Kotlin signature.
+Currently tool accepts any correct Kotlin signature. Additionally, it supports `*` wildcard as a top-level star projection.
 
 ---
+
+### Building Inkuire
+
+Building Inkuire in order to run HTTP instance is quite straightforward:
+1. Run command `sbt engineHttp/assembly` to produce fatJar of HTTP engine.
+2. Run command `./gradlew dokka-common:db-generator:publishToMavenLocal` 
+   to publish JAR with dokka extension for generating db files.
+
+In order to build InkuireJS from source code:
+1. Firstly, build InkuireJS by running command: `sbt engineJS/fastOptJS`. It needs to be done before other steps 
+   because generated JS file will be copied to Dokka extension JAR.
+2. Run command `./gradlew dokka-common:dokka-html-inkuire-extension:publishToMavenLocal`.
 
 ### Running Inkuire
 
@@ -43,17 +63,62 @@ In order to generate database, you need to configure Dokka in your project and a
 Running dokka task will generate .json files containing information further needed by engine.
 Make sure you configure proper version of Dokka.
 
-See example: [Kotlin Standard Library](https://github.com/BarkingBad/kotlin-dokka-stdlib/blob/inkuire/build.gradle)
+Depending on whether you want to run HTTP instance or embed search engine inside Dokka, you can use two different Dokka plugins.
+In both cases you need to add to your `build.gradle` repository containing plugin JAR: it can be local Maven repository or Bintray.
 
-Since our tool is not yet published anywhere, you need to publish it locally by calling `./gradlew publishToMavenLocal`
+```Kotlin
+repositories {
+    maven("https://dl.bintray.com/virtuslab/Inkuire")
+}
+```
 
-#### Inkuire Engine
+EngineJS:
+If you want to generate Dokka documentation with embedded Inkuire search engine, add this line to `build.gradle` dependencies block:
+```Kotlin
+dependencies {
+    dokkaPlugin("org.virtuslab:inkuire-html-extension:0.1.0")
+}
+```
 
-Inkuire Engine is the main module of this project. It provides HTTP service that allows you to run queries using its endpoints.
+Engine HTTP:
+If you want to generate only Inkuire db files, add this line to `build.gradle` dependencies block:
+```Kotlin
+dependencies {
+    dokkaPlugin("org.virtuslab:inkuire-db-generator:0.1.0")
+}
+```
 
+
+#### Inkuire HTTP Engine
+
+Inkuire HTTP Engine provides HTTP service that allows you to run queries using its endpoints.
 
 Inkuire Engine can be run by:
 * Using sbt - `sbt engineHttp/run (Place for CLI args)`
+* Using fatJar - `java -jar path_to_fatjar (Place for CLI args)`
+
+#### Inkuire JS Engine
+
+After generating Dokka documentation with embedded search engine, you need to create configuration:
+1. Create configuration file by navigating to `<root>/scripts` and running command: `touch inkuire-config.json`.
+2. Add mandatory options to your config. You can use this template:
+```JSON
+{
+  "address": {"address": "0.0.0.0"},
+  "port": { "port": 8080 },
+  "dbPaths": [
+    {"path" : "path to functions db files relative to <root>/scripts"}
+  ],
+  "ancestryGraphPaths": [
+    {"path" : "path to ancestry graph db files relative to <root>/scripts"}
+  ]
+}
+```
+First two options are mandatory, but have no influence on engine runtime.
+Last two options are the most important. There's limitation coming from implementation that db files need to be in scope of `scripts` folder.
+In default, they are generated in `scripts/inkuiredb/...` path which is correct.
+The database files cannot be autoconfigured yet, because of Inkuire supports only single platform at the moment, so it's up to user to define config.
+We hope that in future release Inkuire will support multiplatform and autoconfiguration as well.
 
 ##### CLI Arguments
 
