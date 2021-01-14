@@ -1,4 +1,3 @@
-
 ThisBuild / organization := "org.virtuslab.inkuire"
 
 name := "inkuire"
@@ -26,6 +25,7 @@ stage := {
 }
 
 (engineJS / Compile / fastOptJS) := (engineJS / Compile / fastOptJS).dependsOn(engineJS / Compile / compile).value
+(engineJS / Compile / fullOptJS) := (engineJS / Compile / fullOptJS).dependsOn(engineJS / Compile / compile).value
 
 ThisBuild / circeDependency := Seq(
   "io.circe" %%% "circe-core" % "0.13.0",
@@ -80,7 +80,7 @@ lazy val engineHttp = project
       "org.http4s" %% "http4s-circe" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "org.slf4j" % "slf4j-simple" % "1.7.30",
-      "com.lihaoyi" %% "scalatags" % "0.9.1",
+      "com.lihaoyi" %% "scalatags" % "0.9.1"
     ) ++ catsDependency.value,
     //Test
     libraryDependencies ++= Seq(

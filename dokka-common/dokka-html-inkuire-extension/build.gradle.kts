@@ -38,11 +38,11 @@ publishing {
 }
 
 val copy by tasks.creating(Copy::class) {
-    from("$rootDir/engineJs/target/scala-2.13/enginejs-fastopt", "$rootDir/engineJs/src/main/resources")
+    from("$rootDir/engineJs/target/scala-2.13/", "$rootDir/engineJs/src/main/resources")
     into("$rootDir/dokka-common/dokka-html-inkuire-extension/src/main/resources/inkuire")
-    include("main.js", "inkuire-styles.css", "inkuire-search.png", "inkuire-worker.js")
+    include("enginejs-opt.js", "inkuire-styles.css", "inkuire-search.png", "inkuire-worker.js")
     rename("inkuire-worker.js", "scripts/inkuire-worker.js")
-    rename("main.js", "scripts/inkuire.js")
+    rename("enginejs-opt.js", "scripts/inkuire.js")
     rename("inkuire-styles.css", "styles/inkuire-styles.css")
     rename("inkuire-search.png", "images/inkuire-search.png")
 }

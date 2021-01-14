@@ -20,7 +20,7 @@ jobs:
           java-version: 11
 
       - name: Compile Inkuire to JavaScript
-        run: sbt engineJS/fastOptJS
+        run: sbt engineJS/fullOptJS
         working-directory: ./inkuire
 
       - name: Publish plugin to maven local
