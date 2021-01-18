@@ -13,7 +13,7 @@ import org.virtuslab.inkuire.engine.common.model.AppConfig
 class PureConfigReader extends api.ConfigReader {
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
     EitherT {
-      IO { ConfigSource.default.load[AppConfig].leftMap(_.prettyPrint()) }
+      IO { ConfigSource.default.load[HttpAppConfig].leftMap(_.prettyPrint()) }
     }
   }
 }

@@ -13,6 +13,7 @@ import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.Engine._
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
+import org.virtuslab.inkuire.engine.http.config.HttpAppConfig
 import org.virtuslab.inkuire.model.OutputFormat
 
 import scala.concurrent.ExecutionContext.global
@@ -28,6 +29,7 @@ class HttpServer extends OutputHandler {
     implicit val timer: Timer[IO]        = IO.timer(global)
 
     val formatter = new OutputFormatter(env.prettifier)
+    val appConfig = HttpAppConfig.validate(env.appConfig)
 
     def results(signature: String): Either[String, OutputFormat] = {
       env.parser
@@ -72,15 +74,20 @@ class HttpServer extends OutputHandler {
         }
         .orNotFound
 
-    val app = for {
-      blocker <- Blocker[IO]
-      server <-
-        BlazeServerBuilder[IO]
-          .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
-          .withHttpApp(appService(blocker))
-          .resource
-    } yield server
+    appConfig.fold(
+      s => IO.pure(println(s)),
+      config => {
+        val app = for {
+          blocker <- Blocker[IO]
+          server <-
+            BlazeServerBuilder[IO]
+              .bindHttp(config.port.port, config.address.address)
+              .withHttpApp(appService(blocker))
+              .resource
+        } yield server
 
-    app.use(_ => IO.never).as(ExitCode.Success)
+        app.use(_ => IO.never).as(ExitCode.Success)
+      }
+    )
   }
 }

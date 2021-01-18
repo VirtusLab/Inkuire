@@ -3,7 +3,6 @@ package org.virtuslab.inkuire.engine.http.cli
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
-
 import cats.Id
 import cats.data.EitherT
 import cats.data.StateT
@@ -12,12 +11,12 @@ import cats.syntax.all._
 import cats.effect.IO
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler, OutputHandler}
-import org.virtuslab.inkuire.engine.common.model.{AppConfig, AppParam, InkuireDb}
+import org.virtuslab.inkuire.engine.common.model._
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.utils.helpers.IOHelpers
 import org.virtuslab.inkuire.engine.common.utils.syntax._
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.model.Engine._
+import org.virtuslab.inkuire.engine.http.config._
 
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
@@ -93,22 +92,39 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    InkuireDb
-      .read(
-        appConfig.dbPaths.toList.flatMap(path => getURLs(new URL(path.path), ".inkuire.fdb")).map(getURLContent),
-        appConfig.ancestryGraphPaths.toList
-          .flatMap(path => getURLs(new URL(path.path), ".inkuire.adb"))
-          .map(getURLContent)
+    HttpAppConfig
+      .validate(appConfig)
+      .flatMap { appConfig =>
+        InkuireDb
+          .read(
+            appConfig.dbPaths.toList.flatMap(path => getURLs(new URL(path.path), ".inkuire.fdb")).map(getURLContent),
+            appConfig.ancestryGraphPaths.toList
+              .flatMap(path => getURLs(new URL(path.path), ".inkuire.adb"))
+              .map(getURLContent)
+          )
+      }
+      .traverse(value =>
+        IO {
+          value
+        }
       )
-      .traverse(value => IO { value })
       .pure[Id]
       .fmap(new EitherT(_))
   }
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
-    parseArgs(AppParam.parseCliOption)(args.toList)
-      .flatMap(AppConfig.create)
+    parseArgs(parseCliOption)(args.toList)
+      .flatMap(HttpAppConfig.create)
       .pure[Id]
       .fmap(config => new EitherT(IO(config)))
   }
+
+  def parseCliOption(opt: String, v: String): Either[String, AppParam] =
+    opt match {
+      case "-d" | "--database" => DbPath(v).right
+      case "-a" | "--ancestry" => AncestryGraphPath(v).right
+      case "--address"         => Address(v).right
+      case "-p" | "--port"     => Port(v.toInt).right
+      case _                   => s"Wrong option $opt".left
+    }
 }

@@ -7,10 +7,14 @@ import cats.instances.all._
 import cats.syntax.all._
 import cats.effect.IO
 import cats.implicits.catsSyntaxApplicativeId
-import io.circe.generic.auto._, io.circe.syntax._, io.circe.parser._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import io.circe.parser._
 import org.scalajs.dom.ext.Ajax
 import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler}
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
+import org.virtuslab.inkuire.engine.common.utils.syntax.AnyInkuireSyntax
+import org.virtuslab.inkuire.js.config.JSAppConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,16 +38,20 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .fmap(new EitherT(_))
   }
 
-  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
+  def createInkuireDb(appConfig: JSAppConfig): Future[Either[String, InkuireDb]] = {
     val functionSources = appConfig.dbPaths.map(_.path).map(scriptPath + _).map(getURLContent)
     val graphsSources   = appConfig.ancestryGraphPaths.map(_.path).map(scriptPath + _).map(getURLContent)
 
-    val db = for {
+    for {
       functions <- Future.sequence(functionSources)
       ancestryGraphs <- Future.sequence(graphsSources)
       db <- Future(InkuireDb.read(functions.toList, ancestryGraphs.toList))
     } yield db
+  }
 
+  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
+    val validatedConfig = JSAppConfig.validate(appConfig)
+    val db              = validatedConfig.flatTraverse(config => createInkuireDb(config))
     IO.fromFuture(IO(db))
       .pure[Id]
       .fmap(new EitherT(_))
@@ -51,7 +59,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
 
   private def parseConfig(config: String): Either[String, AppConfig] = {
     parse(config)
-      .flatMap(_.as[AppConfig])
+      .flatMap(_.as[JSAppConfig])
       .leftMap(_.show)
   }
 }
