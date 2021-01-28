@@ -33,15 +33,35 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
             }
             listOf(
                 InkuireContentPage(
-                    name = "scripts/inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.fdb",
+                    name = "scripts/${pathOfFdb(module, sourceSet)}",
                     strategy = renderingStrategy(callback, sourceSet)
                 ),
                 InkuireContentPage(
-                    name = "scripts/inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb",
+                    name = "scripts/${pathOfAdb(module, sourceSet)}",
                     strategy = RenderingStrategy.Write(typesAncestryGraph(module, sourceSet).distinct().anyAndNothingAppender().toAncestryGraphJson())
                 )
             )
         }
+    }.let {
+        it + listOf(
+            InkuireContentPage(
+                name = "scripts/inkuire-config.json",
+                strategy = RenderingStrategy.Write(
+                    """
+                        {
+                          "address": {"address": "0.0.0.0"},
+                          "port": { "port": 8080 },
+                          "dbPaths": [
+                            ${module.sourceSets.joinToString(separator = "") { "{\"path\" : \"${pathOfFdb(module, it)}\"}," }}
+                          ],
+                          "ancestryGraphPaths": [
+                            ${module.sourceSets.joinToString(separator = "") { "{\"path\" : \"${pathOfAdb(module, it)}\"}," }}
+                          ]
+                        }
+                    """.trimIndent()
+                )
+            )
+        )
     }
 
     internal fun typesAncestryGraph(documentable: Documentable, sourceSet: DokkaConfiguration.DokkaSourceSet): List<AncestryGraph> {
@@ -148,4 +168,9 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Loc
 
     private fun List<SDFunction>.toFunctionsJson(): String = CustomGson.instance.toJson(this)
     private fun List<AncestryGraph>.toAncestryGraphJson(): String = CustomGson.instance.toJson(this)
+
+    private fun pathOfFdb(module: DModule, sourceSet: DokkaConfiguration.DokkaSourceSet): String =
+        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.fdb"
+    private fun pathOfAdb(module: DModule, sourceSet: DokkaConfiguration.DokkaSourceSet): String =
+        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb"
 }
