@@ -12,7 +12,7 @@ object InkuireJsInstaller : PageTransformer {
         val resources = listOf("scripts/inkuire.js", "styles/inkuire-styles.css", "images/inkuire-search.png")
         val dbFiles = input.childrenOfType<ModulePageNode>().flatMap {
             InkuireDocumentableToPageTranslator { callback, sourceSet ->
-                RenderingStrategy.LocationResolvableWrite { locationResolver ->
+                RenderingStrategy.DriLocationResolvableWrite { locationResolver ->
                     callback(locationResolver, sourceSet)
                 }
             }.invoke(it.documentable as DModule)

@@ -7,7 +7,7 @@ import org.jetbrains.dokka.analysis.PsiDocumentableSource
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.links.DriOfAny
 import org.jetbrains.dokka.model.*
-import org.jetbrains.dokka.pages.LocationResolver
+import org.jetbrains.dokka.pages.DriResolver
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.virtuslab.inkuire.kotlin.model.*
@@ -39,7 +39,7 @@ object DefaultDokkaToSerializableModelTransformer : DokkaToSerializableModelTran
         type = type.toSerializable()
     )
 
-    override fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet, locationResolver: LocationResolver?) = SDFunction(
+    override fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet, locationResolver: DriResolver?) = SDFunction(
         dri = dri.toSerializable(),
         name = name,
         isConstructor = isConstructor,

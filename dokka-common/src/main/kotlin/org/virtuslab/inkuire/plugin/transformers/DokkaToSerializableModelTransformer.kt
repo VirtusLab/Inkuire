@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.plugin.transformers
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.*
-import org.jetbrains.dokka.pages.LocationResolver
+import org.jetbrains.dokka.pages.DriResolver
 import org.virtuslab.inkuire.kotlin.model.*
 
 abstract class DokkaToSerializableModelTransformer {
@@ -12,5 +12,5 @@ abstract class DokkaToSerializableModelTransformer {
     abstract fun DTypeParameter.toSerializable(): SDTypeParameter
     abstract fun Bound.toSerializable(): SBound
     abstract fun Projection.toSerializable(): SProjection
-    abstract fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet, locationResolver: LocationResolver? = null): SDFunction
+    abstract fun DFunction.toSerializable(source: DokkaConfiguration.DokkaSourceSet, locationResolver: DriResolver? = null): SDFunction
 }

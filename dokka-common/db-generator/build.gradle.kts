@@ -17,7 +17,7 @@ dependencies {
     val dokkaVersion: String by project
 
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
-    compileOnly("org.jetbrains.dokka:dokka-base:$dokkaVersion")
+    implementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
     implementation(project(":dokka-common"))
 
 
