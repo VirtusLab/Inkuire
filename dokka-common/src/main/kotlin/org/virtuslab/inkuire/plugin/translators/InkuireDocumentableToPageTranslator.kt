@@ -170,7 +170,7 @@ class InkuireDocumentableToPageTranslator(val renderingStrategy: (callback: (Dri
     private fun List<AncestryGraph>.toAncestryGraphJson(): String = CustomGson.instance.toJson(this)
 
     private fun pathOfFdb(module: DModule, sourceSet: DokkaConfiguration.DokkaSourceSet): String =
-        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.fdb"
+        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.fdb.inkuire"
     private fun pathOfAdb(module: DModule, sourceSet: DokkaConfiguration.DokkaSourceSet): String =
-        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.inkuire.adb"
+        "inkuiredb/${sourceSet.sourceSetID.sourceSetName}/${module.name}.adb.inkuire"
 }

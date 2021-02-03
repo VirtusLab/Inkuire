@@ -130,7 +130,7 @@ We hope that in future release Inkuire will support multiplatform and autoconfig
 * Function database paths - `{ --database | -d }` - Arguments that define URLs to function database JSONs
 
 Don't forget that URLs need to have protocol prefix, so if you want to provide path to a local file, it needs to be in `file://(path)` format.
-Also if the paths point to directories, all files with extensions `.inkuire.adb` and `.inkuire.fdb` respectively for ancestry graph and database will be loaded.
+Also if the paths point to directories, all files with extensions `.adb.inkuire` and `.fdb.inkuire` respectively for ancestry graph and database will be loaded.
 
 ##### API Endpoints
 
