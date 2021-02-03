@@ -63,6 +63,8 @@ In order to generate database, you need to configure Dokka in your project and a
 Running dokka task will generate .json files containing information further needed by engine.
 Make sure you configure proper version of Dokka.
 
+Currently Inkuire is compatible with dokka version 1.4.20
+
 Depending on whether you want to run HTTP instance or embed search engine inside Dokka, you can use two different Dokka plugins.
 In both cases you need to add to your `build.gradle` repository containing plugin JAR: it can be local Maven repository or Bintray.
 
