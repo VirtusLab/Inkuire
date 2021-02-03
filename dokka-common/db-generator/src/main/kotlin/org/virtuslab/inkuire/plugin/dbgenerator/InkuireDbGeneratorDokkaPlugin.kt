@@ -9,7 +9,7 @@ class InkuireDbGeneratorDokkaPlugin : DokkaPlugin() {
     private val dokkaBase by lazy { plugin<DokkaBase>() }
 
     val documentableToPageTranslator by extending {
-        CoreExtensions.documentableToPageTranslator with InkuireDbGeneratorDocumentableToPageTranslator override dokkaBase.documentableToPageTranslator
+        CoreExtensions.documentableToPageTranslator providing ::InkuireDbGeneratorDocumentableToPageTranslator override dokkaBase.documentableToPageTranslator
     }
 
     val renderer by extending {

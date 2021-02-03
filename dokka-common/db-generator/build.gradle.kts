@@ -18,6 +18,8 @@ dependencies {
 
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
     implementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
+    implementation("org.jetbrains.dokka:dokka-analysis:$dokkaVersion")
+
     implementation(project(":dokka-common"))
 
 

@@ -18,6 +18,7 @@ dependencies {
 
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
     compileOnly("org.jetbrains.dokka:dokka-base:$dokkaVersion")
+    compileOnly("org.jetbrains.dokka:dokka-analysis:$dokkaVersion")
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.google.code.gson:gson:2.8.6")
     testImplementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")

@@ -7,7 +7,7 @@ class InkuireHtmlExtensionDokkaPlugin : DokkaPlugin() {
     private val dokkaBase by lazy { plugin<DokkaBase>() }
 
     val inkuireJsInstaller by extending {
-        dokkaBase.htmlPreprocessors with InkuireJsInstaller order {
+        dokkaBase.htmlPreprocessors providing ::InkuireJsInstaller order {
             after(dokkaBase.rootCreator)
             before(dokkaBase.baseSearchbarDataInstaller)
         }
