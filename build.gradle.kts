@@ -56,4 +56,6 @@ subprojects {
     }
 }
 
-
+bintray {
+    publish = false
+}
