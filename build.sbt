@@ -1,8 +1,16 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 ThisBuild / organization := "org.virtuslab.inkuire"
 
 name := "inkuire"
-
+skip in publish := true
 ThisBuild / scalaVersion := "2.13.3"
+
+val fileInputStream = new FileInputStream(new File("global.properties"))
+val globalProperties = new Properties()
+val _ = globalProperties.load(fileInputStream) // :')
+val inkuireVersion = globalProperties.getProperty("version")
 
 val http4sVersion = "0.21.0"
 
@@ -36,36 +44,57 @@ ThisBuild / circeDependency := Seq(
 lazy val commonScalaRoot = project
   .in(file("./commonScala"))
   .aggregate(commonScala.js, commonScala.jvm)
+  .settings(
+    name := "common-scala-root",
+    version := inkuireVersion,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
+  )
 
 lazy val commonScala = crossProject(JSPlatform, JVMPlatform)
   .in(file("./commonScala"))
   .settings(
-    name := "inkuire-common-scala",
-    version := "0.1-SNAPSHOT",
-    libraryDependencies ++= circeDependency.value
+    name := "common-scala",
+    version := inkuireVersion,
+    libraryDependencies ++= circeDependency.value,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
   )
 
 lazy val engineCommonRoot = project
   .in(file("./engineCommon"))
   .aggregate(engineCommon.js, engineCommon.jvm)
+  .settings(
+    name := "engine-common-root",
+    version := inkuireVersion,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
+  )
 
 lazy val engineCommon = crossProject(JSPlatform, JVMPlatform)
   .in(file("./engineCommon"))
   .settings(
-    name := "inkuire-engine-common",
-    version := "0.1-SNAPSHOT",
+    name := "engine-common",
+    version := inkuireVersion,
     libraryDependencies ++= Seq(
       "com.softwaremill.quicklens" %%% "quicklens" % "1.6.1",
       "io.scalaland" %%% "chimney" % "0.6.0",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
       "com.softwaremill.diffx" %%% "diffx-scalatest" % "0.3.29" % Test
-    ) ++ circeDependency.value ++ catsDependency.value
+    ) ++ circeDependency.value ++ catsDependency.value,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
   )
   .dependsOn(commonScala)
 
 lazy val engineHttp = project
   .in(file("./engineHttp"))
   .settings(
+    name := "engine-http",
     libraryDependencies ++= Seq(
       "com.softwaremill.quicklens" %% "quicklens" % "1.5.0",
       "com.softwaremill.diffx" %% "diffx-core" % "0.3.28",
@@ -88,6 +117,10 @@ lazy val engineHttp = project
       "org.scalatest" %% "scalatest" % "3.2.2" % Test,
       "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.28" % Test
     ),
+    version := inkuireVersion,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0"))),
     mainClass in assembly := Some("org.virtuslab.inkuire.engine.http.Main")
   )
   .dependsOn(engineCommon.jvm)
@@ -96,6 +129,7 @@ lazy val engineJS = project
   .in(file("./engineJs"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
+    name := "engine-js",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %%% "core" % "2.2.9",
       "org.typelevel" %%% "cats-core" % "2.2.0",
@@ -107,6 +141,10 @@ lazy val engineJS = project
       "io.monix" %%% "monix" % "3.2.2",
       "io.monix" %%% "monix-reactive" % "3.2.2"
     ),
-    scalaJSUseMainModuleInitializer := true
+    scalaJSUseMainModuleInitializer := true,
+    version := inkuireVersion,
+    bintrayRepository := "Inkuire",
+    bintrayOrganization := Some("virtuslab"),
+    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
   )
   .dependsOn(engineCommon.js)

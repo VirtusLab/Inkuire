@@ -11,5 +11,6 @@ include("intellij-plugin")
 pluginManagement {
     plugins {
         id("org.jetbrains.kotlin.jvm") version "1.4.10"
+        id("com.jfrog.bintray") version "1.8.5"
     }
 }

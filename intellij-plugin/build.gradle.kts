@@ -1,9 +1,7 @@
 plugins {
     id("org.jetbrains.intellij") version "0.4.21"
+    `maven-publish`
 }
-
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -23,4 +21,13 @@ tasks.getByName<org.jetbrains.intellij.tasks.PatchPluginXmlTask>("patchPluginXml
     changeNotes("""
       Add change notes here.<br>
       <em>most HTML tags may be used</em>""")
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("MavenJava") {
+            artifactId = "intellij-plugin"
+            from(components["java"])
+        }
+    }
 }

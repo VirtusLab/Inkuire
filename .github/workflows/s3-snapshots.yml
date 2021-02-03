@@ -19,6 +19,20 @@ jobs:
         with:
           java-version: 11
 
+      - name: Read dokka_version
+        id: dokka_version
+        uses: christian-draeger/read-properties@1.0.1
+        with:
+          path: './inkuire/gradle.properties'
+          property: 'dokkaVersion'
+
+      - name: Read inkuire_version
+        id: inkuire_version
+        uses: christian-draeger/read-properties@1.0.1
+        with:
+          path: './inkuire/global.properties'
+          property: 'version'
+
       - name: Compile Inkuire to JavaScript
         run: sbt engineJS/fullOptJS
         working-directory: ./inkuire
@@ -35,7 +49,7 @@ jobs:
           path: stdlib
 
       - name: Create database from stdlib
-        run: ./gradlew clean extractAll cleanupSources dokkaStdlib --stacktrace
+        run: ./gradlew clean extractAll cleanupSources dokkaStdlib --stacktrace -Pdokka_version=${{ steps.dokka_version.outputs.value }} -Pinkuire_version=${{ steps.inkuire_version.outputs.value }}
         working-directory: ./stdlib
 
       - name: Configure AWS credentials for S3 access

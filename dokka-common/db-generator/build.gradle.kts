@@ -2,9 +2,6 @@ plugins {
     `maven-publish`
 }
 
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
     jcenter()
@@ -32,7 +29,7 @@ dependencies {
 
 publishing {
     publications {
-        register<MavenPublication>("dbGenerator") {
+        register<MavenPublication>("MavenJava") {
             artifactId = "inkuire-db-generator"
             from(components["java"])
         }

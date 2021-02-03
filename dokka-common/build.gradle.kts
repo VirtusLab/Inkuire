@@ -2,9 +2,6 @@ plugins {
     `maven-publish`
 }
 
-group = "org.virtuslab"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
     jcenter()
@@ -29,7 +26,7 @@ dependencies {
 
 publishing {
     publications {
-        register<MavenPublication>("dokkaCommon") {
+        register<MavenPublication>("MavenJava") {
             artifactId = "inkuire-dokka-common"
             from(components["java"])
         }
