@@ -86,7 +86,7 @@ class SerializationIntegrationTest : AbstractCoreTest() {
     @Test
     fun `serialize and deserialize`() {
         parent.walkTopDown().filter { it.name in listOf("common", "js", "jvm") }.forEach {
-            assertEquals(listOf("example.inkuire.adb", "example.inkuire.fdb").sorted(), it.listFiles().map { it.name }.sorted())
+            assertEquals(listOf("example.adb.inkuire", "example.fdb.inkuire").sorted(), it.listFiles().map { it.name }.sorted())
         }
         assertTrue(inkuireDb.functions().size() > 0)
         assertTrue(inkuireDb.functions().findSignature("jsSpecificFun").isEmpty())
