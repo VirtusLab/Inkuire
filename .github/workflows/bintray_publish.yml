@@ -22,22 +22,30 @@ jobs:
 
       - name: Build with sbt
         run: sbt test
+        working-directory: ./inkuire
 
       - name: Compile Inkuire to JavaScript
-        run: sbt engineJS/fastOptJS
+        run: sbt engineJS/fullOptJS
+        working-directory: ./inkuire
+
+      - name: Publish sbt artifacts to M2
+        run: sbt publishM2
         working-directory: ./inkuire
 
       - name: Build with Gradle
-        run: gradle build
+        run: ./gradlew build
+        working-directory: ./inkuire
 
       - name: Upload to Bintray Gradle artifacts
-        run: gradle bintrayUpload
+        run: ./gradlew bintrayUpload
+        working-directory: ./inkuire
         env:
           ORG_GRADLE_PROJECT_bintrayUser: ${{ secrets.BINTRAY_USER }}
           ORG_GRADLE_PROJECT_bintrayKey: ${{ secrets.BINTRAY_PASS }}
 
       - name: Upload to Bintray sbt artifacts
         run: sbt publish
+        working-directory: ./inkuire
         env:
           ORG_GRADLE_PROJECT_bintrayUser: ${{ secrets.BINTRAY_USER }}
           ORG_GRADLE_PROJECT_bintrayKey: ${{ secrets.BINTRAY_PASS }}

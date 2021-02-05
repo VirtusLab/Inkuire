@@ -78,7 +78,7 @@ EngineJS:
 If you want to generate Dokka documentation with embedded Inkuire search engine, add this line to `build.gradle` dependencies block:
 ```Kotlin
 dependencies {
-    dokkaPlugin("org.virtuslab:inkuire-html-extension:0.1.1")
+    dokkaPlugin("org.virtuslab.inkuire:inkuire-html-extension:0.1.1")
 }
 ```
 
@@ -86,7 +86,7 @@ Engine HTTP:
 If you want to generate only Inkuire db files, add this line to `build.gradle` dependencies block:
 ```Kotlin
 dependencies {
-    dokkaPlugin("org.virtuslab:inkuire-db-generator:0.1.1")
+    dokkaPlugin("org.virtuslab.inkuire:inkuire-db-generator:0.1.1")
 }
 ```
 
