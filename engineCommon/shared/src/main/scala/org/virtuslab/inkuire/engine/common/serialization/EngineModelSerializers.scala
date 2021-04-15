@@ -25,24 +25,11 @@ object EngineModelSerializers {
     } yield parsed
 
   implicit val encodeType: Encoder[Type] = Encoder.instance {
-    case c: ConcreteType => Json.obj("typekind" -> Json.fromString("concrete")).deepMerge(c.asJson)
-    case g: GenericType  => Json.obj("typekind" -> Json.fromString("generic")).deepMerge(g.asJson)
-    case t: TypeVariable => Json.obj("typekind" -> Json.fromString("variable")).deepMerge(t.asJson)
-    case StarProjection => Json.obj("typekind" -> Json.fromString("star")).deepMerge(StarProjection.asJson)
+    case t: Type => t.asJson
   }
 
   implicit val decodeType: Decoder[Type] = (src: HCursor) =>
-    for {
-      kind <- src.downField("typekind").as[String]
-      parsed <- kind match {
-        case "concrete" => src.value.as[ConcreteType]
-        case "generic"  => src.value.as[GenericType]
-        case "variable" => src.value.as[TypeVariable]
-        case "star"     => src.value.as[StarProjection.type]
-      }
-    } yield parsed
-
-  implicit val decodeStarProjection: Decoder[StarProjection.type] = Decoder.const(StarProjection)
+    src.value.as[Type]
 
   implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.isParsed}=${id.uuid}"
 

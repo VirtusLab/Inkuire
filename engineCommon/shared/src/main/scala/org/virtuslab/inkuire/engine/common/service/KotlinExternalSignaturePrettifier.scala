@@ -42,15 +42,15 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
 
   private def prettifyType(t: Type): String = {
     t match {
-      case ConcreteType(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
-      case TypeVariable(name, nullable, _) => s"$name${if (nullable) "?" else ""}"
-      case GenericType(ConcreteType(name, nullable, _), params) if name.name.matches("Function.*") && params.nonEmpty =>
-        prettifyFunction(NonEmptyList.fromListUnsafe(params.toList), nullable)
-      case GenericType(ConcreteType(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
-      case GenericType(TypeVariable(name, nullable, _), params) =>
-        s"$name<${prettifyArgs(params)}>${if (nullable) "?" else ""}"
-      case StarProjection => "*"
+      case t: Type if !t.isVariable => s"${t.name}${if (t.nullable) "?" else ""}"
+      case t: Type if t.isVariable => s"${t.name}${if (t.nullable) "?" else ""}"
+      case t: Type if t.params.nonEmpty && !t.isVariable && t.name.name.matches("Function.*") =>
+        prettifyFunction(NonEmptyList.fromListUnsafe(t.params.toList), t.nullable)
+      case t: Type if t.params.nonEmpty && !t.isVariable =>
+        s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
+      case t: Type if t.params.nonEmpty && t.isVariable =>
+        s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
+      case t: Type if t.isStarProjection => "*"
       case _              => t.toString
     }
   }

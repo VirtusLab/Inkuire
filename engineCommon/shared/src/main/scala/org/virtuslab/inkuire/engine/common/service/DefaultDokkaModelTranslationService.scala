@@ -29,10 +29,8 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
     b match {
       case n: SNullable => translateBound(n.inner).?
       case t: STypeConstructor =>
-        val core = ConcreteType(TypeName(t.dri.className.get), itid = translateDRI(t.dri).some)
-        if (t.projections.isEmpty) core
-        else GenericType(core, t.projections.map(translateProjectionVariance).toSeq)
-      case t: STypeParameter => TypeVariable(getTypeName(t), itid = translateDRI(t.dri).some)
+        Type(TypeName(t.dri.className.get), itid = translateDRI(t.dri).some, params = t.projections.map(translateProjectionVariance).toSeq)
+      case t: STypeParameter => Type(getTypeName(t), itid = translateDRI(t.dri).some, isVariable = true)
       case _ => getTypeName(b).concreteType
     }
   }
@@ -68,7 +66,7 @@ object DefaultDokkaModelTranslationService extends DokkaModelTranslationService 
       case s: SVariance =>
         translateVariance(s)(translateBound(s.inner))
       case b: SBound     => Invariance(translateBound(b))
-      case _: SStar.type => Invariance(StarProjection)
+      case _: SStar.type => Invariance(Type.StarProjection)
     }
 
   private def translateVariance(variance: SVariance): Type => Variance = {

@@ -5,29 +5,18 @@ import org.virtuslab.inkuire.engine.common.model._
 import org.virtuslab.inkuire.engine.common.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
-import org.virtuslab.inkuire.engine.common.model.{
-  ConcreteType,
-  GenericType,
-  Signature,
-  SignatureContext,
-  StarProjection,
-  Type,
-  TypeName,
-  TypeVariable,
-  UnresolvedVariance,
-  Variance
-}
+import org.virtuslab.inkuire.engine.common.model._
 
 class KotlinSignatureParser extends BaseSignatureParser {
 
   def concreteType: Parser[Type] =
-    identifier ^^ (Unresolved(_))
+    identifier ^^ (Type(_, isUnresolved = true))
 
   def typ: Parser[Type] =
     genericType |
       nullable(concreteType)
 
-  def starProjection: Parser[Type] = "*" ^^^ StarProjection
+  def starProjection: Parser[Type] = "*" ^^^ Type.StarProjection
 
   def nullable(typ: Parser[Type]): Parser[Type] =
     typ ~ nullability ^^ { case typ ~ nullable => if (nullable) typ.? else typ }
@@ -45,22 +34,22 @@ class KotlinSignatureParser extends BaseSignatureParser {
       typ |
       nullable("(" ~> receiverType <~ ")")
 
-  def functionType: Parser[GenericType] =
+  def functionType: Parser[Type] =
     receiver ~ ("(" ~> types <~ ")") ~ ("->" ~> singleType) ^^ {
       case rcvr ~ args ~ result => mapToGenericFunctionType(rcvr, args, result)
     }
 
-  private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): GenericType = {
+  private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): Type = {
     val params = receiver.fold(args :+ result)(_ +: args :+ result)
-    GenericType(
-      ConcreteType(s"Function${params.size - 1}"),
-      params.map(UnresolvedVariance)
+    Type(
+      s"Function${params.size - 1}",
+      params = params.map(UnresolvedVariance)
     )
   }
 
   def genericType: Parser[Type] =
-    nullable(concreteType ~ ("<" ~> typeArguments <~ ">") ^^ {
-      case baseType ~ types => GenericType(baseType, types.map(UnresolvedVariance))
+    nullable(identifier ~ ("<" ~> typeArguments <~ ">") ^^ {
+      case baseType ~ types => Type(baseType, types.map(UnresolvedVariance))
     })
 
   def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
@@ -148,16 +137,10 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
   private def resolve(vars: Set[String])(t: Type): Type = {
     val converter: Type => Type = resolve(vars)
     t match {
-      case genType: GenericType =>
-        genType
-          .modify(_.base)
-          .using(converter)
-          .modify(_.params.each)
-          .using { x =>
-            UnresolvedVariance(converter(x.typ))
-          }
-      case u: Unresolved =>
-        vars.find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
+      case u if u.isUnresolved =>
+        vars
+          .find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
+          .modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
       case _ => t
     }
   }
@@ -188,10 +171,9 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
 
   private def doValidateTypeParamsArgs(t: Type): Either[String, Unit] = {
     t match {
-      case GenericType(base, params) =>
-        Either.cond(!base.isInstanceOf[TypeVariable], (), "Type arguments are not allowed for type parameters") >>
-          doValidateTypeParamsArgs(base) >>
-          params.map(x => doValidateTypeParamsArgs(x.typ)).foldLeft[Either[String, Unit]](().right)(_ >> _)
+      case t: Type if t.params.nonEmpty =>
+        Either.cond(!t.isVariable, (), "Type arguments are not allowed for type parameters") >>
+          t.params.map(x => doValidateTypeParamsArgs(x.typ)).foldLeft[Either[String, Unit]](().right)(_ >> _)
       case _ => ().right
     }
   }

@@ -8,6 +8,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import org.virtuslab.inkuire.engine.common.service.{DefaultDokkaModelTranslationService, DokkaModelTranslationService}
 import org.virtuslab.inkuire.model._
+import com.softwaremill.quicklens._
 
 case class InkuireDb(
   functions: Seq[ExternalSignature],
@@ -52,7 +53,7 @@ object InkuireDb {
       }.toMap)
 
   def mapTypesParametersVariance(types: Map[ITID, (Type, Seq[Type])]): PartialFunction[Type, Type] = {
-    case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
+    case typ: Type if typ.params.nonEmpty => mapGenericTypesParametersVariance(typ, types)
     case typ => typ
   }
 
@@ -86,7 +87,7 @@ object InkuireDb {
           val rcv  = receiver.map(r => r.modify(_.typ).using(mapTypesParametersVariance(types)))
           val args = arguments.map(a => a.modify(_.typ).using(mapTypesParametersVariance(types)))
           val rst = result.modify(_.typ).using {
-            case typ: GenericType => mapGenericTypesParametersVariance(typ, types)
+            case typ: Type if typ.params.nonEmpty => mapGenericTypesParametersVariance(typ, types)
             case typ => typ
           }
           ExternalSignature(Signature(rcv, args, rst, context), name, packageName, uri)
@@ -111,22 +112,21 @@ object InkuireDb {
     private final val externalVariableDRI = "external-iri-"
 
     private def remapTypeVariableDRIs: Type => Type = {
-      case t: TypeVariable =>
+      case t: Type if t.isVariable =>
         t.modify(_.itid.each).setTo(ITID(externalVariableDRI + t.name.name, isParsed = false))
-      case g: GenericType =>
-        g.modifyAll(_.base, _.params.each.typ).using(remapTypeVariableDRIs)
+      case g: Type if g.params.nonEmpty =>
+        g.modify(_.params.each.typ).using(remapTypeVariableDRIs)
+          .modify(_.itid.each).setToIf(g.isVariable)(ITID(externalVariableDRI + g.name.name, isParsed = false))
       case t => t
     }
   }
 
-  private def mapGenericTypesParametersVariance(typ: GenericType, types: Map[ITID, (Type, Seq[Type])]): GenericType = {
-    if (types.contains(typ.base.itid.get)) {
-      GenericType(
-        typ.base,
-        types(typ.base.itid.get)._1.params.zip(typ.params).map {
-          case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
-        }
-      )
+  private def mapGenericTypesParametersVariance(typ: Type, types: Map[ITID, (Type, Seq[Type])]): Type = {
+    if (types.contains(typ.itid.get)) {
+      val params = types(typ.itid.get)._1.params.zip(typ.params).map {
+        case (variance, irrelevantVariance) => wrapWithVariance(irrelevantVariance.typ, variance)
+      }
+      typ.modify(_.params).setTo(params)
     } else typ
   }
 

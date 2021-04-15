@@ -42,15 +42,15 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view
     .mapValues(_.flatMap {
-      case g: GenericType => retrieveVariables(g)
+      case g: Type if g.params.nonEmpty => retrieveVariables(g)
       case _ => Seq()
     }.distinct)
     .toMap
 
   private def retrieveVariables(t: Type): Seq[ITID] =
     t match {
-      case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
-      case t: TypeVariable => Seq(t.itid.get)
+      case g: Type if g.params.nonEmpty  => g.params.map(_.typ).flatMap(retrieveVariables)
+      case t: Type if t.isVariable => Seq(t.itid.get)
       case _ => Seq()
     }
 
@@ -95,14 +95,14 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
-      case (StarProjection, _) => State.pure(true)
-      case (_, StarProjection) => State.pure(true)
-      case (typ: TypeVariable, supr: TypeVariable) =>
+      case (t, _) if t.isStarProjection => State.pure(true)
+      case (_, s) if s.isStarProjection => State.pure(true)
+      case (typ, supr) if typ.isVariable && supr.isVariable =>
         val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
         val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
         State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
           State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
-      case (typ, supr: TypeVariable) =>
+      case (typ, supr) if supr.isVariable =>
         if (supr.itid.get.isParsed) {
           State.pure(false)
         } else {
@@ -116,7 +116,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
                 checks.forall(identity)
               }
         }
-      case (typ: TypeVariable, supr) =>
+      case (typ, supr) if typ.isVariable =>
         if (typ.itid.get.isParsed) {
           val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
           State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
@@ -131,9 +131,9 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
           State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
             State.pure(true)
         }
-      case (typ: GenericType, _) if typ.isVariable =>
+      case (typ, _) if typ.isVariable && typ.params.nonEmpty =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
-      case (_, supr: GenericType) if supr.isVariable =>
+      case (_, supr) if supr.isVariable && supr.params.nonEmpty =>
         State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ, supr) =>
@@ -148,7 +148,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
   private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = {
     val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
     node._2.map {
-      case t: GenericType if !t.base.isVariable =>
+      case t if t.params.nonEmpty && !t.isVariable =>
         t.modify(_.params.each.typ).using(p => bindings.getOrElse(p.name, p))
       case t => t
     }
@@ -156,7 +156,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
 
   private def specializeType(parsedType: Type, possibleMatch: Type): Type =
     (parsedType, possibleMatch) match {
-      case (pT: GenericType, t: GenericType) =>
+      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
         t.modify(_.params)
           .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
       case _ => possibleMatch
@@ -164,7 +164,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
 
   private def specializeVariance(parsedType: Variance, possibleMatch: Variance): Variance =
     (parsedType.typ, possibleMatch.typ) match {
-      case (pT: GenericType, t: GenericType) =>
+      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
         val typ = t
           .modify(_.params)
           .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
@@ -204,7 +204,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     (typ, supr) match {
-      case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
+      case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
         State.pure[VariableBindings, Boolean](true)
       case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
@@ -219,7 +219,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
   }
 
   private def writeVariancesFromDRI: Type => Type = {
-    case typ: GenericType =>
+    case typ if typ.params.nonEmpty =>
       typ
         .modify(_.params)
         .using { params =>
