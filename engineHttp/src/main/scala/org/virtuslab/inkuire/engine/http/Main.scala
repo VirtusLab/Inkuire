@@ -6,8 +6,20 @@ import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import org.virtuslab.inkuire.engine.common.parser.KotlinSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.engine.http.http.HttpServer
+import java.io.File
+import java.io.FileWriter
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 object Main extends App {
+
+  def dumpDB(db: InkuireDb) = {
+    val file = new File("/home/kkorban/Inkuire/data/db.json")
+    file.createNewFile()
+    val myWriter = new FileWriter("/home/kkorban/Inkuire/data/db.json")
+    println(db)
+    myWriter.write(EngineModelSerializers.serialize(db))
+    myWriter.close()
+  }
 
   val configReader = new Cli
   val in           = new Cli

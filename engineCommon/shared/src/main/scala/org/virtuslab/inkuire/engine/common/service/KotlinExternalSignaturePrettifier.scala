@@ -42,15 +42,12 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
 
   private def prettifyType(t: Type): String = {
     t match {
-      case t: Type if !t.isVariable => s"${t.name}${if (t.nullable) "?" else ""}"
-      case t: Type if t.isVariable => s"${t.name}${if (t.nullable) "?" else ""}"
-      case t: Type if t.params.nonEmpty && !t.isVariable && t.name.name.matches("Function.*") =>
-        prettifyFunction(NonEmptyList.fromListUnsafe(t.params.toList), t.nullable)
-      case t: Type if t.params.nonEmpty && !t.isVariable =>
-        s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
-      case t: Type if t.params.nonEmpty && t.isVariable =>
-        s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
       case t: Type if t.isStarProjection => "*"
+      case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
+        prettifyFunction(NonEmptyList.fromListUnsafe(t.params.toList), t.nullable)
+      case t: Type if t.isGeneric =>
+        s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
+      case t: Type => s"${t.name}${if (t.nullable) "?" else ""}"
       case _              => t.toString
     }
   }

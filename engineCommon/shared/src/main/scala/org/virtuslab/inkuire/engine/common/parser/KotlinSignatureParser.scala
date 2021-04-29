@@ -141,7 +141,8 @@ class KotlinSignatureParserService extends BaseSignatureParserService {
         vars
           .find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
           .modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
-      case _ => t
+      case _ =>
+        t.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
     }
   }
 

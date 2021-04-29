@@ -114,7 +114,7 @@ object InkuireDb {
     private def remapTypeVariableDRIs: Type => Type = {
       case t: Type if t.isVariable =>
         t.modify(_.itid.each).setTo(ITID(externalVariableDRI + t.name.name, isParsed = false))
-      case g: Type if g.params.nonEmpty =>
+      case g: Type if g.isGeneric =>
         g.modify(_.params.each.typ).using(remapTypeVariableDRIs)
           .modify(_.itid.each).setToIf(g.isVariable)(ITID(externalVariableDRI + g.name.name, isParsed = false))
       case t => t

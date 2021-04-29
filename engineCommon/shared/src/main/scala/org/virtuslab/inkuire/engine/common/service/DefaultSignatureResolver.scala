@@ -59,14 +59,13 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
 
   private def resolvePossibleTypes(typ: Type): Seq[Type] = {
     val resolved = typ match {
-      case t if t.isVariable =>
+      case t if t.isStarProjection => Seq(t)
+      case t if t.isVariable && !t.isGeneric =>
         Seq(
           t.modify(_.itid)
             .setTo(ITID(t.name.name, isParsed = true).some)
         )
-      case t if !t.isVariable =>
-        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
-      case t if t.isVariable && t.params.nonEmpty =>
+      case t if t.isVariable && t.isGeneric =>
         for {
           kind <-
             ancestryGraph.values
@@ -77,7 +76,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
               .toSeq
           params <- resolveMultipleTypes(t.params.map(_.typ))
         } yield kind.modify(_.params).setTo((t +: params).map(Invariance.apply))
-      case t if t.params.nonEmpty =>
+      case t if t.isGeneric =>
         for {
           generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
           params <- resolveMultipleTypes(t.params.map(_.typ))
@@ -85,7 +84,8 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
               case (p, v) => zipVariance(p, v)
             })
         } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
-      case t => Seq(t)
+      case t =>
+        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
     }
     resolved.filter(_.params.size == typ.params.size)
   }

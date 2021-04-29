@@ -24,13 +24,6 @@ object EngineModelSerializers {
       }
     } yield parsed
 
-  implicit val encodeType: Encoder[Type] = Encoder.instance {
-    case t: Type => t.asJson
-  }
-
-  implicit val decodeType: Decoder[Type] = (src: HCursor) =>
-    src.value.as[Type]
-
   implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.isParsed}=${id.uuid}"
 
   implicit val itidKeyDecoder: KeyDecoder[ITID] = (str: String) =>

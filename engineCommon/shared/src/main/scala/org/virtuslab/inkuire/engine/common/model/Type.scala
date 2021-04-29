@@ -14,6 +14,8 @@ case class Type(
 ) {
   def ? : Type = this.modify(_.nullable).setTo(true)
 
+  def isGeneric: Boolean = params.nonEmpty
+
   def asVariable: Type = this.modify(_.isVariable).setTo(true)
 
   def asConcrete: Type = this.modify(_.isVariable).setTo(false)
