@@ -28,7 +28,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
     println(s"Resolved ${resolveResult.signatures.size} signatures, namely:")
     resolveResult.signatures.foreach(println)
-    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1))
+    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1)) //TODO nasty hack, but surprisingly works!?
     inkuireDb.functions.filter(|?|(skimmedResolveResult))
   }
 
@@ -102,12 +102,12 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     (typ, supr) match {
       case (t, _) if t.isStarProjection => State.pure(true)
       case (_, s) if s.isStarProjection => State.pure(true)
-      case (typ, supr) if typ.isVariable && typ.isGeneric =>
+      case (typ, supr) if typ.isVariable && typ.isGeneric => //TODO #58 Support for TypeVariables as GenericTypes or not
         State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-          State.pure(false) //TODO #58 Support for TypeVariables as GenericTypes or not
-      case (typ, supr) if supr.isVariable && supr.isGeneric =>
+          State.pure(typ.params.size == supr.params.size)
+      case (typ, supr) if supr.isVariable && supr.isGeneric => //TODO #58 Support for TypeVariables as GenericTypes or not
         State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-          State.pure(false) //TODO #58 Support for TypeVariables as GenericTypes or not
+          State.pure(typ.params.size == supr.params.size)
       case (typ, supr) if typ.isVariable && supr.isVariable =>
         val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
         val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
@@ -145,11 +145,11 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         }
       case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ, supr) =>
-        if (nodes.contains(typ.itid.get))
+        if (nodes.contains(typ.itid.get)) {
           specializeParents(typ, nodes(typ.itid.get)).toList
             .traverse(isSubType(_, supr, context))
             .map(_.exists(identity))
-        else State.pure(false) //TODO remove when everything is correctly resolved
+        } else State.pure(false) //TODO remove when everything is correctly resolved
     }
   }
 
