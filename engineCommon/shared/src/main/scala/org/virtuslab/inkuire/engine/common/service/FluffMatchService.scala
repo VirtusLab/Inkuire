@@ -25,15 +25,19 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] =
-    inkuireDb.functions.filter(|?|(resolveResult))
+  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+    println(s"Resolved ${resolveResult.signatures.size} signatures, namely:")
+    resolveResult.signatures.foreach(println)
+    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1))
+    inkuireDb.functions.filter(|?|(skimmedResolveResult))
+  }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
     bindings.bindings.values.forall { types =>
       types
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil => a.itid == b.itid
+          case a :: b :: Nil => ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) || ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
           case _             => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
@@ -100,10 +104,10 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
       case (_, s) if s.isStarProjection => State.pure(true)
       case (typ, supr) if typ.isVariable && typ.isGeneric =>
         State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-          State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
+          State.pure(false) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (typ, supr) if supr.isVariable && supr.isGeneric =>
         State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-          State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
+          State.pure(false) //TODO #58 Support for TypeVariables as GenericTypes or not
       case (typ, supr) if typ.isVariable && supr.isVariable =>
         val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
         val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
@@ -149,13 +153,17 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = {
+  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check for HKTs
     val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
     node._2.map {
       case t if !t.isVariable =>
         t.modify(_.params.each.typ).using(p => bindings.getOrElse(p.name, p))
       case t => t
     }
+  }
+
+  def getAllParentsITIDs(tpe: Type): Seq[ITID] = {
+    tpe.itid.get +: nodes.get(tpe.itid.get).toSeq.flatMap(_._2).flatMap(getAllParentsITIDs(_))
   }
 
   private def specializeType(parsedType: Type, possibleMatch: Type): Type =

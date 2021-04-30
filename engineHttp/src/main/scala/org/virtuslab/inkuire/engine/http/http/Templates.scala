@@ -65,7 +65,7 @@ object Templates {
         ),
         div(id := "examples")(
           h2("Examples"),
-          generateExamples("(String) -> Int", "Int.() -> String", "<K, V> Map<K,V>.(K) -> V?")
+          generateExamples("Set[Long].(Long) => Boolean", "BigDecimal.() => Byte", "Seq[Int].() => Int", "[A, B] (A, B) => A", "(Int, Long) => Int")
         )
       )
     ).toString()

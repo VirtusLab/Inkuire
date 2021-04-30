@@ -33,6 +33,7 @@ class HttpServer extends OutputHandler {
       env.parser
         .parse(signature)
         .map { parsed =>
+          println("Parsed:")
           println(parsed)
           env.resolver.resolve(parsed)
         }
