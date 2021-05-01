@@ -26,5 +26,5 @@ object Type {
     def concreteType: Type = Type(str)
     def typeVariable: Type = Type(str, isVariable = true)
   }
-  val StarProjection = Type(TypeName("*"), isStarProjection = true)
+  val StarProjection = Type(TypeName("_"), isStarProjection = true)
 }

@@ -13,49 +13,28 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
 
   private def prettifySignature(sgn: Signature): String = {
     s"${prettifyTypeVariables(sgn.context)}" +
-      s"${prettifyReceiver(sgn.receiver)}(${prettifyArgs(sgn.arguments)}) => ${prettifyType(sgn.result.typ)}" +
-      s"${prettifyTypeVariableConstraints(sgn.context)}"
+      s"${prettifyArgs(sgn.typesWithVariances, " => ")}"
   }
 
   private def prettifyTypeVariables(context: SignatureContext): String = {
     if (context.vars.isEmpty) ""
     else {
-      s"[${context.vars.mkString(", ")}] "
+      s"[${context.vars.mkString(", ")}] => "
     }
   }
 
-  private def prettifyTypeVariableConstraints(context: SignatureContext): String = {
-    if (context.constraints.isEmpty || context.constraints.values.flatten.isEmpty) ""
-    else {
-      val constraints = context.constraints.flatMap {
-        case (key, value) => value.map(v => s"$key: ${prettifyType(v)}")
-      }
-      s" where ${constraints.mkString(", ")}"
-    }
-  }
+  private def prettifyArgs(args: Seq[Variance], sep: String = ", "): String =
+    args.map(_.typ).map(prettifyType).mkString(sep)
 
-  private def prettifyReceiver(receiver: Option[Variance]): String =
-    receiver.fold("")(v => prettifyType(v.typ) ++ ".")
-
-  private def prettifyArgs(args: Seq[Variance]): String =
-    args.map(_.typ).map(prettifyType).mkString(", ")
-
-  private def prettifyType(t: Type): String = {
-    t match {
-      case t: Type if t.isStarProjection => "*"
-      case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
-        prettifyFunction(NonEmptyList.fromListUnsafe(t.params.toList), t.nullable)
-      case t: Type if t.isGeneric =>
-        s"${t.name}[${prettifyArgs(t.params)}]${if (t.nullable) "?" else ""}"
-      case t: Type => s"${t.name}${if (t.nullable) "?" else ""}"
-      case _              => t.toString
-    }
-  }
-
-  private def prettifyFunction(params: NonEmptyList[Variance], nullable: Boolean): String = {
-    val prettifiedFunction = s"(${prettifyArgs(params.init)}) => ${prettifyType(params.last.typ)}"
-    if (nullable) {
-      s"($prettifiedFunction)?"
-    } else prettifiedFunction
+  private def prettifyType(t: Type): String = t match {
+    case t: Type if t.isStarProjection => "*"
+    case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
+      s"(${prettifyArgs(t.params, " => ")})"
+    case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Typle.*") =>
+      s"(${prettifyArgs(t.params)})"
+    case t: Type if t.isGeneric =>
+      s"${t.name}[${prettifyArgs(t.params)}]"
+    case t: Type => s"${t.name}"
+    case _              => t.toString
   }
 }

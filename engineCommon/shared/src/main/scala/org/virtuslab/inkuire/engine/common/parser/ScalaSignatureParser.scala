@@ -14,30 +14,36 @@ class ScalaSignatureParser extends BaseSignatureParser {
 
   def typ: Parser[Type] =
     genericType |
-      nullable(concreteType)
+      concreteType
 
-  def starProjection: Parser[Type] = "*" ^^^ Type.StarProjection
-
-  def nullable(typ: Parser[Type]): Parser[Type] =
-    typ ~ nullability ^^ { case typ ~ nullable => if (nullable) typ.? else typ }
+  def starProjection: Parser[Type] = "_" ^^^ Type.StarProjection
 
   def singleType: Parser[Type] =
     starProjection |
       functionType |
-      typ |
-      nullable("(" ~> singleType <~ ")")
-
-  def receiverType: Parser[Type] =
-    nullable("(" ~> functionType <~ ")") |
-      ("(" ~> functionType <~ ")") |
-      starProjection |
-      typ |
-      nullable("(" ~> receiverType <~ ")")
+      tupleType |
+      typ
 
   def functionType: Parser[Type] =
-    receiver ~ ("(" ~> types <~ ")") ~ ("=>" ~> singleType) ^^ {
-      case rcvr ~ args ~ result => mapToGenericFunctionType(rcvr, args, result)
-    }
+    "()" ~> "=>" ~> singleType |
+      "(" ~> curriedFunctionTypes <~ ")" ^^ {
+        case types => mapToGenericFunctionType(None, types.init, types.last)
+      }
+  
+  def tupleTypes: Parser[Seq[Type]] =
+    (singleType <~ ",") ~ tupleTypes ^^ { case t1 ~ ts => t1 +: ts } |
+      (singleType <~ ",") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
+
+  def tupleType: Parser[Type] =
+    "(" ~> tupleTypes <~ ")" ^^ { case types => mapToTupleType(types) }
+
+  def curriedTypes: Parser[Seq[Type]] =
+    (singleType <~ "=>") ~ curriedTypes ^^ { case t1 ~ ts => t1 +: ts } |
+      (singleType <~ "=>") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
+
+  def curriedFunctionTypes: Parser[Seq[Type]] =
+    "()" ~> ("=>" ~> singleType) ^^ { case t => List(t) } |
+      curriedTypes
 
   private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): Type = {
     val params = receiver.fold(args :+ result)(_ +: args :+ result)
@@ -47,26 +53,23 @@ class ScalaSignatureParser extends BaseSignatureParser {
     )
   }
 
+  private def mapToTupleType(args: Seq[Type]): Type =
+    Type(
+      s"Tuple${args.size}",
+      params = args.map(UnresolvedVariance)
+    )
+
   def genericType: Parser[Type] =
-    nullable(identifier ~ ("[" ~> typeArguments <~ "]") ^^ {
+    identifier ~ ("[" ~> typeArguments <~ "]") ^^ {
       case baseType ~ types => Type(baseType, types.map(UnresolvedVariance))
-    })
+    }
 
   def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
   def typeArguments: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
 
-  def constraint: Parser[(String, Type)] =
-    (identifier <~ ":") ~ singleType ^^ { case id ~ typ => (id, typ) }
-
-  def constraints: Parser[Seq[(String, Type)]] = list(constraint)
-
-  def whereClause: Parser[Map[String, Seq[Type]]] =
-    "where" ~> constraints ^^ (_.groupBy(_._1).map { case (k, v) => (k, v.map(_._2)) }) |
-      "" ^^^ Map.empty
-
   def typeVariable: Parser[(String, Seq[Type])] =
-    (identifier <~ ":") ~ singleType ^^ { case typeVar ~ constraint => (typeVar, Seq(constraint)) } |
+    (identifier <~ "<:") ~ singleType ^^ { case typeVar ~ constraint => (typeVar, Seq(constraint)) } |
       identifier ^^ ((_, Seq.empty[Type]))
 
   def typeVariables: Parser[(Seq[String], Map[String, Seq[Type]])] =
@@ -76,34 +79,38 @@ class ScalaSignatureParser extends BaseSignatureParser {
     } |
       typeVariable ^^ (v => (Seq(v._1), Map(v._1 -> v._2)))
 
-  def variables: Parser[(Seq[String], Map[String, Seq[Type]])] =
-    "[" ~> typeVariables <~ "]" |
+  def curriedVariables: Parser[(Seq[String], Map[String, Seq[Type]])] = //TODO change to upper and lower bounds when the model can work with it
+    "[" ~> typeVariables <~ "]" <~ "=>" |
       "" ^^^ (Seq.empty, Map.empty)
 
-  def receiver: Parser[Option[Type]] =
-    receiverType <~ "." ^^ (Some(_)) | "" ^^^ None
+  def curriedSignature: Parser[Signature] =
+    curriedVariables ~ curriedFunctionTypes ^^ {
+      case typeVars ~ types =>
+        mapToSignature(None, types.dropRight(1), types.last, typeVars, Map.empty)
+    }
 
   def signature: Parser[Signature] =
-    variables ~
-      receiver ~
-      ("(" ~> types <~ ")") ~
-      ("=>" ~> singleType) ~
-      whereClause ^^ {
-        case typeVars ~ rcvr ~ args ~ result ~ where =>
-          Signature(
-            rcvr,
-            args,
-            result,
-            SignatureContext(
-              typeVars._1.toSet,
-              (typeVars._2.keys ++ where.keys)
-                .map(k => k -> (where.get(k).toSeq.flatten ++ typeVars._2.get(k).toSeq.flatten))
-                .toMap
-                .filter(_._2.nonEmpty)
-            )
-          )
-      } |
-      ("(" ~> signature <~ ")")
+    curriedSignature
+
+  def mapToSignature(
+    rcvr: Option[Type],
+    args: Seq[Type],
+    result: Type,
+    typeVars: (Seq[String], Map[String, Seq[Type]]),
+    where: Map[String, Seq[Type]]
+  ): Signature =
+    Signature(
+      rcvr,
+      args,
+      result,
+      SignatureContext(
+        typeVars._1.toSet,
+        (typeVars._2.keys ++ where.keys)
+          .map(k => k -> (where.get(k).toSeq.flatten ++ typeVars._2.get(k).toSeq.flatten))
+          .toMap
+          .filter(_._2.nonEmpty)
+      )
+    )
 }
 
 class ScalaSignatureParserService extends BaseSignatureParserService {
