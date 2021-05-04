@@ -4,7 +4,7 @@ import org.scalajs.dom.raw.DedicatedWorkerGlobalScope
 import org.scalajs.dom.webworkers.WorkerGlobalScope
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
-import org.virtuslab.inkuire.engine.common.parser.KotlinSignatureParserService
+import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.js.Globals
 import org.virtuslab.inkuire.js.handlers.{JSInputHandler, JSOutputHandler}
@@ -26,9 +26,9 @@ object WorkerMain {
     val in           = new JSInputHandler(scriptPath)
     val out          = new JSOutputHandler(handler, handler)
     val matchService = (db: InkuireDb) => new FluffMatchService(db)
-    val prettifier   = new KotlinExternalSignaturePrettifier
+    val prettifier   = new ScalaExternalSignaturePrettifier
     val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)
-    val parser       = new KotlinSignatureParserService
+    val parser       = new ScalaSignatureParserService
 
     configReader
       .readConfig(Seq(scriptPath + "inkuire-config.json"))

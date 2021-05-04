@@ -155,3 +155,6 @@ gradle-app.setting
 .bloop
 
 dokka-common/dokka-html-inkuire-extension/src/main/resources/inkuire/
+
+#Inkuire
+data
