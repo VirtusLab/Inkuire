@@ -153,7 +153,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check for HKTs
+  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check if HKTs work correctly-ish
     val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
     node._2.map {
       case t if !t.isVariable =>

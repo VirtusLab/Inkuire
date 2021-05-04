@@ -94,7 +94,7 @@ object Templates {
                 case (res, i) =>
                   tr(cls := "code")(
                     th(scoped := "row")(i + 1),
-                    td(res.functionName),
+                    td(a(href := res.pageLocation, res.functionName)),
                     td(res.prettifiedSignature),
                     td(res.packageLocation)
                   )

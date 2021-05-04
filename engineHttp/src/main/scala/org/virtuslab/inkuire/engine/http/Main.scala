@@ -12,15 +12,6 @@ import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 object Main extends App {
 
-  def dumpDB(db: InkuireDb) = {
-    val file = new File("/home/kkorban/Inkuire/data/db.json")
-    file.createNewFile()
-    val myWriter = new FileWriter("/home/kkorban/Inkuire/data/db.json")
-    println(db)
-    myWriter.write(EngineModelSerializers.serialize(db))
-    myWriter.close()
-  }
-
   val configReader = new Cli
   val in           = new Cli
   val out          = new HttpServer
