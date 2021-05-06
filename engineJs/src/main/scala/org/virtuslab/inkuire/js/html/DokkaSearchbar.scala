@@ -1,4 +1,5 @@
 package org.virtuslab.inkuire.js.html
+
 import io.circe.syntax._
 import io.circe.parser._
 import io.circe.generic.auto._
@@ -106,7 +107,6 @@ class DokkaSearchbar(val worker: Worker) {
   }
 
   def registerInputChanges: Unit = {
-
     Observable
       .create[String](OverflowStrategy.DropOld(10)) { subscriber =>
         val func = (event: Event) => subscriber.onNext(event.target.asInstanceOf[html.Input].value)

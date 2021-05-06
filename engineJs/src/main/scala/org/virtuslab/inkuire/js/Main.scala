@@ -1,4 +1,5 @@
 package org.virtuslab.inkuire.js
+
 import org.scalajs.dom._
 import org.scalajs.dom.raw.HTMLScriptElement
 import org.virtuslab.inkuire.engine.common.model._

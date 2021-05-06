@@ -11,6 +11,7 @@ import io.circe.generic.auto._, io.circe.syntax._, io.circe.parser._
 import org.scalajs.dom.ext.Ajax
 import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler}
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,19 +35,13 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .fmap(new EitherT(_))
   }
 
-  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    val functionSources = appConfig.dbPaths.map(_.path).map(scriptPath + _).map(getURLContent)
-    val graphsSources   = appConfig.ancestryGraphPaths.map(_.path).map(scriptPath + _).map(getURLContent)
+  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = { //TODO multiple dbs
+    val dbSources = appConfig.inkuirePaths.map(_.path).map(scriptPath + _).map(getURLContent).head
 
-    val db = for {
-      functions <- Future.sequence(functionSources)
-      ancestryGraphs <- Future.sequence(graphsSources)
-      db <- Future(InkuireDb.read(functions.toList, ancestryGraphs.toList))
-    } yield db
+    println(appConfig.inkuirePaths)
 
-    IO.fromFuture(IO(db))
-      .pure[Id]
-      .fmap(new EitherT(_))
+    val res = IO.fromFuture { IO(dbSources.map(EngineModelSerializers.deserialize(_))) }
+    new EitherT(res)
   }
 
   private def parseConfig(config: String): Either[String, AppConfig] = {
