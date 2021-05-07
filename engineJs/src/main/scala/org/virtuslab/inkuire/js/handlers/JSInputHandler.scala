@@ -38,8 +38,6 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = { //TODO multiple dbs
     val dbSources = appConfig.inkuirePaths.map(_.path).map(scriptPath + _).map(getURLContent).head
 
-    println(appConfig.inkuirePaths)
-
     val res = IO.fromFuture { IO(dbSources.map(EngineModelSerializers.deserialize(_))) }
     new EitherT(res)
   }

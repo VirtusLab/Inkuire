@@ -8,12 +8,14 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{`Content-Type`, Location}
 import org.http4s.implicits._
 import org.http4s.server.blaze._
+import org.http4s.server.middleware._
 import org.http4s.{HttpRoutes, MediaType, Request, StaticFile, Uri, UrlForm}
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.Engine._
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 import org.virtuslab.inkuire.model.OutputFormat
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.global
 import scala.io.Source
@@ -76,12 +78,19 @@ class HttpServer extends OutputHandler {
         }
         .orNotFound
 
+    val methodConfig = CORSConfig(
+      anyOrigin = true,
+      anyMethod = true,
+      allowCredentials = true,
+      maxAge = 1.day.toSeconds
+    )
+
     val app = for {
       blocker <- Blocker[IO]
       server <-
         BlazeServerBuilder[IO]
           .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
-          .withHttpApp(appService(blocker))
+          .withHttpApp(CORS(appService(blocker), methodConfig))
           .resource
     } yield server
 
