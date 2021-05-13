@@ -26,8 +26,6 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
-    println(s"Resolved ${resolveResult.signatures.size} signatures, namely:")
-    resolveResult.signatures.foreach(println)
     val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1)) //TODO nasty hack, but surprisingly works!?
     inkuireDb.functions.filter(|?|(skimmedResolveResult))
   }

@@ -19,10 +19,13 @@ import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.global
 import scala.io.Source
+import org.slf4j.LoggerFactory
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
 class HttpServer extends OutputHandler {
+
+  val logger = LoggerFactory.getLogger(classOf[HttpServer])
 
   override def serveOutput(env: Env): IO[Unit] = {
 
@@ -35,8 +38,7 @@ class HttpServer extends OutputHandler {
       env.parser
         .parse(signature)
         .map { parsed =>
-          println("Parsed:")
-          println(parsed)
+          logger.info(s"Got input signature: " + signature)
           env.resolver.resolve(parsed)
         }
         .map(resolved => formatter.createOutput(signature, env.matcher |??| resolved))
