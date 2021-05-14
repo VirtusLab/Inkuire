@@ -35,8 +35,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
-    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1)) //TODO nasty hack, but surprisingly works!? EDIT: turns out not really
-    inkuireDb.functions.filter(|?|(skimmedResolveResult))
+    inkuireDb.functions.filter(|?|(resolveResult))
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
