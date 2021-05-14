@@ -1,9 +1,16 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
+import cats.data.{State, StateT}
 import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
+
+object Debug {
+  def apply(): Boolean = false
+  val RESET = "\u001B[0m"
+  val RED   = "\u001B[31m"
+  val GREEN = "\u001B[32m"
+}
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
@@ -18,6 +25,8 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           against.signature.context |+| sgn.context
         )
 
+        _ = if (Debug()) println("\n\n\n")
+
         bindings <- State.get[VariableBindings]
         okBindings = checkBindings(bindings)
       } yield okTypes && okBindings
@@ -26,7 +35,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
-    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1)) //TODO nasty hack, but surprisingly works!?
+    val skimmedResolveResult = resolveResult.copy(signatures = resolveResult.signatures.take(1)) //TODO nasty hack, but surprisingly works!? EDIT: turns out not really
     inkuireDb.functions.filter(|?|(skimmedResolveResult))
   }
 
@@ -92,12 +101,21 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
 
 case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
 
+  var tab = ""
+
   def isSubType(
     typ:     Type,
     supr:    Type,
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    (typ, supr) match {
+    if (Debug()) {
+      if (typ.itid == supr.itid) println(tab + Debug.GREEN + typ.name.name + Debug.RESET + " <:< " + Debug.GREEN + supr.name.name + Debug.RESET)
+      else println(tab + Debug.RED + typ.name.name + Debug.RESET + " <:< " + Debug.RED + supr.name.name + Debug.RESET)
+      tab = tab + "| "
+      // println(PrettyPrint.prettyPrint(typ))
+      // println(PrettyPrint.prettyPrint(supr))
+    }
+    val r = (typ, supr) match {
       case (t, _) if t.isStarProjection => State.pure(true)
       case (_, s) if s.isStarProjection => State.pure(true)
       case (typ, supr) if typ.isVariable && typ.isGeneric => //TODO #58 Support for TypeVariables as GenericTypes or not
@@ -119,24 +137,29 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
           val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
           State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
             constraints
-              .traverse { t =>
-                isSubType(typ, t, context)
-              }
-              .map { checks =>
-                checks.forall(identity)
+              .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+                case (acc, t) =>
+                  acc.flatMap { cond =>
+                    if (cond) isSubType(typ, t, context)
+                    else State.pure[VariableBindings, Boolean](false)
+                  }
               }
         }
       case (typ, supr) if typ.isVariable =>
         if (typ.itid.get.isParsed) {
           val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
-          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-            constraints
-              .traverse { t =>
-                isSubType(t, supr, context)
-              }
-              .map { checks =>
-                constraints.isEmpty || checks.exists(identity)
-              }
+          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
+            if (constraints.nonEmpty) {
+              constraints
+                .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                  case (acc, t) =>
+                    acc.flatMap { cond =>
+                      if (cond) State.pure[VariableBindings, Boolean](true)
+                      else isSubType(t, supr, context)
+                    }
+                }
+            } else State.pure(true)
+          }
         } else {
           State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
             State.pure(true)  
@@ -145,10 +168,17 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
       case (typ, supr) =>
         if (nodes.contains(typ.itid.get)) {
           specializeParents(typ, nodes(typ.itid.get)).toList
-            .traverse(isSubType(_, supr, context))
-            .map(_.exists(identity))
+            .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+              case (acc, t) =>
+                acc.flatMap { cond =>
+                  if (cond) State.pure[VariableBindings, Boolean](true)
+                  else isSubType(t, supr, context)
+                }
+            }
         } else State.pure(false) //TODO remove when everything is correctly resolved
     }
+    if (Debug()) tab = tab.drop(2)
+    r.asInstanceOf[State[VariableBindings, Boolean]]
   }
 
   private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check if HKTs work correctly-ish
@@ -191,10 +221,13 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
       types
         .zip(suprs)
         .toList
-        .traverse {
-          case (externalType, queryType) => checkByVariance(externalType, queryType, context)
+        .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+          case (acc, (externalType, queryType)) =>
+            acc.flatMap { cond =>
+              if (cond) checkByVariance(externalType, queryType, context)
+              else State.pure[VariableBindings, Boolean](false)
+            }
         }
-        .map(_.forall(identity))
     } else State.pure(false)
   }
 
@@ -221,9 +254,8 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         isSubType(suprParam, typParam, context)
       case (Invariance(typParam), Invariance(suprParam)) =>
         isSubType(typParam, suprParam, context) >>= { res1 =>
-          isSubType(suprParam, typParam, context).fmap { res2 =>
-            res1 && res2
-          }
+          if (res1) isSubType(suprParam, typParam, context)
+          else State.pure(false)
         }
     }
   }
@@ -244,25 +276,9 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
 }
 
 trait VarianceOps {
-  def zipVariance(typ: Type, v: Variance): Variance = {
-    v match {
-      case _: Contravariance => Contravariance(typ)
-      case _: Covariance     => Covariance(typ)
-      case _: Invariance     => Invariance(typ)
-    }
+  def zipVariance(typ: Type, v: Variance): Variance = v match {
+    case _: Contravariance => Contravariance(typ)
+    case _: Covariance     => Covariance(typ)
+    case _: Invariance     => Invariance(typ)
   }
-}
-
-case class VariableBindings(bindings: Map[ITID, Seq[Type]]) {
-  def add(dri: ITID, typ: Type): VariableBindings = {
-    VariableBindings {
-      val types = bindings.getOrElse(dri, Seq.empty)
-      bindings.updated(dri, types :+ typ)
-    }
-  }
-}
-
-object VariableBindings {
-  def empty: VariableBindings =
-    VariableBindings(Map.empty)
 }
