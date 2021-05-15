@@ -207,7 +207,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         val typ = t
           .modify(_.params)
           .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
-        zipVariance(typ, possibleMatch)
+        typ.zipVariance(possibleMatch)
       case _ => possibleMatch
     }
 
@@ -266,18 +266,10 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         .using { params =>
           if (typ.itid.nonEmpty && nodes.contains(typ.itid.get)) {
             params.zip(nodes(typ.itid.get)._1.params).map {
-              case (t, v) => zipVariance(t.typ, v)
+              case (t, v) => t.typ.zipVariance(v)
             }
           } else params
         }
     case typ => typ
-  }
-}
-
-trait VarianceOps {
-  def zipVariance(typ: Type, v: Variance): Variance = v match {
-    case _: Contravariance => Contravariance(typ)
-    case _: Covariance     => Covariance(typ)
-    case _: Invariance     => Invariance(typ)
   }
 }
