@@ -9,7 +9,7 @@ import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput, DokkaSearchbar}
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
 class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: BaseOutput) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()

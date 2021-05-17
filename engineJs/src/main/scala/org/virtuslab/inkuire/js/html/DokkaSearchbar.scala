@@ -9,7 +9,7 @@ import monix.reactive.{Observable, OverflowStrategy}
 import org.scalajs.dom._
 import org.scalajs.dom.webworkers.Worker
 import org.virtuslab.inkuire.js.Globals
-import org.virtuslab.inkuire.model.{Match, OutputFormat}
+import org.virtuslab.inkuire.engine.common.model.{Match, OutputFormat}
 import monix.execution.Scheduler.Implicits.global
 import org.scalajs.dom.html.Input
 

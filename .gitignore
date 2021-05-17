@@ -165,3 +165,4 @@ data
 #metals
 project/metals.sbt
 project/project
+.bsp

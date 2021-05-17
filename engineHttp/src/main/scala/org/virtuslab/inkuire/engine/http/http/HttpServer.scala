@@ -14,7 +14,7 @@ import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.Engine._
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.global

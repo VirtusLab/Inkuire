@@ -9,7 +9,7 @@ import org.scalajs.dom.{html, Event}
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.webworkers.{DedicatedWorkerGlobalScope, Worker}
 import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput}
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
 class InkuireWorker(self: DedicatedWorkerGlobalScope) extends BaseInput with BaseOutput {
   override def inputChanges: Observable[String] =

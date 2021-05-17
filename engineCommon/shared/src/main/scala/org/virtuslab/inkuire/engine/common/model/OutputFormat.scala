@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.model
+package org.virtuslab.inkuire.engine.common.model
 
 case class Match(
   prettifiedSignature: String,

@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.js.html
 import monix.eval.Task
 import monix.reactive.Observable
 import monix.execution.Scheduler.Implicits.global
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
 trait BaseOutput {
   //TODO: Consider configuring it

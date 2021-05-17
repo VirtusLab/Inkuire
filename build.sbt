@@ -55,13 +55,6 @@ ThisBuild / circeDependency := Seq(
   "io.circe" %%% "circe-generic" % "0.13.0"
 )
 
-lazy val commonScala = crossProject(JSPlatform, JVMPlatform)
-  .in(file("commonScala"))
-  .settings(
-    name := "inkuire-common-scala",
-    libraryDependencies ++= circeDependency.value
-  )
-
 lazy val engineCommon = crossProject(JSPlatform, JVMPlatform)
   .in(file("engineCommon"))
   .settings(
@@ -73,7 +66,6 @@ lazy val engineCommon = crossProject(JSPlatform, JVMPlatform)
       "com.softwaremill.diffx" %%% "diffx-scalatest" % "0.3.29" % Test
     ) ++ circeDependency.value ++ catsDependency.value,
   )
-  .dependsOn(commonScala)
 
 lazy val engineHttp = project
   .in(file("./engineHttp"))

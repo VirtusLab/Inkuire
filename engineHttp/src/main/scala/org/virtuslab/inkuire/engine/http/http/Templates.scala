@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.http.http
 
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import scalatags.Text
 import scalatags.Text.all._
 
