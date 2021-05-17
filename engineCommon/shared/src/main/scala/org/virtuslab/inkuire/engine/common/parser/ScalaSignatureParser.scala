@@ -84,9 +84,9 @@ class ScalaSignatureParser extends BaseSignatureParser {
       "" ^^^ (Seq.empty, Map.empty)
 
   def curriedSignature: Parser[Signature] =
-    curriedFunctionTypes ^^ {
-      case types =>
-        mapToSignature(None, types.dropRight(1), types.last, (Seq.empty, Map.empty), Map.empty)
+    curriedVariables ~ curriedFunctionTypes ^^ {
+      case vars ~ types =>
+        mapToSignature(None, types.dropRight(1), types.last, vars, Map.empty)
     }
 
   def signature: Parser[Signature] =
