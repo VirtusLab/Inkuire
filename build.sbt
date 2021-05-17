@@ -1,7 +1,13 @@
 import java.io.FileInputStream
 import java.util.Properties
 
+ThisBuild / name := "inkuire"
 ThisBuild / organization := "org.virtuslab.inkuire"
+ThisBuild / version := "0.1.2-SNAPSHOT"
+
+ThisBuild / bintrayRepository := "Inkuire"
+ThisBuild / bintrayOrganization := Some("virtuslab")
+
 ThisBuild / homepage := Some(url("https://github.com/VirtusLab/Inkuire"))
 ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 ThisBuild / developers := List(
@@ -25,14 +31,8 @@ ThisBuild / developers := List(
   )
 )
 
-name := "Inkuire"
-skip in publish := true
+publish / skip := true
 ThisBuild / scalaVersion := "2.13.4"
-
-val fileInputStream = new FileInputStream(new File("global.properties"))
-val globalProperties = new Properties()
-val _ = globalProperties.load(fileInputStream) // :')
-val inkuireVersion = globalProperties.getProperty("version")
 
 val http4sVersion = "0.21.0"
 
@@ -46,14 +46,6 @@ ThisBuild / catsDependency := Seq(
   "org.typelevel" %%% "cats-mtl-core" % "0.7.1"
 )
 
-val stage = taskKey[Unit]("Stage task")
-
-val Stage = config("stage")
-
-stage := {
-  assembly.in(engineHttp).value
-}
-
 (engineJS / Compile / fastOptJS) := (engineJS / Compile / fastOptJS).dependsOn(engineJS / Compile / compile).value
 (engineJS / Compile / fullOptJS) := (engineJS / Compile / fullOptJS).dependsOn(engineJS / Compile / compile).value
 
@@ -63,53 +55,23 @@ ThisBuild / circeDependency := Seq(
   "io.circe" %%% "circe-generic" % "0.13.0"
 )
 
-lazy val commonScalaRoot = project
-  .in(file("./commonScala"))
-  .aggregate(commonScala.js, commonScala.jvm)
-  .settings(
-    name := "common-scala-root",
-    version := inkuireVersion,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
-  )
-
 lazy val commonScala = crossProject(JSPlatform, JVMPlatform)
-  .in(file("./commonScala"))
+  .in(file("commonScala"))
   .settings(
-    name := "common-scala",
-    version := inkuireVersion,
-    libraryDependencies ++= circeDependency.value,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
-  )
-
-lazy val engineCommonRoot = project
-  .in(file("./engineCommon"))
-  .aggregate(engineCommon.js, engineCommon.jvm)
-  .settings(
-    name := "engine-common-root",
-    version := inkuireVersion,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
+    name := "inkuire-common-scala",
+    libraryDependencies ++= circeDependency.value
   )
 
 lazy val engineCommon = crossProject(JSPlatform, JVMPlatform)
-  .in(file("./engineCommon"))
+  .in(file("engineCommon"))
   .settings(
-    name := "engine-common",
-    version := inkuireVersion,
+    name := "inkuire-engine-common",
     libraryDependencies ++= Seq(
       "com.softwaremill.quicklens" %%% "quicklens" % "1.6.1",
       "io.scalaland" %%% "chimney" % "0.6.0",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
       "com.softwaremill.diffx" %%% "diffx-scalatest" % "0.3.29" % Test
     ) ++ circeDependency.value ++ catsDependency.value,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
   )
   .dependsOn(commonScala)
 
@@ -139,11 +101,7 @@ lazy val engineHttp = project
       "org.scalatest" %% "scalatest" % "3.2.2" % Test,
       "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.28" % Test
     ),
-    version := inkuireVersion,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0"))),
-    mainClass in assembly := Some("org.virtuslab.inkuire.engine.http.Main")
+    assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
   )
   .dependsOn(engineCommon.jvm)
 
@@ -164,9 +122,5 @@ lazy val engineJS = project
       "io.monix" %%% "monix-reactive" % "3.2.2"
     ),
     scalaJSUseMainModuleInitializer := true,
-    version := inkuireVersion,
-    bintrayRepository := "Inkuire",
-    bintrayOrganization := Some("virtuslab"),
-    licenses ++= Seq(("Apache-2.0", url("https://opensource.org/licenses/Apache-2.0")))
   )
   .dependsOn(engineCommon.js)
