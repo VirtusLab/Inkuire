@@ -42,7 +42,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
-          sgn == against || !sgn.canSubstituteFor(against)
+          sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
         }
     }
     inkuireDb.functions.filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
