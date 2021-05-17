@@ -245,7 +245,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     supr:    Variance,
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    (typ, supr) match {
+    ((typ, supr): @unchecked) match {
       case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
         State.pure[VariableBindings, Boolean](true)
       case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, context)

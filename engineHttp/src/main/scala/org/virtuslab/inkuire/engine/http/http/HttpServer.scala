@@ -96,6 +96,6 @@ class HttpServer extends OutputHandler {
           .resource
     } yield server
 
-    app.use(_ => IO.never).as(ExitCode.Success)
+    app.use(_ => IO.never)
   }
 }

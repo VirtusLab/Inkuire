@@ -8,6 +8,7 @@ trait VarianceOps {
       case _: Contravariance => Contravariance(typ)
       case _: Covariance     => Covariance(typ)
       case _: Invariance     => Invariance(typ)
+      case _: UnresolvedVariance => UnresolvedVariance(typ)
     }
   }
 }

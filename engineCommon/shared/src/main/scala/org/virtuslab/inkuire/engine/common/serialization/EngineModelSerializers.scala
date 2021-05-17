@@ -12,6 +12,7 @@ object EngineModelSerializers {
     case co: Covariance     => Json.obj("variancekind" -> Json.fromString("covariance")).deepMerge(co.asJson)
     case ct: Contravariance => Json.obj("variancekind" -> Json.fromString("contravariance")).deepMerge(ct.asJson)
     case in: Invariance     => Json.obj("variancekind" -> Json.fromString("invariance")).deepMerge(in.asJson)
+    case un: UnresolvedVariance => Json.obj("variancekind" -> Json.fromString("unresolved")).deepMerge(un.asJson)
   }
 
   implicit val varianceDecoder: Decoder[Variance] = (src: HCursor) =>
