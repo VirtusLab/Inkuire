@@ -39,7 +39,13 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
-    inkuireDb.functions.filter(|?|(resolveResult))
+    val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
+      case (acc, against) =>
+        acc.filter { sgn =>
+          sgn == against || !sgn.canSubstituteFor(against)
+        }
+    }
+    inkuireDb.functions.filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
