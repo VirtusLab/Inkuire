@@ -37,8 +37,12 @@ class HttpServer extends OutputHandler {
     def results(signature: String): Either[String, OutputFormat] = {
       env.parser
         .parse(signature)
+        .left.map { e =>
+          logger.info("Error when parsing signature: '" + e + "' for signature: " + signature)
+          e
+        }
         .map { parsed =>
-          logger.info(s"Got input signature: " + signature)
+          logger.info(s"Parsed signature: " + signature)
           env.resolver.resolve(parsed)
         }
         .map(resolved => formatter.createOutput(signature, env.matcher |??| resolved))
