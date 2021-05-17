@@ -2,10 +2,32 @@ import java.io.FileInputStream
 import java.util.Properties
 
 ThisBuild / organization := "org.virtuslab.inkuire"
+ThisBuild / homepage := Some(url("https://github.com/VirtusLab/Inkuire"))
+ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild / developers := List(
+  Developer(
+    "KacperFKorban",
+    "Kacper Korban",
+    "kacper.f.korban@gmail.com",
+    url("https://twitter.com/KacperKorban")
+  ),
+  Developer(
+    "BarkingBad",
+    "Andrzej Ratajczak",
+    "andrzej.ratajczak98@gmail.com",
+    url("https://twitter.com/aj_ratajczak")
+  ),
+  Developer(
+    "pikinier20",
+    "Filip Zybała",
+    "fzybala@virtuslab.com",
+    url("https://twitter.com/pikinier20")
+  )
+)
 
-name := "inkuire"
+name := "Inkuire"
 skip in publish := true
-ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "2.13.4"
 
 val fileInputStream = new FileInputStream(new File("global.properties"))
 val globalProperties = new Properties()
