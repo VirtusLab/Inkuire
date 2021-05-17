@@ -84,9 +84,9 @@ class ScalaSignatureParser extends BaseSignatureParser {
       "" ^^^ (Seq.empty, Map.empty)
 
   def curriedSignature: Parser[Signature] =
-    curriedVariables ~ curriedFunctionTypes ^^ {
-      case typeVars ~ types =>
-        mapToSignature(None, types.dropRight(1), types.last, typeVars, Map.empty)
+    curriedFunctionTypes ^^ {
+      case types =>
+        mapToSignature(None, types.dropRight(1), types.last, (Seq.empty, Map.empty), Map.empty)
     }
 
   def signature: Parser[Signature] =
@@ -141,13 +141,23 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
       .right[String]
   }
 
+  val typeVariablePattern = """([A-Za-z][0-9]?)""".r
+  def isVariableByName(t: Type): Boolean =
+    t.name.name match {
+      case typeVariablePattern(_) => true
+      case _ => false
+    }
+
   private def resolve(vars: Set[String])(t: Type): Type = {
     val converter: Type => Type = resolve(vars)
     t match {
       case u if u.isUnresolved =>
-        vars
-          .find(TypeName(_) == u.name).fold[Type](t.asConcrete)(Function.const(t.asVariable))
-          .modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
+        val resolvedOneLvl = if (vars.find(TypeName(_) == u.name).nonEmpty || isVariableByName(u)) {
+          u.asVariable
+        } else {
+          u.asConcrete
+        }
+        resolvedOneLvl.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
       case _ =>
         t.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
     }

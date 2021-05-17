@@ -14,8 +14,8 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
       resolveAllPossibleSignatures(parsed).toList
-      .flatMap { sgn => permutateParams(sgn).toList }
-      .distinct
+        .flatMap { sgn => permutateParams(sgn).toList }
+        .distinct
     }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {

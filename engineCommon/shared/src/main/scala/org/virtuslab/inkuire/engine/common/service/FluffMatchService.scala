@@ -35,6 +35,10 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+    println(s"Resolved ${resolveResult.signatures.length} signatures, namely:")
+    resolveResult.signatures.foreach { s =>
+      println(PrettyPrint.prettyPrint(s))
+    }
     inkuireDb.functions.filter(|?|(resolveResult))
   }
 
