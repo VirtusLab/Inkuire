@@ -79,7 +79,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   private def resolvePossibleVariances[V <: Variance](v: V): Seq[V] = {
     val typ = v.typ
     val types = resolvePossibleTypes(typ)
-    if(v.isInstanceOf[Contravariance]) {
+    if (v.isInstanceOf[Contravariance]) {
       mostSpecific(types).map(_.zipVariance(v).asInstanceOf[V])
     } else if (v.isInstanceOf[Covariance]) {
       mostGeneral(types).map(_.zipVariance(v).asInstanceOf[V])
