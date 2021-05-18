@@ -9,9 +9,9 @@ import org.virtuslab.inkuire.engine.common.model._
 
 object EngineModelSerializers {
   implicit val varianceEncoder: Encoder[Variance] = Encoder.instance {
-    case co: Covariance     => Json.obj("variancekind" -> Json.fromString("covariance")).deepMerge(co.asJson)
-    case ct: Contravariance => Json.obj("variancekind" -> Json.fromString("contravariance")).deepMerge(ct.asJson)
-    case in: Invariance     => Json.obj("variancekind" -> Json.fromString("invariance")).deepMerge(in.asJson)
+    case co: Covariance         => Json.obj("variancekind" -> Json.fromString("covariance")).deepMerge(co.asJson)
+    case ct: Contravariance     => Json.obj("variancekind" -> Json.fromString("contravariance")).deepMerge(ct.asJson)
+    case in: Invariance         => Json.obj("variancekind" -> Json.fromString("invariance")).deepMerge(in.asJson)
     case un: UnresolvedVariance => Json.obj("variancekind" -> Json.fromString("unresolved")).deepMerge(un.asJson)
   }
 

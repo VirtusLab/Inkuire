@@ -30,11 +30,11 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
     case t: Type if t.isStarProjection => "*"
     case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
       s"(${prettifyArgs(t.params, " => ")})"
-    case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Typle.*") =>
+    case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Tuple.*") =>
       s"(${prettifyArgs(t.params)})"
     case t: Type if t.isGeneric =>
       s"${t.name}[${prettifyArgs(t.params)}]"
     case t: Type => s"${t.name}"
-    case _              => t.toString
+    case _ => t.toString
   }
 }

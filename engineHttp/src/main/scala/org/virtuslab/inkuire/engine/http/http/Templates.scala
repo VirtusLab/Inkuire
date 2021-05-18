@@ -65,7 +65,15 @@ object Templates {
         ),
         div(id := "examples")(
           h2("Examples"),
-          generateExamples("Seq[Int] => (Int => Long) => Seq[Long]", "Set[Long] => Long => Boolean", "BigDecimal => Byte", "Seq[Int] => Int", "[A, B] => A => B => A", "Int => Long => Int", "Seq[Int] => (Int => Seq[Long]) => Seq[Long]")
+          generateExamples(
+            "Seq[Int] => (Int => Long) => Seq[Long]",
+            "Set[Long] => Long => Boolean",
+            "BigDecimal => Byte",
+            "Seq[Int] => Int",
+            "[A, B] => A => B => A",
+            "Int => Long => Int",
+            "Seq[Int] => (Int => Seq[Long]) => Seq[Long]"
+          )
         )
       )
     ).toString()

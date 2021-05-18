@@ -13,9 +13,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
 
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
-      resolveAllPossibleSignatures(parsed).toList
-        .flatMap { sgn => permutateParams(sgn).toList }
-        .distinct
+      resolveAllPossibleSignatures(parsed).toList.flatMap { sgn => permutateParams(sgn).toList }.distinct
     }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {
@@ -40,25 +38,27 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   private def mostGeneral(types: Seq[Type]): Seq[Type] = { //TODO can be applied deeper if needed
     types.filter { typ =>
       (ag.getAllParentsITIDs(typ).toSet - typ.itid.get).intersect(types.map(_.itid.get).toSet).isEmpty
-    }
-    .distinct
+    }.distinct
   }
 
   private def mostSpecific(types: Seq[Type]): Seq[Type] = { //TODO can be applied deeper if needed
-    types.foldLeft(types) {
-      case (acc, typ) =>
-        acc.filter { t =>
-          !(ag.getAllParentsITIDs(typ).toSet - typ.itid.get).contains(t.itid.get)
-        }
-    }
-    .distinct
+    types
+      .foldLeft(types) {
+        case (acc, typ) =>
+          acc.filter { t =>
+            !(ag.getAllParentsITIDs(typ).toSet - typ.itid.get).contains(t.itid.get)
+          }
+      }
+      .distinct
   }
 
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {
       receiver <-
         signature.receiver
-          .fold[Seq[Option[Contravariance]]](Seq(None))(r => resolvePossibleVariances(Contravariance(r.typ)).map(_.some.asInstanceOf[Option[Contravariance]]))
+          .fold[Seq[Option[Contravariance]]](Seq(None))(r =>
+            resolvePossibleVariances(Contravariance(r.typ)).map(_.some.asInstanceOf[Option[Contravariance]])
+          )
       args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance))
       result <- resolvePossibleVariances(Covariance(signature.result.typ))
       constraints =
@@ -77,7 +77,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   }
 
   private def resolvePossibleVariances[V <: Variance](v: V): Seq[V] = {
-    val typ = v.typ
+    val typ   = v.typ
     val types = resolvePossibleTypes(typ)
     if (v.isInstanceOf[Contravariance]) {
       mostSpecific(types).map(_.zipVariance(v).asInstanceOf[V])
@@ -122,7 +122,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   private def copyITID(typ: Type, dri: Option[ITID]): Type =
     typ match {
       case t if !t.isVariable => t.modify(_.itid).setTo(dri)
-      case _ => typ
+      case _                  => typ
     }
 
   private def resolveMultipleVariances[V <: Variance](args: Seq[V]): Seq[Seq[V]] = {

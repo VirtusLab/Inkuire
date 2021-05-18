@@ -29,7 +29,7 @@ class ScalaSignatureParser extends BaseSignatureParser {
       "(" ~> curriedFunctionTypes <~ ")" ^^ {
         case types => mapToGenericFunctionType(None, types.init, types.last)
       }
-  
+
   def tupleTypes: Parser[Seq[Type]] =
     (singleType <~ ",") ~ tupleTypes ^^ { case t1 ~ ts => t1 +: ts } |
       (singleType <~ ",") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
@@ -79,7 +79,8 @@ class ScalaSignatureParser extends BaseSignatureParser {
     } |
       typeVariable ^^ (v => (Seq(v._1), Map(v._1 -> v._2)))
 
-  def curriedVariables: Parser[(Seq[String], Map[String, Seq[Type]])] = //TODO change to upper and lower bounds when the model can work with it
+  //TODO change to upper and lower bounds when the model can work with it
+  def curriedVariables: Parser[(Seq[String], Map[String, Seq[Type]])] =
     "[" ~> typeVariables <~ "]" <~ "=>" |
       "" ^^^ (Seq.empty, Map.empty)
 
@@ -93,11 +94,11 @@ class ScalaSignatureParser extends BaseSignatureParser {
     curriedSignature
 
   def mapToSignature(
-    rcvr: Option[Type],
-    args: Seq[Type],
-    result: Type,
+    rcvr:     Option[Type],
+    args:     Seq[Type],
+    result:   Type,
     typeVars: (Seq[String], Map[String, Seq[Type]]),
-    where: Map[String, Seq[Type]]
+    where:    Map[String, Seq[Type]]
   ): Signature =
     Signature(
       rcvr,
@@ -145,7 +146,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   def isVariableByName(t: Type): Boolean =
     t.name.name match {
       case typeVariablePattern(_) => true
-      case _ => false
+      case _                      => false
     }
 
   private def resolve(vars: Set[String])(t: Type): Type = {

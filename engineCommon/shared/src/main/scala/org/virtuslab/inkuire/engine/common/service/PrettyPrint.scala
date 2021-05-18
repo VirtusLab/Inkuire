@@ -1,20 +1,20 @@
 package org.virtuslab.inkuire.engine.common.service
 
 object PrettyPrint {
-  /**
-   * Pretty prints a Scala value similar to its source represention.
-   * Particularly useful for case classes.
-   * @param a - The value to pretty print.
-   * @param indentSize - Number of spaces for each indent.
-   * @param maxElementWidth - Largest element size before wrapping.
-   * @param depth - Initial depth to pretty print indents.
-   * @return
-   */
+
+  /** Pretty prints a Scala value similar to its source represention.
+    * Particularly useful for case classes.
+    * @param a - The value to pretty print.
+    * @param indentSize - Number of spaces for each indent.
+    * @param maxElementWidth - Largest element size before wrapping.
+    * @param depth - Initial depth to pretty print indents.
+    * @return
+    */
   def prettyPrint(a: Any, indentSize: Int = 2, maxElementWidth: Int = 30, depth: Int = 0): String = {
-    val indent = " " * depth * indentSize
+    val indent      = " " * depth * indentSize
     val fieldIndent = indent + (" " * indentSize)
-    val thisDepth = prettyPrint(_: Any, indentSize, maxElementWidth, depth)
-    val nextDepth = prettyPrint(_: Any, indentSize, maxElementWidth, depth + 1)
+    val thisDepth   = prettyPrint(_: Any, indentSize, maxElementWidth, depth)
+    val nextDepth   = prettyPrint(_: Any, indentSize, maxElementWidth, depth + 1)
     a match {
       // Make Strings look similar to their literal form.
       case s: String =>
@@ -27,7 +27,7 @@ object PrettyPrint {
         '"' + replaceMap.foldLeft(s) { case (acc, (c, r)) => acc.replace(c, r) } + '"'
       // For an empty Seq just use its normal String representation.
       case xs: Seq[_] if xs.isEmpty => xs.toString()
-      case xs: Seq[_] =>
+      case xs: Seq[_]               =>
         // If the Seq is not too long, pretty print on one line.
         val resultOneLine = xs.map(nextDepth).toString()
         if (resultOneLine.length <= maxElementWidth) return resultOneLine
@@ -38,7 +38,7 @@ object PrettyPrint {
       case p: Product =>
         val prefix = p.productPrefix
         // We'll use reflection to get the constructor arg names and values.
-        val cls = p.getClass
+        val cls    = p.getClass
         val fields = cls.getDeclaredFields.filterNot(_.isSynthetic).map(_.getName)
         val values = p.productIterator.toSeq
         // If we weren't able to match up fields/values, fall back to toString.

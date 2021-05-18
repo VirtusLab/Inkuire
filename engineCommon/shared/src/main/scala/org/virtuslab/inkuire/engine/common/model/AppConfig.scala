@@ -11,9 +11,9 @@ case class AppConfig(
 
 object AppConfig {
   def create(args: List[AppParam]): Either[String, AppConfig] = {
-    val address            = args.collectFirst { case a: Address => a }.toRight(noConfigFoundString("address"))
-    val port               = args.collectFirst { case p: Port => p }.toRight(noConfigFoundString("port"))
-    val inkuirePaths       = Right(args.collect { case i: InkuirePath => i })
+    val address      = args.collectFirst { case a: Address => a }.toRight(noConfigFoundString("address"))
+    val port         = args.collectFirst { case p: Port => p }.toRight(noConfigFoundString("port"))
+    val inkuirePaths = Right(args.collect { case i: InkuirePath => i })
     (address, port, inkuirePaths).mapN(AppConfig.apply)
   }
 
@@ -29,9 +29,9 @@ case class InkuirePath(path: String) extends AnyVal with AppParam
 object AppParam {
   def parseCliOption(opt: String, v: String): Either[String, AppParam] =
     opt match {
-      case "-a" | "--address"  => Address(v).right
-      case "-p" | "--port"     => Port(v.toInt).right
-      case "-i" | "--inkuire"  => InkuirePath(v).right
-      case _                   => s"Wrong option $opt".left
+      case "-a" | "--address" => Address(v).right
+      case "-p" | "--port"    => Port(v.toInt).right
+      case "-i" | "--inkuire" => InkuirePath(v).right
+      case _                  => s"Wrong option $opt".left
     }
 }

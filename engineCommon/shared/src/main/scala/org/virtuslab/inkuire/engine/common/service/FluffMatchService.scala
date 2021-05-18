@@ -5,13 +5,6 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 
-object Debug {
-  def apply(): Boolean = false
-  val RESET = "\u001B[0m"
-  val RED   = "\u001B[31m"
-  val GREEN = "\u001B[32m"
-}
-
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
@@ -24,9 +17,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           supr.typesWithVariances,
           sgn.context |+| supr.context
         )
-  
-        _ = if (Debug()) println("\n\n\n")
-  
+
         bindings <- State.get[VariableBindings]
         okBindings = checkBindings(bindings)
       } yield okTypes && okBindings
@@ -53,8 +44,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
       types
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil => ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) || ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
-          case _             => true
+          case a :: b :: Nil =>
+            ancestryGraph
+              .getAllParentsITIDs(a)
+              .contains(b.itid.get) || ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
+          case _ => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
   }
@@ -71,7 +65,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   private def retrieveVariables(t: Type): Seq[ITID] =
     t match {
       case t: Type if t.isVariable => Seq(t.itid.get)
-      case g: Type => g.params.map(_.typ).flatMap(retrieveVariables)
+      case g: Type                 => g.params.map(_.typ).flatMap(retrieveVariables)
       case _ => Seq()
     }
 
@@ -113,20 +107,15 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
   var tab = ""
   implicit class TypeOps(typ: Type) {
     def isSubTypeOf(supr: Type)(context: SignatureContext): State[VariableBindings, Boolean] = {
-      if (Debug()) {
-        if (typ.itid == supr.itid) println(tab + Debug.GREEN + typ.name.name + Debug.RESET + " <:< " + Debug.GREEN + supr.name.name + Debug.RESET)
-        else println(tab + Debug.RED + typ.name.name + Debug.RESET + " <:< " + Debug.RED + supr.name.name + Debug.RESET)
-        tab = tab + "| "
-        // println(PrettyPrint.prettyPrint(typ))
-        // println(PrettyPrint.prettyPrint(supr))
-      }
-      val r = (typ, supr) match {
+      (typ, supr) match {
         case (t, _) if t.isStarProjection => State.pure(true)
         case (_, s) if s.isStarProjection => State.pure(true)
-        case (typ, supr) if typ.isVariable && typ.isGeneric => //TODO #58 Support for TypeVariables as GenericTypes or not
+        //TODO #58 Support for TypeVariables as GenericTypes or not
+        case (typ, supr) if typ.isVariable && typ.isGeneric =>
           State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
             State.pure(typ.params.size == supr.params.size)
-        case (typ, supr) if supr.isVariable && supr.isGeneric => //TODO #58 Support for TypeVariables as GenericTypes or not
+        //TODO #58 Support for TypeVariables as GenericTypes or not
+        case (typ, supr) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
             State.pure(typ.params.size == supr.params.size)
         case (typ, supr) if typ.isVariable && supr.isVariable =>
@@ -182,8 +171,6 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
               }
           } else State.pure(false) //TODO remove when everything is correctly resolved
       }
-      if (Debug()) tab = tab.drop(2)
-      r.asInstanceOf[State[VariableBindings, Boolean]]
     }
   }
 

@@ -94,12 +94,16 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    EitherT.fromEither[IO](
-      EngineModelSerializers.deserialize(
-        appConfig.inkuirePaths.flatMap(path => getURLs(new URL(path.path), ".json")).map(getURLContent).head //TODO custom file extension
+    EitherT
+      .fromEither[IO](
+        EngineModelSerializers.deserialize(
+          appConfig.inkuirePaths
+            .flatMap(path => getURLs(new URL(path.path), ".json"))
+            .map(getURLContent)
+            .head //TODO custom file extension
+        )
       )
-    )
-    .asInstanceOf[EitherT[IO, String, InkuireDb]]
+      .asInstanceOf[EitherT[IO, String, InkuireDb]]
   }
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {

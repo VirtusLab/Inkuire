@@ -4,13 +4,13 @@ import com.softwaremill.quicklens._
 import TypeName._
 
 case class Type(
-  name: TypeName,
-  params: Seq[Variance] = Seq.empty,
-  nullable: Boolean = false,
-  itid: Option[ITID] = None,
-  isVariable: Boolean = false,
+  name:             TypeName,
+  params:           Seq[Variance] = Seq.empty,
+  nullable:         Boolean = false,
+  itid:             Option[ITID] = None,
+  isVariable:       Boolean = false,
   isStarProjection: Boolean = false,
-  isUnresolved: Boolean = true
+  isUnresolved:     Boolean = true
 ) {
   def ? : Type = this.modify(_.nullable).setTo(true)
 
