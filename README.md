@@ -11,7 +11,7 @@ The project was created as the engineering thesis at AGH University of Technolog
 creators of [dokka](https://github.com/Kotlin/dokka) and [scaladoc](https://github.com/lampepfl/dotty/tree/master/scaladoc).
 
 The goal of the project is to provide way of searching extensive functions and methods by given signature for JVM languages.
-Currently supported langauge is Kotlin and Scala 3.
+Currently supported langauges are Kotlin and Scala 3.
 
 ---
 
@@ -20,8 +20,6 @@ Currently supported langauge is Kotlin and Scala 3.
 Feel free to test Inkuire locally or remotely at:
 - HTTP engine for Scala 3 stdlib -> [here](http://ec2-3-125-115-167.eu-central-1.compute.amazonaws.com:8080/query)
 - Scaladoc for stdlib with Inkuire support -> [here](https://scala3doc.virtuslab.com/pr-inkuire/scala3/docs/index.html)
-- HTTP engine for Kotlin stdlib -> [here](https://inkuire.herokuapp.com)
-- Dokka for stdlib with Inkuire support -> [here](http://inkuire.s3.eu-central-1.amazonaws.com/master/stdlib/latest/kotlin-stdlib/kotlin-stdlib/index.html)
 
 ---
 
@@ -29,20 +27,10 @@ Feel free to test Inkuire locally or remotely at:
 
 Scaladoc:
 
-![Peek 2021-05-07 18-03](https://user-images.githubusercontent.com/39772805/118568313-de176b00-b777-11eb-9152-e6aaeea22d79.gif)
+![](./docs/scaladoc_example.gif)
 
 ---
 
-## Kotlin Video Demo:
-
-HTTP engine:
-
-![](./docs/http_example.gif)
-
-Dokka:
-
-![](./docs/js_example.gif)
-
 If you see any bugs, please create an issue in our repository [Github](https://github.com/VirtusLab/Inkuire)
 
-
+For Kotlin support see [legacy](https://github.com/VirtusLab/Inkuire/tree/legacy) branch.
