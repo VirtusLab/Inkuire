@@ -43,12 +43,10 @@ lazy val engineCommon = crossProject(JVMPlatform)
   .settings(
     name := "inkuire-engine-common",
     libraryDependencies ++= Seq(
-      "com.softwaremill.quicklens" %%% "quicklens" % "1.6.1",
+      "com.softwaremill.quicklens" %%% "quicklens" % "1.7.2",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
-      "com.softwaremill.diffx" %%% "diffx-scalatest" % "0.3.29" % Test,
       "org.typelevel" %%% "cats-core" % catsVersion,
       "org.typelevel" %%% "cats-effect" % catsVersion,
-      "org.typelevel" %%% "cats-mtl-core" % "0.7.1",
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion
@@ -60,31 +58,11 @@ lazy val engineHttp = project
   .settings(
     name := "inkuire-engine-http",
     libraryDependencies ++= Seq(
-      "com.softwaremill.quicklens" %% "quicklens" % "1.5.0",
-      "com.softwaremill.diffx" %% "diffx-core" % "0.3.28",
-      "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
-      "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
-      "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
-      "com.github.pureconfig" %% "pureconfig" % "0.14.0",
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-server" % http4sVersion,
-      "org.http4s" %% "http4s-client" % http4sVersion,
-      "org.http4s" %% "http4s-circe" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "org.slf4j" % "slf4j-simple" % "1.7.30",
-      "com.lihaoyi" %% "scalatags" % "0.9.1",
-      "org.typelevel" %%% "cats-core" % catsVersion,
-      "org.typelevel" %%% "cats-effect" % catsVersion,
-      "org.typelevel" %%% "cats-mtl-core" % "0.7.1",
-      "io.circe" %%% "circe-core" % circeVersion,
-      "io.circe" %%% "circe-parser" % circeVersion,
-      "io.circe" %%% "circe-generic" % circeVersion
-    ),
-    //Test
-    libraryDependencies ++= Seq(
-      "junit" % "junit" % "4.12" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.2" % Test,
-      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.28" % Test
+      "com.lihaoyi" %% "scalatags" % "0.9.4"
     ),
     assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
   )
