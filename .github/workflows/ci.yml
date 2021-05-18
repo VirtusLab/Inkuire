@@ -6,19 +6,8 @@ on:
       - master
 env:
   branch-name: ${GITHUB_REF#refs/heads/}
-  bucket-name: 'inkuire-db'
 
 jobs:
-  kotlinStyle:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - run: ./gradlew ktlintCheck
-
   scalafmt:
     runs-on: ubuntu-latest
 
@@ -28,17 +17,6 @@ jobs:
         with:
           java-version: 11
       - run: sbt scalafmtCheck
-
-  buildGradle:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - run: sbt publishM2
-      - run: ./gradlew build
 
   buildSbt:
     runs-on: ubuntu-latest
