@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.http.http
 
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import scalatags.Text
 import scalatags.Text.all._
 
@@ -65,7 +65,15 @@ object Templates {
         ),
         div(id := "examples")(
           h2("Examples"),
-          generateExamples("(String) -> Int", "Int.() -> String", "<K, V> Map<K,V>.(K) -> V?")
+          generateExamples(
+            "Seq[Int] => (Int => Long) => Seq[Long]",
+            "Set[Long] => Long => Boolean",
+            "BigDecimal => Byte",
+            "Seq[Int] => Int",
+            "[A, B] => A => B => A",
+            "Int => Long => Int",
+            "Seq[Int] => (Int => Seq[Long]) => Seq[Long]"
+          )
         )
       )
     ).toString()
@@ -94,7 +102,7 @@ object Templates {
                 case (res, i) =>
                   tr(cls := "code")(
                     th(scoped := "row")(i + 1),
-                    td(res.functionName),
+                    td(a(href := res.pageLocation, res.functionName)),
                     td(res.prettifiedSignature),
                     td(res.packageLocation)
                   )

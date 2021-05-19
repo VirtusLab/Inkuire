@@ -3,16 +3,17 @@ package org.virtuslab.inkuire.engine.common.service
 import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
+import cats.Contravariant
 
 class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   extends BaseSignatureResolver
   with VarianceOps {
 
+  val ag = AncestryGraph(ancestryGraph)
+
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
-      resolveAllPossibleSignatures(parsed).toList >>= { sgn =>
-        permutateParams(sgn).toList
-      }
+      resolveAllPossibleSignatures(parsed).toList.flatMap { sgn => permutateParams(sgn).toList }.distinct
     }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {
@@ -34,14 +35,32 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
       .toSeq
   }
 
+  private def mostGeneral(types: Seq[Type]): Seq[Type] = { //TODO can be applied deeper if needed
+    types.filter { typ =>
+      (ag.getAllParentsITIDs(typ).toSet - typ.itid.get).intersect(types.map(_.itid.get).toSet).isEmpty
+    }.distinct
+  }
+
+  private def mostSpecific(types: Seq[Type]): Seq[Type] = { //TODO can be applied deeper if needed
+    types
+      .foldLeft(types) {
+        case (acc, typ) =>
+          acc.filter { t =>
+            !(ag.getAllParentsITIDs(typ).toSet - typ.itid.get).contains(t.itid.get)
+          }
+      }
+      .distinct
+  }
+
   private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
     for {
       receiver <-
         signature.receiver
-          .fold[Seq[Option[Type]]](Seq(None))(r => resolvePossibleTypes(r.typ).map(_.some))
-          .map(_.map(Contravariance))
-      args <- resolveMultipleTypes(signature.arguments.map(_.typ)).map(_.map(Contravariance))
-      result <- resolvePossibleTypes(signature.result.typ).map(Covariance)
+          .fold[Seq[Option[Contravariance]]](Seq(None))(r =>
+            resolvePossibleVariances(Contravariance(r.typ)).map(_.some.asInstanceOf[Option[Contravariance]])
+          )
+      args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance))
+      result <- resolvePossibleVariances(Covariance(signature.result.typ))
       constraints =
         signature.context.constraints.view
           .mapValues(resolveMultipleTypes(_).head)
@@ -57,45 +76,65 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
       .setTo(constraints)
   }
 
+  private def resolvePossibleVariances[V <: Variance](v: V): Seq[V] = {
+    val typ   = v.typ
+    val types = resolvePossibleTypes(typ)
+    if (v.isInstanceOf[Contravariance]) {
+      mostSpecific(types).map(_.zipVariance(v).asInstanceOf[V])
+    } else if (v.isInstanceOf[Covariance]) {
+      mostGeneral(types).map(_.zipVariance(v).asInstanceOf[V])
+    } else types.map(_.zipVariance(v).asInstanceOf[V])
+  }
+
   private def resolvePossibleTypes(typ: Type): Seq[Type] = {
     val resolved = typ match {
-      case t: TypeVariable =>
+      case t if t.isStarProjection => Seq(t)
+      case t if t.isVariable && !t.isGeneric =>
         Seq(
           t.modify(_.itid)
             .setTo(ITID(t.name.name, isParsed = true).some)
         )
-      case t: ConcreteType =>
-        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
-      case t: GenericType if t.isVariable =>
+      case t if t.isVariable && t.isGeneric =>
         for {
           kind <-
             ancestryGraph.values
               .map(_._1)
               .filter(_.name == t.name)
               .filter(_.params.size == t.params.size - 1)
-              .filter(_.isInstanceOf[GenericType])
+              .filter(_.params.nonEmpty)
               .toSeq
           params <- resolveMultipleTypes(t.params.map(_.typ))
-        } yield kind.asInstanceOf[GenericType].modify(_.params).setTo((t.base +: params).map(Invariance.apply))
-      case t: GenericType =>
+        } yield kind.modify(_.params).setTo((t +: params).map(Invariance.apply))
+      case t if t.isGeneric =>
         for {
           generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
           params <- resolveMultipleTypes(t.params.map(_.typ))
             .map(_.zip(generic.params).map {
-              case (p, v) => zipVariance(p, v)
+              case (p, v) => p.zipVariance(v)
             })
         } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
-      case t => Seq(t)
+      case t =>
+        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
     }
     resolved.filter(_.params.size == typ.params.size)
   }
 
   private def copyITID(typ: Type, dri: Option[ITID]): Type =
     typ match {
-      case t: GenericType  => t.modify(_.base).using(copyITID(_, dri))
-      case t: ConcreteType => t.modify(_.itid).setTo(dri)
-      case _ => typ
+      case t if !t.isVariable => t.modify(_.itid).setTo(dri)
+      case _                  => typ
     }
+
+  private def resolveMultipleVariances[V <: Variance](args: Seq[V]): Seq[Seq[V]] = {
+    args match {
+      case Nil => Seq(Seq.empty)
+      case h :: t =>
+        for {
+          arg <- resolvePossibleVariances[V](h)
+          rest <- resolveMultipleVariances[V](t)
+        } yield arg +: rest
+    }
+  }
 
   private def resolveMultipleTypes(args: Seq[Type]): Seq[Seq[Type]] = {
     args match {

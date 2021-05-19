@@ -8,19 +8,24 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{`Content-Type`, Location}
 import org.http4s.implicits._
 import org.http4s.server.blaze._
+import org.http4s.server.middleware._
 import org.http4s.{HttpRoutes, MediaType, Request, StaticFile, Uri, UrlForm}
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.Engine._
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.global
 import scala.io.Source
+import org.slf4j.LoggerFactory
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
 class HttpServer extends OutputHandler {
+
+  val logger = LoggerFactory.getLogger(classOf[HttpServer])
 
   override def serveOutput(env: Env): IO[Unit] = {
 
@@ -32,7 +37,15 @@ class HttpServer extends OutputHandler {
     def results(signature: String): Either[String, OutputFormat] = {
       env.parser
         .parse(signature)
-        .map(env.resolver.resolve)
+        .left
+        .map { e =>
+          logger.info("Error when parsing signature: '" + e + "' for signature: " + signature)
+          e
+        }
+        .map { parsed =>
+          logger.info(s"Parsed signature: " + signature)
+          env.resolver.resolve(parsed)
+        }
         .map(resolved => formatter.createOutput(signature, env.matcher |??| resolved))
     }
 
@@ -72,15 +85,22 @@ class HttpServer extends OutputHandler {
         }
         .orNotFound
 
+    val methodConfig = CORSConfig(
+      anyOrigin = true,
+      anyMethod = true,
+      allowCredentials = true,
+      maxAge = 1.day.toSeconds
+    )
+
     val app = for {
       blocker <- Blocker[IO]
       server <-
         BlazeServerBuilder[IO]
           .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
-          .withHttpApp(appService(blocker))
+          .withHttpApp(CORS(appService(blocker), methodConfig))
           .resource
     } yield server
 
-    app.use(_ => IO.never).as(ExitCode.Success)
+    app.use(_ => IO.never)
   }
 }

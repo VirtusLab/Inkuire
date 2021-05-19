@@ -9,9 +9,10 @@ import org.virtuslab.inkuire.engine.common.model._
 
 object EngineModelSerializers {
   implicit val varianceEncoder: Encoder[Variance] = Encoder.instance {
-    case co: Covariance     => Json.obj("variancekind" -> Json.fromString("covariance")).deepMerge(co.asJson)
-    case ct: Contravariance => Json.obj("variancekind" -> Json.fromString("contravariance")).deepMerge(ct.asJson)
-    case in: Invariance     => Json.obj("variancekind" -> Json.fromString("invariance")).deepMerge(in.asJson)
+    case co: Covariance         => Json.obj("variancekind" -> Json.fromString("covariance")).deepMerge(co.asJson)
+    case ct: Contravariance     => Json.obj("variancekind" -> Json.fromString("contravariance")).deepMerge(ct.asJson)
+    case in: Invariance         => Json.obj("variancekind" -> Json.fromString("invariance")).deepMerge(in.asJson)
+    case un: UnresolvedVariance => Json.obj("variancekind" -> Json.fromString("unresolved")).deepMerge(un.asJson)
   }
 
   implicit val varianceDecoder: Decoder[Variance] = (src: HCursor) =>
@@ -23,26 +24,6 @@ object EngineModelSerializers {
         case "invariance"     => src.value.as[Invariance]
       }
     } yield parsed
-
-  implicit val encodeType: Encoder[Type] = Encoder.instance {
-    case c: ConcreteType => Json.obj("typekind" -> Json.fromString("concrete")).deepMerge(c.asJson)
-    case g: GenericType  => Json.obj("typekind" -> Json.fromString("generic")).deepMerge(g.asJson)
-    case t: TypeVariable => Json.obj("typekind" -> Json.fromString("variable")).deepMerge(t.asJson)
-    case StarProjection => Json.obj("typekind" -> Json.fromString("star")).deepMerge(StarProjection.asJson)
-  }
-
-  implicit val decodeType: Decoder[Type] = (src: HCursor) =>
-    for {
-      kind <- src.downField("typekind").as[String]
-      parsed <- kind match {
-        case "concrete" => src.value.as[ConcreteType]
-        case "generic"  => src.value.as[GenericType]
-        case "variable" => src.value.as[TypeVariable]
-        case "star"     => src.value.as[StarProjection.type]
-      }
-    } yield parsed
-
-  implicit val decodeStarProjection: Decoder[StarProjection.type] = Decoder.const(StarProjection)
 
   implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.isParsed}=${id.uuid}"
 

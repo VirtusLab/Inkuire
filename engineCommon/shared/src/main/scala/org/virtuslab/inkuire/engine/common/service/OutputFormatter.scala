@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.http.http
 
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 import org.virtuslab.inkuire.engine.common.service.SignaturePrettifier
-import org.virtuslab.inkuire.model.{Match, OutputFormat}
+import org.virtuslab.inkuire.engine.common.model.{Match, OutputFormat}
 
 import collection.JavaConverters._
 

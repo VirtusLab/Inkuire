@@ -22,6 +22,7 @@ import org.virtuslab.inkuire.engine.common.model.Engine._
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
 import scala.io.Source
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
 
@@ -93,16 +94,16 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    InkuireDb
-      .read(
-        appConfig.dbPaths.toList.flatMap(path => getURLs(new URL(path.path), ".fdb.inkuire")).map(getURLContent),
-        appConfig.ancestryGraphPaths.toList
-          .flatMap(path => getURLs(new URL(path.path), ".adb.inkuire"))
-          .map(getURLContent)
+    EitherT
+      .fromEither[IO](
+        EngineModelSerializers.deserialize(
+          appConfig.inkuirePaths
+            .flatMap(path => getURLs(new URL(path.path), ".json"))
+            .map(getURLContent)
+            .head //TODO custom file extension
+        )
       )
-      .traverse(value => IO { value })
-      .pure[Id]
-      .fmap(new EitherT(_))
+      .asInstanceOf[EitherT[IO, String, InkuireDb]]
   }
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {

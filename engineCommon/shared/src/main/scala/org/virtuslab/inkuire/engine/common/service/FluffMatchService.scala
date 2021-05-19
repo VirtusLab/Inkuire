@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
+import cats.data.{State, StateT}
 import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
@@ -9,13 +9,13 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
 
-  override def |?|(resolveResult: ResolveResult)(against: ExternalSignature): Boolean =
-    resolveResult.signatures.exists { sgn =>
+  implicit class TypeOps(sgn: Signature) {
+    def canSubstituteFor(supr: Signature): Boolean = {
       val ok = for {
         okTypes <- ancestryGraph.checkTypesWithVariances(
-          against.signature.typesWithVariances,
           sgn.typesWithVariances,
-          against.signature.context |+| sgn.context
+          supr.typesWithVariances,
+          sgn.context |+| supr.context
         )
 
         bindings <- State.get[VariableBindings]
@@ -23,17 +23,32 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
       } yield okTypes && okBindings
       ok.runA(VariableBindings.empty).value
     }
+  }
 
-  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] =
-    inkuireDb.functions.filter(|?|(resolveResult))
+  override def |?|(resolveResult: ResolveResult)(against: ExternalSignature): Boolean = {
+    resolveResult.signatures.exists(against.signature.canSubstituteFor(_))
+  }
+
+  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+    val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
+      case (acc, against) =>
+        acc.filter { sgn =>
+          sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
+        }
+    }
+    inkuireDb.functions.filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
+  }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
     bindings.bindings.values.forall { types =>
       types
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil => a.itid == b.itid
-          case _             => true
+          case a :: b :: Nil =>
+            ancestryGraph
+              .getAllParentsITIDs(a)
+              .contains(b.itid.get) || ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
+          case _ => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
   }
@@ -42,15 +57,15 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view
     .mapValues(_.flatMap {
-      case g: GenericType => retrieveVariables(g)
+      case g: Type if g.params.nonEmpty => retrieveVariables(g)
       case _ => Seq()
     }.distinct)
     .toMap
 
   private def retrieveVariables(t: Type): Seq[ITID] =
     t match {
-      case g: GenericType  => g.params.map(_.typ).flatMap(retrieveVariables)
-      case t: TypeVariable => Seq(t.itid.get)
+      case t: Type if t.isVariable => Seq(t.itid.get)
+      case g: Type                 => g.params.map(_.typ).flatMap(retrieveVariables)
       case _ => Seq()
     }
 
@@ -89,74 +104,92 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
 
 case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
 
-  def isSubType(
-    typ:     Type,
-    supr:    Type,
-    context: SignatureContext
-  ): State[VariableBindings, Boolean] = {
-    (typ, supr) match {
-      case (StarProjection, _) => State.pure(true)
-      case (_, StarProjection) => State.pure(true)
-      case (typ: TypeVariable, supr: TypeVariable) =>
-        val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
-        val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
-        State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
-          State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
-      case (typ, supr: TypeVariable) =>
-        if (supr.itid.get.isParsed) {
-          State.pure(false)
-        } else {
-          val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
+  var tab = ""
+  implicit class TypeOps(typ: Type) {
+    def isSubTypeOf(supr: Type)(context: SignatureContext): State[VariableBindings, Boolean] = {
+      (typ, supr) match {
+        case (t, _) if t.isStarProjection => State.pure(true)
+        case (_, s) if s.isStarProjection => State.pure(true)
+        //TODO #58 Support for TypeVariables as GenericTypes or not
+        case (typ, supr) if typ.isVariable && typ.isGeneric =>
+          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
+            State.pure(typ.params.size == supr.params.size)
+        //TODO #58 Support for TypeVariables as GenericTypes or not
+        case (typ, supr) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-            constraints
-              .traverse { t =>
-                isSubType(typ, t, context)
+            State.pure(typ.params.size == supr.params.size)
+        case (typ, supr) if typ.isVariable && supr.isVariable =>
+          val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
+          val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
+          State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
+            State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
+        case (typ, supr) if supr.isVariable =>
+          if (supr.itid.get.isParsed) {
+            State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+              State.pure(false)
+          } else {
+            val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
+            State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+              constraints
+                .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+                  case (acc, t) =>
+                    acc.flatMap { cond =>
+                      if (cond) typ.isSubTypeOf(t)(context)
+                      else State.pure[VariableBindings, Boolean](false)
+                    }
+                }
+          }
+        case (typ, supr) if typ.isVariable =>
+          if (typ.itid.get.isParsed) {
+            val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
+            State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
+              if (constraints.nonEmpty) {
+                constraints
+                  .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                    case (acc, t) =>
+                      acc.flatMap { cond =>
+                        if (cond) State.pure[VariableBindings, Boolean](true)
+                        else t.isSubTypeOf(supr)(context)
+                      }
+                  }
+              } else State.pure(true)
+            }
+          } else {
+            State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
+              State.pure(true)
+          }
+        case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
+        case (typ, supr) =>
+          if (nodes.contains(typ.itid.get)) {
+            specializeParents(typ, nodes(typ.itid.get)).toList
+              .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                case (acc, t) =>
+                  acc.flatMap { cond =>
+                    if (cond) State.pure[VariableBindings, Boolean](true)
+                    else t.isSubTypeOf(supr)(context)
+                  }
               }
-              .map { checks =>
-                checks.forall(identity)
-              }
-        }
-      case (typ: TypeVariable, supr) =>
-        if (typ.itid.get.isParsed) {
-          val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
-          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-            constraints
-              .traverse { t =>
-                isSubType(t, supr, context)
-              }
-              .map { checks =>
-                constraints.isEmpty || checks.exists(identity)
-              }
-        } else {
-          State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-            State.pure(true)
-        }
-      case (typ: GenericType, _) if typ.isVariable =>
-        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
-      case (_, supr: GenericType) if supr.isVariable =>
-        State.pure(true) //TODO #58 Support for TypeVariables as GenericTypes or not
-      case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
-      case (typ, supr) =>
-        if (nodes.contains(typ.itid.get))
-          specializeParents(typ, nodes(typ.itid.get)).toList
-            .traverse(isSubType(_, supr, context))
-            .map(_.exists(identity))
-        else State.pure(false) //TODO remove when everything is correctly resolved
+          } else State.pure(false) //TODO remove when everything is correctly resolved
+      }
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = {
+  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check if HKTs work correctly-ish
     val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
     node._2.map {
-      case t: GenericType if !t.base.isVariable =>
+      case t if !t.isVariable =>
         t.modify(_.params.each.typ).using(p => bindings.getOrElse(p.name, p))
       case t => t
     }
   }
 
+  def getAllParentsITIDs(tpe: Type): Seq[ITID] = {
+    tpe.itid.get +: nodes.get(tpe.itid.get).toSeq.flatMap(_._2).flatMap(getAllParentsITIDs(_))
+  }
+
   private def specializeType(parsedType: Type, possibleMatch: Type): Type =
     (parsedType, possibleMatch) match {
-      case (pT: GenericType, t: GenericType) =>
+      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
         t.modify(_.params)
           .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
       case _ => possibleMatch
@@ -164,11 +197,11 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
 
   private def specializeVariance(parsedType: Variance, possibleMatch: Variance): Variance =
     (parsedType.typ, possibleMatch.typ) match {
-      case (pT: GenericType, t: GenericType) =>
+      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
         val typ = t
           .modify(_.params)
           .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
-        zipVariance(typ, possibleMatch)
+        typ.zipVariance(possibleMatch)
       case _ => possibleMatch
     }
 
@@ -181,10 +214,13 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
       types
         .zip(suprs)
         .toList
-        .traverse {
-          case (externalType, queryType) => checkByVariance(externalType, queryType, context)
+        .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+          case (acc, (externalType, queryType)) =>
+            acc.flatMap { cond =>
+              if (cond) checkByVariance(externalType, queryType, context)
+              else State.pure[VariableBindings, Boolean](false)
+            }
         }
-        .map(_.forall(identity))
     } else State.pure(false)
   }
 
@@ -203,56 +239,32 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
     supr:    Variance,
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    (typ, supr) match {
-      case (typ, supr) if typ.typ == StarProjection || supr.typ == StarProjection =>
+    ((typ, supr): @unchecked) match {
+      case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
         State.pure[VariableBindings, Boolean](true)
-      case (Covariance(typParam), Covariance(suprParam)) => isSubType(typParam, suprParam, context)
+      case (Covariance(typParam), Covariance(suprParam)) =>
+        typParam.isSubTypeOf(suprParam)(context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
-        isSubType(suprParam, typParam, context)
+        suprParam.isSubTypeOf(typParam)(context)
       case (Invariance(typParam), Invariance(suprParam)) =>
-        isSubType(typParam, suprParam, context) >>= { res1 =>
-          isSubType(suprParam, typParam, context).fmap { res2 =>
-            res1 && res2
-          }
+        typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
+          if (res1) suprParam.isSubTypeOf(typParam)(context)
+          else State.pure(false)
         }
     }
   }
 
   private def writeVariancesFromDRI: Type => Type = {
-    case typ: GenericType =>
+    case typ if typ.params.nonEmpty =>
       typ
         .modify(_.params)
         .using { params =>
           if (typ.itid.nonEmpty && nodes.contains(typ.itid.get)) {
             params.zip(nodes(typ.itid.get)._1.params).map {
-              case (t, v) => zipVariance(t.typ, v)
+              case (t, v) => t.typ.zipVariance(v)
             }
           } else params
         }
     case typ => typ
   }
-}
-
-trait VarianceOps {
-  def zipVariance(typ: Type, v: Variance): Variance = {
-    v match {
-      case _: Contravariance => Contravariance(typ)
-      case _: Covariance     => Covariance(typ)
-      case _: Invariance     => Invariance(typ)
-    }
-  }
-}
-
-case class VariableBindings(bindings: Map[ITID, Seq[Type]]) {
-  def add(dri: ITID, typ: Type): VariableBindings = {
-    VariableBindings {
-      val types = bindings.getOrElse(dri, Seq.empty)
-      bindings.updated(dri, types :+ typ)
-    }
-  }
-}
-
-object VariableBindings {
-  def empty: VariableBindings =
-    VariableBindings(Map.empty)
 }

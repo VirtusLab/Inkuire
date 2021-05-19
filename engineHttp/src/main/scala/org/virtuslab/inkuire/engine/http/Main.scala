@@ -3,9 +3,12 @@ package org.virtuslab.inkuire.engine.http
 import org.virtuslab.inkuire.engine.http.cli.Cli
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
-import org.virtuslab.inkuire.engine.common.parser.KotlinSignatureParserService
+import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.engine.http.http.HttpServer
+import java.io.File
+import java.io.FileWriter
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 object Main extends App {
 
@@ -13,9 +16,9 @@ object Main extends App {
   val in           = new Cli
   val out          = new HttpServer
   val matchService = (db: InkuireDb) => new FluffMatchService(db)
-  val prettifier   = new KotlinExternalSignaturePrettifier
+  val prettifier   = new ScalaExternalSignaturePrettifier
   val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)
-  val parser       = new KotlinSignatureParserService
+  val parser       = new ScalaSignatureParserService
 
   configReader
     .readConfig(args)

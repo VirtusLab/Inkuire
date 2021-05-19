@@ -3,102 +3,28 @@ package org.virtuslab.inkuire.engine.common.model
 import com.softwaremill.quicklens._
 import TypeName._
 
-trait Type {
-  def asVariable: Type
-  def asConcrete: Type
-  def name:       TypeName
-  def nullable:   Boolean
-  def params:     Seq[Variance]
-  def itid:       Option[ITID]
-  def ?          : Type
-  def isVariable: Boolean
-}
+case class Type(
+  name:             TypeName,
+  params:           Seq[Variance] = Seq.empty,
+  nullable:         Boolean = false,
+  itid:             Option[ITID] = None,
+  isVariable:       Boolean = false,
+  isStarProjection: Boolean = false,
+  isUnresolved:     Boolean = true
+) {
+  def ? : Type = this.modify(_.nullable).setTo(true)
 
-case class ConcreteType(
-  name:     TypeName,
-  nullable: Boolean = false,
-  itid:     Option[ITID] = None
-) extends Type {
-  import io.scalaland.chimney.dsl._
+  def isGeneric: Boolean = params.nonEmpty
 
-  override def asVariable: Type = this.transformInto[TypeVariable]
+  def asVariable: Type = this.modify(_.isVariable).setTo(true)
 
-  override def asConcrete: Type = this
-
-  override def params: Seq[Variance] = Seq.empty
-
-  override def ? : Type = this.modify(_.nullable).setTo(true)
-
-  override def isVariable: Boolean = false
-}
-
-case class GenericType(
-  base:   Type,
-  params: Seq[Variance]
-) extends Type {
-
-  override def asVariable: Type = this.modify(_.base).using(_.asVariable)
-
-  override def asConcrete: Type = this.modify(_.base).using(_.asConcrete)
-
-  override def nullable: Boolean = base.nullable
-
-  override def name: TypeName = base.name
-
-  override def itid: Option[ITID] = base.itid
-
-  override def ? : Type = this.modify(_.base).using(_.?)
-
-  override def isVariable: Boolean = base.isVariable
-}
-
-case class TypeVariable(
-  name:     TypeName,
-  nullable: Boolean = false,
-  itid:     Option[ITID] = None
-) extends Type {
-  import io.scalaland.chimney.dsl._
-
-  override def asVariable: Type = this
-
-  override def asConcrete: Type = this.transformInto[ConcreteType]
-
-  override def params: Seq[Variance] = Seq.empty
-
-  override def ? : Type = this.modify(_.nullable).setTo(true)
-
-  override def isVariable: Boolean = true
-
-  // TODO: Issue #28
-  override def equals(obj: Any): Boolean =
-    obj match {
-      case t: TypeVariable => t.nullable == this.nullable
-      case _ => false
-    }
-}
-
-case object StarProjection extends Type {
-
-  override def asVariable: Type = throw new RuntimeException("Operation not allowed!")
-
-  override def asConcrete: Type = throw new RuntimeException("Operation not allowed!")
-
-  override def nullable: Boolean = throw new RuntimeException("Operation not allowed!")
-
-  override def name: TypeName = "*"
-
-  override def params: Seq[Variance] = Seq.empty
-
-  override def itid: Option[ITID] = None //TODO not sure
-
-  override def ? : Type = throw new RuntimeException("Operation not allowed!")
-
-  override def isVariable: Boolean = false
+  def asConcrete: Type = this.modify(_.isVariable).setTo(false)
 }
 
 object Type {
   implicit class StringTypeOps(str: String) {
-    def concreteType: ConcreteType = ConcreteType(str)
-    def typeVariable: TypeVariable = TypeVariable(str)
+    def concreteType: Type = Type(str)
+    def typeVariable: Type = Type(str, isVariable = true)
   }
+  val StarProjection = Type(TypeName("_"), isStarProjection = true)
 }
