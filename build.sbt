@@ -34,8 +34,7 @@ ThisBuild / developers := List(
 publish / skip := true
 ThisBuild / scalaVersion := "2.13.4"
 
-val http4sVersion = "0.21.0"
-val catsVersion = "2.2.0"
+val http4sVersion = "0.21.23"
 val circeVersion = "0.13.0"
 
 lazy val engineCommon = crossProject(JVMPlatform)
@@ -45,8 +44,8 @@ lazy val engineCommon = crossProject(JVMPlatform)
     libraryDependencies ++= Seq(
       "com.softwaremill.quicklens" %%% "quicklens" % "1.7.2",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
-      "org.typelevel" %%% "cats-core" % catsVersion,
-      "org.typelevel" %%% "cats-effect" % catsVersion,
+      "org.typelevel" %%% "cats-core" % "2.6.1",
+      "org.typelevel" %%% "cats-effect" % "2.5.1",
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion
@@ -65,5 +64,16 @@ lazy val engineHttp = project
       "com.lihaoyi" %% "scalatags" % "0.9.4"
     ),
     assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
+  )
+  .dependsOn(engineCommon.jvm)
+
+lazy val tastyGenerator = project
+  .in(file("tastyGenerator"))
+  .settings(
+    name := "inkuire-tasty-generator",
+    scalaVersion := "3.0.0",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala3-tasty-inspector_3" % "3.0.0"
+    )
   )
   .dependsOn(engineCommon.jvm)

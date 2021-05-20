@@ -11,3 +11,8 @@ case class InkuireDb(
   functions: Seq[ExternalSignature],
   types:     Map[ITID, (Type, Seq[Type])]
 )
+
+object InkuireDb {
+  def empty: InkuireDb =
+    InkuireDb(Seq.empty, Map.empty)
+}
