@@ -8,10 +8,10 @@ import monix.reactive._
 import org.scalajs.dom.{html, Event}
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.webworkers.{DedicatedWorkerGlobalScope, Worker}
-import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput}
+import org.virtuslab.inkuire.js.worker.JSHandler
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
-class InkuireWorker(self: DedicatedWorkerGlobalScope) extends BaseInput with BaseOutput {
+class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {
   override def inputChanges: Observable[String] =
     Observable
       .create[String](OverflowStrategy.DropOld(10)) { subscriber =>

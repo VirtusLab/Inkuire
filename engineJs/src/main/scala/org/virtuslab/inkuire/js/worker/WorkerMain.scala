@@ -8,7 +8,6 @@ import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.js.Globals
 import org.virtuslab.inkuire.js.handlers.{JSInputHandler, JSOutputHandler}
-import org.virtuslab.inkuire.js.html.DokkaSearchbar
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -24,7 +23,7 @@ object WorkerMain {
     val handler      = new InkuireWorker(self)
     val configReader = new JSInputHandler(scriptPath)
     val in           = new JSInputHandler(scriptPath)
-    val out          = new JSOutputHandler(handler, handler)
+    val out          = new JSOutputHandler(handler)
     val matchService = (db: InkuireDb) => new FluffMatchService(db)
     val prettifier   = new ScalaExternalSignaturePrettifier
     val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)

@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.js.handlers
 
-import cats.Id
 import cats.data.EitherT
 import cats.data.StateT
 import cats.instances.all._
@@ -15,6 +14,8 @@ import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.chaining._
+import cats.kernel.Monoid
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
   private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future("[]"))
@@ -31,15 +32,23 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .map(getURLContent)
       .map(_.map(parseConfig))
       .flatTraverse(f => IO.fromFuture(IO(f)))
-      .pure[Id]
-      .fmap(new EitherT(_))
+      .pipe(new EitherT(_))
   }
 
-  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = { //TODO multiple dbs
-    val dbSources = appConfig.inkuirePaths.map(_.path).map(scriptPath + _).map(getURLContent).head
-
-    val res = IO.fromFuture { IO(dbSources.map(EngineModelSerializers.deserialize(_))) }
-    new EitherT(res)
+  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
+    appConfig
+      .inkuirePaths
+      .map(_.path)
+      .map(scriptPath + _)
+      .map(getURLContent)
+      .toList
+      .traverse(f => IO.fromFuture(IO(f)))
+      .map { contents =>
+        contents
+          .traverse(EngineModelSerializers.deserialize)
+          .map(Monoid.combineAll[InkuireDb])
+      }
+      .pipe(new EitherT(_))
   }
 
   private def parseConfig(config: String): Either[String, AppConfig] = {

@@ -8,10 +8,10 @@ import monix.reactive.Observable
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
-import org.virtuslab.inkuire.js.html.{BaseInput, BaseOutput, DokkaSearchbar}
+import org.virtuslab.inkuire.js.worker.JSHandler
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
-class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: BaseOutput) extends OutputHandler {
+class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
 
   override def serveOutput(env: Engine.Env): IO[Unit] = {
@@ -24,14 +24,18 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
         .map { r =>
           Observable
             .fromIterable(env.db.functions)
-            .filterEvalF(eSgn => IO.async[Boolean](_(Right(env.matcher.|?|(r)(eSgn)))))
+            .filterEvalF { eSgn =>
+              IO.async[Boolean]{ f =>
+                f(Right(env.matcher.|?|(r)(eSgn)))
+              }
+            }
             .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))
         }
     }
 
-    IO.async(_ => {
-      outputApi.registerOutput(subject)
-      inputApi.inputChanges.map(executeQuery).subscribe {
+    IO.async { _ =>
+      jsHandler.registerOutput(subject)
+      jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
           subject.onNext(v)
           Ack.Continue
@@ -39,7 +43,7 @@ class JSOutputHandler(private val inputApi: BaseInput, private val outputApi: Ba
           println(s"From output: $v")
           Ack.Continue
       }
-      inputApi.notifyEngineReady
-    })
+      jsHandler.notifyEngineReady
+    }
   }
 }

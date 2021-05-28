@@ -1,11 +1,12 @@
-package org.virtuslab.inkuire.js.html
+package org.virtuslab.inkuire.js.worker
 
 import monix.eval.Task
 import monix.reactive.Observable
 import monix.execution.Scheduler.Implicits.global
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 
-trait BaseOutput {
+trait JSHandler {
+
   //TODO: Consider configuring it
   def resultLimit: Option[Long] = None
 
@@ -25,4 +26,7 @@ trait BaseOutput {
 
   def handleNewQuery: Task[Unit]
 
+  def inputChanges: Observable[String]
+
+  def notifyEngineReady: Task[Unit]
 }
