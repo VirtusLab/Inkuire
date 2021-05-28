@@ -178,59 +178,64 @@ class InkuireInspector extends Inspector {
       case RecursiveType(tp) =>
         inner(tp, vars)
 
-    def visitTree(tree: Tree): Unit = tree match {
-      case p @ PackageClause(_, list) =>
-        list.foreach(visitTree)
+    def visitTree(tree: Tree): Unit = 
+      try {
+        tree match {
+          case p @ PackageClause(_, list) =>
+            list.foreach(visitTree)
 
-      case classDef @ ClassDef(_, _, _, _, list) =>
-        val classType = classDef.asInkuire(Set.empty, true)
-        val variableNames = classType.params.map(_.typ.name.name).toSet
+          case classDef @ ClassDef(_, _, _, _, list) =>
+            val classType = classDef.asInkuire(Set.empty, true)
+            val variableNames = classType.params.map(_.typ.name.name).toSet
 
-        val parents = classDef.parents.map(_.asInkuire(variableNames, false))
+            val parents = classDef.parents.map(_.asInkuire(variableNames, false))
 
-        val isModule = classDef.symbol.flags.is(Flags.Module)
+            val isModule = classDef.symbol.flags.is(Flags.Module)
 
-        if !isModule then InkuireDB.db = InkuireDB.db.copy(types = InkuireDB.db.types.updated(classType.itid.get, (classType, parents)))
+            if !isModule then InkuireDB.db = InkuireDB.db.copy(types = InkuireDB.db.types.updated(classType.itid.get, (classType, parents)))
 
-        val methods = classDef.symbol.declaredMethods.collect {
-          case methodSymbol: Symbol =>
-          val defdef = methodSymbol.tree.asInstanceOf[DefDef]
-          val methodVars = defdef.paramss.flatMap(_.params).collect {
-              case TypeDef(name, _) => name
-            }
-            val vars = variableNames ++ methodVars
-            val receiver: Option[Inkuire.Type] = Some(classType).filter(_ => !isModule).orElse(methodSymbol.extendedSymbol.map(_.asInkuire(vars, false)))
-            Inkuire.ExternalSignature(
-              signature = Inkuire.Signature(
-                receiver = receiver,
-                arguments = methodSymbol.nonExtensionParamLists.flatMap(_.params).collect {
-                  case ValDef(_, tpe, _) => tpe.asInkuire(vars, false)
-                },
-                result = defdef.returnTpt.asInkuire(vars, false),
-                context = Inkuire.SignatureContext(
-                  vars = vars.toSet,
-                  constraints = Map.empty //TODO for future
+            val methods = classDef.symbol.declaredMethods.collect {
+              case methodSymbol: Symbol =>
+              val defdef = methodSymbol.tree.asInstanceOf[DefDef]
+              val methodVars = defdef.paramss.flatMap(_.params).collect {
+                  case TypeDef(name, _) => name
+                }
+                val vars = variableNames ++ methodVars
+                val receiver: Option[Inkuire.Type] = Some(classType).filter(_ => !isModule).orElse(methodSymbol.extendedSymbol.map(_.asInkuire(vars, false)))
+                Inkuire.ExternalSignature(
+                  signature = Inkuire.Signature(
+                    receiver = receiver,
+                    arguments = methodSymbol.nonExtensionParamLists.flatMap(_.params).collect {
+                      case ValDef(_, tpe, _) => tpe.asInkuire(vars, false)
+                    },
+                    result = defdef.returnTpt.asInkuire(vars, false),
+                    context = Inkuire.SignatureContext(
+                      vars = vars.toSet,
+                      constraints = Map.empty //TODO for future
+                    )
+                  ),
+                  name = methodSymbol.name,
+                  packageName = methodSymbol.maybeOwner.fullName,
+                  uri = ""
                 )
-              ),
-              name = methodSymbol.name,
-              packageName = methodSymbol.maybeOwner.fullName,
-              uri = ""
-            )
+            }
+
+            InkuireDB.db = InkuireDB.db.copy(functions = InkuireDB.db.functions ++ methods)
+
+          case TypeDef(_, rhs) =>
+            visitTree(rhs)
+
+          case d @ DefDef(name, _, _, rhs) =>
+            println(d.name)
+
+          case Block(list, term) =>
+            list.foreach(visitTree)
+
+          case x =>
         }
-
-        InkuireDB.db = InkuireDB.db.copy(functions = InkuireDB.db.functions ++ methods)
-
-      case TypeDef(_, rhs) =>
-        visitTree(rhs)
-
-      case d @ DefDef(name, _, _, rhs) =>
-        println(d.name)
-
-      case Block(list, term) =>
-        list.foreach(visitTree)
-
-      case x =>
-    }
+      } catch {
+        case e =>
+      }
 
     tastys.foreach { tasty =>
       visitTree(tasty.ast)

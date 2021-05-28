@@ -8,9 +8,15 @@ import java.io.FileWriter
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 object Main extends App {
-  val tastyFiles = List("tastyGenerator/target/scala-3.0.0/classes/org/virtuslab/inkuire/generator/tasty/Main.tasty")
+  val tastyFiles = List("/home/kkorban/cats")
 
-  TastyInspector.inspectTastyFiles(tastyFiles)(new InkuireInspector)
+  def getFiles(path: String): List[String] = {
+    val file = new File(path)
+    if (file.isFile) List(file).filter(_.getName.endsWith(".tasty")).map(_.getAbsolutePath)
+    else file.listFiles.toList.map(_.getAbsolutePath).flatMap(getFiles)
+  }
+
+  TastyInspector.inspectTastyFiles(tastyFiles.flatMap(getFiles))(new InkuireInspector)
 
   dumpInkuireDB()
 }

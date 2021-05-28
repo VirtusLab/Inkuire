@@ -95,14 +95,21 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     EitherT
-      .fromEither[IO](
-        EngineModelSerializers.deserialize(
-          appConfig.inkuirePaths
-            .flatMap(path => getURLs(new URL(path.path), ".json"))
-            .map(getURLContent)
-            .head //TODO custom file extension
-        )
-      )
+      .fromEither[IO](Right(
+        appConfig.inkuirePaths
+          .flatMap(path => getURLs(new URL(path.path), ".json"))
+          .map(getURLContent)
+          .map(EngineModelSerializers.deserialize)
+          .collect[InkuireDb] {
+            case Right(idb) => idb
+          }
+          .foldLeft(InkuireDb.empty){
+            case (acc, idb) => InkuireDb(
+              types = acc.types ++ idb.types,
+              functions = acc.functions ++ idb.functions
+            )
+          }
+      ))
       .asInstanceOf[EitherT[IO, String, InkuireDb]]
   }
 
