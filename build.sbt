@@ -75,12 +75,6 @@ lazy val engineJS = project
     name := "engine-js",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %%% "core" % "2.2.9",
-      "org.typelevel" %%% "cats-core" % "2.2.0",
-      "org.typelevel" %%% "cats-effect" % "2.2.0",
-      "org.typelevel" %%% "cats-mtl-core" % "0.7.1",
-      "io.circe" %%% "circe-core" % "0.13.0",
-      "io.circe" %%% "circe-parser" % "0.13.0",
-      "io.circe" %%% "circe-generic" % "0.13.0",
       "io.monix" %%% "monix" % "3.2.2",
       "io.monix" %%% "monix-reactive" % "3.2.2"
     ),
