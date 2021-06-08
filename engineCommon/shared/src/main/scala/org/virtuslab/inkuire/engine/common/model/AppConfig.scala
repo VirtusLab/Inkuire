@@ -10,15 +10,12 @@ case class AppConfig(
 )
 
 object AppConfig {
-  def create(args: List[AppParam]): Either[String, AppConfig] = {
-    val address      = args.collectFirst { case a: Address => a }.toRight(noConfigFoundString("address"))
-    val port         = args.collectFirst { case p: Port => p }.toRight(noConfigFoundString("port"))
-    val inkuirePaths = Right(args.collect { case i: InkuirePath => i })
-    (address, port, inkuirePaths).mapN(AppConfig.apply)
+  def create(args: List[AppParam]): AppConfig = {
+    val address      = args.collectFirst { case a: Address => a }.getOrElse(Address("0.0.0.0"))
+    val port         = args.collectFirst { case p: Port => p }.getOrElse(Port(8080))
+    val inkuirePaths = args.collect { case i: InkuirePath => i }
+    AppConfig(address, port, inkuirePaths)
   }
-
-  private def noConfigFoundString(paramName: String) =
-    s"No value for config parameter '$paramName' found"
 }
 
 trait AppParam extends Any

@@ -22,6 +22,8 @@ import org.virtuslab.inkuire.engine.common.model.Engine._
 import scala.io.StdIn.readLine
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.util.chaining._
+
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
@@ -108,8 +110,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
     parseArgs(AppParam.parseCliOption)(args.toList)
-      .flatMap(AppConfig.create)
-      .pure[Id]
-      .fmap(config => new EitherT(IO(config)))
+      .map(AppConfig.create)
+      .pipe(config => new EitherT(IO(config)))
   }
 }
