@@ -12,7 +12,7 @@ import cats.syntax.all._
 import cats.effect.IO
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler, OutputHandler}
-import org.virtuslab.inkuire.engine.common.model.{AppConfig, AppParam, InkuireDb}
+import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.utils.helpers.IOHelpers
 import org.virtuslab.inkuire.engine.common.utils.syntax._
@@ -29,17 +29,17 @@ import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
 
   @tailrec
-  private def parseArgs[P](f: (String, String) => Either[String, P])(
+  private def parseArgs[P](f: (String, String) => AppConfig)(
     args:                     List[String],
-    agg:                      Either[String, List[P]] = Right(List.empty)
-  ): Either[String, List[P]] = {
+    agg:                      Either[String, List[AppConfig]] = Right(List.empty)
+  ): Either[String, List[AppConfig]] = {
     args match {
       case Nil => agg
       case opt :: v :: tail =>
         parseArgs(f)(
           tail,
           agg >>= { list =>
-            f(opt, v)
+            f(opt, v).right[String]
               .fmap(list :+ _)
           }
         )
@@ -100,7 +100,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
       .fromEither[IO](
         EngineModelSerializers.deserialize(
           appConfig.inkuirePaths
-            .flatMap(path => getURLs(new URL(path.path), ".json"))
+            .flatMap(path => getURLs(new URL(path), ".json"))
             .map(getURLContent)
             .head //TODO custom file extension
         )
@@ -109,8 +109,8 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   }
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
-    parseArgs(AppParam.parseCliOption)(args.toList)
-      .map(AppConfig.create)
+    parseArgs(AppConfig.parseCliOption)(args.toList)
+      .map(_.combineAll)
       .pipe(config => new EitherT(IO(config)))
   }
 }

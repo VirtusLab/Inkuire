@@ -9,18 +9,22 @@ import com.softwaremill.quicklens._
 import cats.kernel.Monoid
 
 case class InkuireDb(
-  functions: Seq[ExternalSignature],
-  types:     Map[ITID, (Type, Seq[Type])]
-)
+  functions:           Seq[ExternalSignature],
+  types:               Map[ITID, (Type, Seq[Type])],
+  implicitConversions: Seq[(ITID, Type)]
+) {
+  val conversions: Map[ITID, Seq[Type]] = implicitConversions.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
+}
 
 object InkuireDb {
   implicit val inkuireDbMonoid = new Monoid[InkuireDb] {
     override def combine(x: InkuireDb, y: InkuireDb): InkuireDb =
       InkuireDb(
         functions = (x.functions ++ y.functions).distinct,
-        types = x.types ++ y.types
+        types = x.types ++ y.types,
+        implicitConversions = x.implicitConversions ++ y.implicitConversions
       )
 
-    override def empty: InkuireDb = InkuireDb(Seq.empty, Map.empty)
+    override def empty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty)
   }
 }

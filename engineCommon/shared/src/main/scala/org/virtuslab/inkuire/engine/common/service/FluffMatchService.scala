@@ -7,7 +7,7 @@ import cats.implicits._
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
+  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -102,7 +102,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
+case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]]) extends VarianceOps {
 
   var tab = ""
   implicit class TypeOps(typ: Type) {
@@ -161,7 +161,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
         case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ, supr) =>
           if (nodes.contains(typ.itid.get)) {
-            specializeParents(typ, nodes(typ.itid.get)).toList
+            (specializeParents(typ, nodes(typ.itid.get)).toList ++ implicitConversions.get(typ.itid.get).toList.flatten)
               .foldLeft(State.pure[VariableBindings, Boolean](false)) {
                 case (acc, t) =>
                   acc.flatMap { cond =>

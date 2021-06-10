@@ -96,7 +96,7 @@ class HttpServer extends OutputHandler {
       blocker <- Blocker[IO]
       server <-
         BlazeServerBuilder[IO]
-          .bindHttp(env.appConfig.port.port, env.appConfig.address.address)
+          .bindHttp(env.appConfig.getPort, env.appConfig.getAddress)
           .withHttpApp(CORS(appService(blocker), methodConfig))
           .resource
     } yield server

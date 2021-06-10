@@ -9,7 +9,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
   extends BaseSignatureResolver
   with VarianceOps {
 
-  val ag = AncestryGraph(ancestryGraph)
+  val ag = AncestryGraph(ancestryGraph, Map.empty)
 
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
