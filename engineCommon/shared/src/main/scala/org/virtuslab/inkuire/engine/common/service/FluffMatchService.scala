@@ -161,7 +161,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
         case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ, supr) =>
           if (nodes.contains(typ.itid.get)) {
-            (specializeParents(typ, nodes(typ.itid.get)).toList ++ implicitConversions.get(typ.itid.get).toList.flatten)
+            specializeParents(typ, nodes(typ.itid.get)).toList
               .foldLeft(State.pure[VariableBindings, Boolean](false)) {
                 case (acc, t) =>
                   acc.flatMap { cond =>

@@ -5,16 +5,45 @@ import com.softwaremill.quicklens._
 import cats.implicits._
 import cats.Contravariant
 
-class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])])
+class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
   extends BaseSignatureResolver
   with VarianceOps {
 
-  val ag = AncestryGraph(ancestryGraph, Map.empty)
+  val ag = AncestryGraph(ancestryGraph, implicitConversions)
 
   override def resolve(parsed: Signature): ResolveResult =
     ResolveResult {
-      resolveAllPossibleSignatures(parsed).toList.flatMap { sgn => permutateParams(sgn).toList }.distinct
+      resolveAllPossibleSignatures(parsed).toList
+        .map(moveToReceiverIfPossible)
+        .flatMap { sgn => convertReceivers(sgn).toList }
+        .flatMap { sgn => permutateParams(sgn).toList }.distinct
     }
+
+  private def moveToReceiverIfPossible(signature: Signature): Signature = {
+    if (signature.receiver.nonEmpty) signature
+    else if (signature.arguments.isEmpty) signature
+    else
+      signature
+        .modify(_.receiver).setTo(Some(signature.arguments.head))
+        .modify(_.arguments).using(_.drop(1))
+  }
+
+  private def convertReceivers(signature: Signature): Seq[Signature] = {
+    if (signature.receiver.isEmpty) List(signature)
+    else {
+      signature.receiver.toSeq.flatMap { rcvrVar =>
+        rcvrVar.typ.itid.toSeq.flatMap { rcvrITID =>
+          if (rcvrITID.uuid.contains("String")) {
+            println(rcvrITID)
+            println(implicitConversions.get(rcvrITID))
+          }
+          implicitConversions.get(rcvrITID).toSeq.flatten
+        }
+      }.map { rcvrType =>
+        signature.modify(_.receiver.each.typ).setTo(rcvrType)
+      } :+ signature
+    }
+  }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {
     (signature.receiver ++ signature.arguments).toList.permutations

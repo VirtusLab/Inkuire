@@ -26,14 +26,18 @@ object WorkerMain {
     val out          = new JSOutputHandler(handler)
     val matchService = (db: InkuireDb) => new FluffMatchService(db)
     val prettifier   = new ScalaExternalSignaturePrettifier
-    val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types)
+    val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types, db.conversions)
     val parser       = new ScalaSignatureParserService
+
+    println("Starting Inkuire")
 
     configReader
       .readConfig(Seq(scriptPath + "inkuire-config.json"))
       .flatMap { config: AppConfig =>
+        println(s"Reading InkuireDB on paths: ${config.inkuirePaths}")
         in.readInput(config)
           .semiflatMap { db: InkuireDb =>
+            println(s"Read ${db.functions.size} functions and ${db.types.size} types")
             out
               .serveOutput()
               .runA(
