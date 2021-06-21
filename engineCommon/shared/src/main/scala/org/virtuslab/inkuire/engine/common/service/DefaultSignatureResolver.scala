@@ -33,10 +33,6 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
     else {
       signature.receiver.toSeq.flatMap { rcvrVar =>
         rcvrVar.typ.itid.toSeq.flatMap { rcvrITID =>
-          if (rcvrITID.uuid.contains("String")) {
-            println(rcvrITID)
-            println(implicitConversions.get(rcvrITID))
-          }
           implicitConversions.get(rcvrITID).toSeq.flatten
         }
       }.map { rcvrType =>

@@ -18,7 +18,7 @@ import scala.util.chaining._
 import cats.kernel.Monoid
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
-  private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future("[]"))
+  private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
 
@@ -44,10 +44,13 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .traverse(f => IO.fromFuture(IO(f)))
       .map { contents =>
         contents
-          .traverse(EngineModelSerializers.deserialize)
-          .map(Monoid.combineAll[InkuireDb])
+          .map(EngineModelSerializers.deserialize)
+          .collect {
+            case Right(db) => db
+          }
+          .pipe(Monoid.combineAll[InkuireDb])
       }
-      .pipe(new EitherT(_))
+      .pipe(EitherT.right(_))
   }
 
   private def parseConfig(config: String): Either[String, AppConfig] = {
