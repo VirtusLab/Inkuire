@@ -37,10 +37,11 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
       jsHandler.registerOutput(subject)
       jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
-          subject.onNext(v)
+          subject.onNext(v).onComplete(_ => jsHandler.handleQueryEnded(""))
           Ack.Continue
         case Left(v) =>
           println(s"From output: $v")
+          jsHandler.handleQueryEnded(v)
           Ack.Continue
       }
       jsHandler.notifyEngineReady

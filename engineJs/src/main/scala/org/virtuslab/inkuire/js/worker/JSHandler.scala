@@ -26,6 +26,8 @@ trait JSHandler {
 
   def handleNewQuery: Task[Unit]
 
+  def handleQueryEnded(msg: String): Task[Unit]
+
   def inputChanges: Observable[String]
 
   def notifyEngineReady: Task[Unit]

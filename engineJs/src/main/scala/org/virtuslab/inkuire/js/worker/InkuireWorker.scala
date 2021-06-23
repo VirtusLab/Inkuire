@@ -26,5 +26,8 @@ class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {
   override def handleNewQuery: Task[Unit] =
     Task.now { self.postMessage("new_query") }
 
+  override def handleQueryEnded(msg: String): Task[Unit] =
+    Task.now { self.postMessage(s"query_ended$msg") }
+
   override def notifyEngineReady: Task[Unit] = Task.now { self.postMessage("engine_ready") }
 }
