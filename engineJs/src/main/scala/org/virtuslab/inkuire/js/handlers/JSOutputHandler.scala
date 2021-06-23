@@ -20,7 +20,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
     def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
       env.parser
         .parse(query)
-        .map(env.resolver.resolve)
+        .flatMap(env.resolver.resolve)
         .map { r =>
           Observable
             .fromIterable(env.db.functions)

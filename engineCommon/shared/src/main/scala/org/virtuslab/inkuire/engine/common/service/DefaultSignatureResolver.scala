@@ -11,13 +11,19 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
 
   val ag = AncestryGraph(ancestryGraph, implicitConversions)
 
-  override def resolve(parsed: Signature): ResolveResult =
-    ResolveResult {
-      resolveAllPossibleSignatures(parsed).toList
-        .map(moveToReceiverIfPossible)
-        .flatMap { sgn => convertReceivers(sgn).toList }
-        .flatMap { sgn => permutateParams(sgn).toList }.distinct
+  override def resolve(parsed: Signature): Either[String, ResolveResult] = {
+    val signatures = resolveAllPossibleSignatures(parsed).toList
+      .map(moveToReceiverIfPossible)
+      .flatMap { sgn => convertReceivers(sgn).toList }
+      .flatMap { sgn => permutateParams(sgn).toList }.distinct
+    signatures match {
+      //TODO change to sth more informative, actual unresolved types
+      case List() => Left(resolveError("Could not resolve types in given signature"))
+      case _ => Right(ResolveResult(signatures))
     }
+  }
+
+  def resolveError(msg: String): String = s"Resolving error: $msg"
 
   private def moveToReceiverIfPossible(signature: Signature): Signature = {
     if (signature.receiver.nonEmpty) signature

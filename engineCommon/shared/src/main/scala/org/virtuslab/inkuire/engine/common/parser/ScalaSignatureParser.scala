@@ -125,7 +125,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     import scalaSignatureParser._
     scalaSignatureParser.parseAll(signature, str) match {
       case Success(matched, _) => Right(matched)
-      case Failure(msg, _)     => Left(msg)
+      case Failure(msg, _)     => Left(parseError(msg))
       case Error(msg, _)       => Left(msg)
     }
   }
