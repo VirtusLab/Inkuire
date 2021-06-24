@@ -3,7 +3,8 @@ package org.virtuslab.inkuire.js.worker
 import monix.eval.Task
 import monix.reactive.Observable
 import monix.execution.Scheduler.Implicits.global
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.{ ResultFormat, OutputFormat }
+import org.virtuslab.inkuire.engine.common.model.EndFormat
 
 trait JSHandler {
 
@@ -19,10 +20,13 @@ trait JSHandler {
         val results = o.doOnStart(_ => handleNewQuery)
         resultLimit.fold(results)(results.take)
       }
-      .foreach(handleResults)
+      .foreach {
+        case r: ResultFormat => handleResults(r)
+        case EndFormat => handleQueryEnded("")
+      }
   }
 
-  def handleResults(results: OutputFormat): Task[Unit]
+  def handleResults(results: ResultFormat): Task[Unit]
 
   def handleNewQuery: Task[Unit]
 

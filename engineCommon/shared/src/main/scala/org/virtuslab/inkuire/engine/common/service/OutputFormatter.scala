@@ -2,13 +2,13 @@ package org.virtuslab.inkuire.engine.http.http
 
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 import org.virtuslab.inkuire.engine.common.service.SignaturePrettifier
-import org.virtuslab.inkuire.engine.common.model.{Match, OutputFormat}
+import org.virtuslab.inkuire.engine.common.model.{Match, ResultFormat}
 
 import collection.JavaConverters._
 
 class OutputFormatter(prettifier: SignaturePrettifier) {
-  def createOutput(query: String, signatures: Seq[ExternalSignature]): OutputFormat =
-    OutputFormat(
+  def createOutput(query: String, signatures: Seq[ExternalSignature]): ResultFormat =
+    ResultFormat(
       query,
       fromSignatures(signatures).toList
     )

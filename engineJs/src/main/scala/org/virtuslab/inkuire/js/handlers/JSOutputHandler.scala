@@ -10,6 +10,7 @@ import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.EndFormat
 
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
@@ -30,6 +31,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
               }
             }
             .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))
+            .:+(EndFormat)
         }
     }
 
@@ -37,7 +39,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
       jsHandler.registerOutput(subject)
       jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
-          subject.onNext(v).onComplete(_ => jsHandler.handleQueryEnded(""))
+          subject.onNext(v)//.onComplete(_ => jsHandler.handleQueryEnded(""))
           Ack.Continue
         case Left(v) =>
           println(s"From output: $v")

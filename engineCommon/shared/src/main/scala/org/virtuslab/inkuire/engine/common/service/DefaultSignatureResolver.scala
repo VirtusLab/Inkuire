@@ -3,7 +3,6 @@ package org.virtuslab.inkuire.engine.common.service
 import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
-import cats.Contravariant
 
 class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
   extends BaseSignatureResolver

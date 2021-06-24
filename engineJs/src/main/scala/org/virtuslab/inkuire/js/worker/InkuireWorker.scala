@@ -9,7 +9,7 @@ import org.scalajs.dom.{html, Event}
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.webworkers.{DedicatedWorkerGlobalScope, Worker}
 import org.virtuslab.inkuire.js.worker.JSHandler
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {
   override def inputChanges: Observable[String] =
@@ -20,7 +20,7 @@ class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {
         Cancelable(() => self.removeEventListener("message", func))
       }
 
-  override def handleResults(results: OutputFormat): Task[Unit] =
+  override def handleResults(results: ResultFormat): Task[Unit] =
     Task.now { self.postMessage(results.asJson.toString()) }
 
   override def handleNewQuery: Task[Unit] =
