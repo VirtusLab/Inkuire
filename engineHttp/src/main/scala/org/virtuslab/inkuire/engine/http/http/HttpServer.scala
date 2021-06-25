@@ -20,6 +20,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
 import scala.io.Source
 import org.slf4j.LoggerFactory
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
@@ -34,7 +35,7 @@ class HttpServer extends OutputHandler {
 
     val formatter = new OutputFormatter(env.prettifier)
 
-    def results(signature: String): Either[String, OutputFormat] = {
+    def results(signature: String): Either[String, ResultFormat] = {
       env.parser
         .parse(signature)
         .left
@@ -42,7 +43,7 @@ class HttpServer extends OutputHandler {
           logger.info("Error when parsing signature: '" + e + "' for signature: " + signature)
           e
         }
-        .map { parsed =>
+        .flatMap { parsed =>
           logger.info(s"Parsed signature: " + signature)
           env.resolver.resolve(parsed)
         }

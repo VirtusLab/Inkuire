@@ -6,7 +6,7 @@ case class Signature(
   result:    Covariance,
   context:   SignatureContext
 ) {
-  def typesWithVariances: Seq[Variance] = receiver.toSeq ++ arguments ++ Seq(result)
+  def typesWithVariances: Seq[Variance] = receiver.toSeq ++ arguments :+ result
 }
 
 object Signature {

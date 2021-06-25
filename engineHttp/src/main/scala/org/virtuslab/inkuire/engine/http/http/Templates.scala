@@ -5,6 +5,7 @@ import scalatags.Text
 import scalatags.Text.all._
 
 import collection.JavaConverters._
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 object Templates {
   private def logoHtml =
@@ -79,7 +80,7 @@ object Templates {
     ).toString()
   }
 
-  def result(results: OutputFormat): String = {
+  def result(results: ResultFormat): String = {
     html(
       head(
         resources

@@ -56,10 +56,13 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view
-    .mapValues(_.flatMap {
-      case g: Type if g.params.nonEmpty => retrieveVariables(g)
-      case _ => Seq()
-    }.distinct)
+    .mapValues {
+      _.flatMap {
+        case g: Type if g.params.nonEmpty => retrieveVariables(g)
+        case _ => Seq()
+      }
+      .distinct
+    }
     .toMap
 
   private def retrieveVariables(t: Type): Seq[ITID] =
@@ -241,7 +244,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
   ): State[VariableBindings, Boolean] = {
     ((typ, supr): @unchecked) match {
       case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
-        State.pure[VariableBindings, Boolean](true)
+        State.pure(true)
       case (Covariance(typParam), Covariance(suprParam)) =>
         typParam.isSubTypeOf(suprParam)(context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
