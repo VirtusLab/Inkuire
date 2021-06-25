@@ -26,7 +26,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
           Observable
             .fromIterable(env.db.functions)
             .filterEvalF { eSgn =>
-              IO.async[Boolean]{ f =>
+              IO.async[Boolean] { f =>
                 f(Right(env.matcher.|?|(r)(eSgn)))
               }
             }
@@ -39,7 +39,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
       jsHandler.registerOutput(subject)
       jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
-          subject.onNext(v)//.onComplete(_ => jsHandler.handleQueryEnded(""))
+          subject.onNext(v)
           Ack.Continue
         case Left(v) =>
           println(s"From output: $v")

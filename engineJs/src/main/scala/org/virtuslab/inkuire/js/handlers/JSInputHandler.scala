@@ -36,8 +36,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
   }
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    appConfig
-      .inkuirePaths
+    appConfig.inkuirePaths
       .map(scriptPath + _)
       .map(getURLContent)
       .toList

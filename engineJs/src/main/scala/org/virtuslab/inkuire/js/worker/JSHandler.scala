@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.js.worker
 import monix.eval.Task
 import monix.reactive.Observable
 import monix.execution.Scheduler.Implicits.global
-import org.virtuslab.inkuire.engine.common.model.{ ResultFormat, OutputFormat }
+import org.virtuslab.inkuire.engine.common.model.{OutputFormat, ResultFormat}
 import org.virtuslab.inkuire.engine.common.model.EndFormat
 
 trait JSHandler {

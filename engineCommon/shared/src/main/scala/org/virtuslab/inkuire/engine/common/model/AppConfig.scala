@@ -10,7 +10,7 @@ case class AppConfig(
   inkuirePaths: Seq[String]
 ) {
   def getAddress = address.getOrElse("0.0.0.0")
-  def getPort = port.getOrElse(8080)
+  def getPort    = port.getOrElse(8080)
 }
 
 object AppConfig {
@@ -33,7 +33,7 @@ object AppConfig {
       case "-a" | "--address" => Monoid.empty[AppConfig].copy(address = Some(v))
       case "-p" | "--port"    => Monoid.empty[AppConfig].copy(port = Some(v.toInt))
       case "-i" | "--inkuire" => Monoid.empty[AppConfig].copy(inkuirePaths = Seq(v))
-      case o                  =>
+      case o =>
         println(s"Inkuire ignored wrong option: $o")
         Monoid.empty[AppConfig]
     }

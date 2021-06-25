@@ -39,7 +39,8 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
         parseArgs(f)(
           tail,
           agg >>= { list =>
-            f(opt, v).right[String]
+            f(opt, v)
+              .right[String]
               .fmap(list :+ _)
           }
         )
@@ -69,10 +70,12 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
         .fold(
           handleSyntaxError,
           s => {
-            env.resolver.resolve(s).fold(
-              handleResolveError,
-              r => putStrLn(env.prettifier.prettify(env.matcher |??| r)).liftApp
-            )
+            env.resolver
+              .resolve(s)
+              .fold(
+                handleResolveError,
+                r => putStrLn(env.prettifier.prettify(env.matcher |??| r)).liftApp
+              )
           }
         )
     }

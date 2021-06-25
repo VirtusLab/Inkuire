@@ -14,11 +14,12 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
     val signatures = resolveAllPossibleSignatures(parsed).toList
       .map(moveToReceiverIfPossible)
       .flatMap { sgn => convertReceivers(sgn).toList }
-      .flatMap { sgn => permutateParams(sgn).toList }.distinct
+      .flatMap { sgn => permutateParams(sgn).toList }
+      .distinct
     signatures match {
       //TODO change to sth more informative, actual unresolved types
       case List() => Left(resolveError("Could not resolve types in given signature"))
-      case _ => Right(ResolveResult(signatures))
+      case _      => Right(ResolveResult(signatures))
     }
   }
 
@@ -29,20 +30,24 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
     else if (signature.arguments.isEmpty) signature
     else
       signature
-        .modify(_.receiver).setTo(Some(signature.arguments.head))
-        .modify(_.arguments).using(_.drop(1))
+        .modify(_.receiver)
+        .setTo(Some(signature.arguments.head))
+        .modify(_.arguments)
+        .using(_.drop(1))
   }
 
   private def convertReceivers(signature: Signature): Seq[Signature] = {
     if (signature.receiver.isEmpty) List(signature)
     else {
-      signature.receiver.toSeq.flatMap { rcvrVar =>
-        rcvrVar.typ.itid.toSeq.flatMap { rcvrITID =>
-          implicitConversions.get(rcvrITID).toSeq.flatten
+      signature.receiver.toSeq
+        .flatMap { rcvrVar =>
+          rcvrVar.typ.itid.toSeq.flatMap { rcvrITID =>
+            implicitConversions.get(rcvrITID).toSeq.flatten
+          }
         }
-      }.map { rcvrType =>
-        signature.modify(_.receiver.each.typ).setTo(rcvrType)
-      } :+ signature
+        .map { rcvrType =>
+          signature.modify(_.receiver.each.typ).setTo(rcvrType)
+        } :+ signature
     }
   }
 
