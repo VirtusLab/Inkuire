@@ -2,36 +2,39 @@ package org.virtuslab.inkuire.engine.common.model
 
 import org.virtuslab.inkuire.engine.common.utils.syntax._
 import cats.implicits._
+import cats.kernel.Monoid
 
 case class AppConfig(
-  address:      Address,
-  port:         Port,
-  inkuirePaths: Seq[InkuirePath]
-)
-
-object AppConfig {
-  def create(args: List[AppParam]): Either[String, AppConfig] = {
-    val address      = args.collectFirst { case a: Address => a }.toRight(noConfigFoundString("address"))
-    val port         = args.collectFirst { case p: Port => p }.toRight(noConfigFoundString("port"))
-    val inkuirePaths = Right(args.collect { case i: InkuirePath => i })
-    (address, port, inkuirePaths).mapN(AppConfig.apply)
-  }
-
-  private def noConfigFoundString(paramName: String) =
-    s"No value for config parameter '$paramName' found"
+  address:      Option[String],
+  port:         Option[Int],
+  inkuirePaths: Seq[String]
+) {
+  def getAddress = address.getOrElse("0.0.0.0")
+  def getPort    = port.getOrElse(8080)
 }
 
-trait AppParam extends Any
-case class Address(address: String) extends AnyVal with AppParam
-case class Port(port: Int) extends AnyVal with AppParam
-case class InkuirePath(path: String) extends AnyVal with AppParam
+object AppConfig {
+  implicit val appConfigMonoid = new Monoid[AppConfig] {
+    def empty: AppConfig = AppConfig(
+      address = None,
+      port = None,
+      inkuirePaths = Seq.empty
+    )
+    def combine(x: AppConfig, y: AppConfig): AppConfig =
+      AppConfig(
+        address = x.address.orElse(y.address),
+        port = x.port.orElse(y.port),
+        inkuirePaths = x.inkuirePaths ++ y.inkuirePaths
+      )
+  }
 
-object AppParam {
-  def parseCliOption(opt: String, v: String): Either[String, AppParam] =
+  def parseCliOption(opt: String, v: String): AppConfig =
     opt match {
-      case "-a" | "--address" => Address(v).right
-      case "-p" | "--port"    => Port(v.toInt).right
-      case "-i" | "--inkuire" => InkuirePath(v).right
-      case _                  => s"Wrong option $opt".left
+      case "-a" | "--address" => Monoid.empty[AppConfig].copy(address = Some(v))
+      case "-p" | "--port"    => Monoid.empty[AppConfig].copy(port = Some(v.toInt))
+      case "-i" | "--inkuire" => Monoid.empty[AppConfig].copy(inkuirePaths = Seq(v))
+      case o =>
+        println(s"Inkuire ignored wrong option: $o")
+        Monoid.empty[AppConfig]
     }
 }

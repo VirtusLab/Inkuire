@@ -11,7 +11,7 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
   private def doPrettify(esgn: ExternalSignature): String =
     s"${prettifySignature(esgn.signature)}"
 
-  private def prettifySignature(sgn: Signature): String = {
+  def prettifySignature(sgn: Signature): String = {
     s"${prettifyTypeVariables(sgn.context)}" +
       s"${prettifyArgs(sgn.typesWithVariances, " => ")}"
   }
@@ -26,7 +26,7 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
   private def prettifyArgs(args: Seq[Variance], sep: String = ", "): String =
     args.map(_.typ).map(prettifyType).mkString(sep)
 
-  private def prettifyType(t: Type): String = t match {
+  def prettifyType(t: Type): String = t match {
     case t: Type if t.isStarProjection => "*"
     case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
       s"(${prettifyArgs(t.params, " => ")})"

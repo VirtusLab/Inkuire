@@ -7,7 +7,7 @@ import cats.implicits._
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types)
+  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -55,12 +55,12 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 }
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
-  val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view
-    .mapValues(_.flatMap {
+  val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view.mapValues {
+    _.flatMap {
       case g: Type if g.params.nonEmpty => retrieveVariables(g)
       case _ => Seq()
-    }.distinct)
-    .toMap
+    }.distinct
+  }.toMap
 
   private def retrieveVariables(t: Type): Seq[ITID] =
     t match {
@@ -102,7 +102,8 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOps {
+case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
+  extends VarianceOps {
 
   var tab = ""
   implicit class TypeOps(typ: Type) {
@@ -241,7 +242,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])]) extends VarianceOp
   ): State[VariableBindings, Boolean] = {
     ((typ, supr): @unchecked) match {
       case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
-        State.pure[VariableBindings, Boolean](true)
+        State.pure(true)
       case (Covariance(typParam), Covariance(suprParam)) =>
         typParam.isSubTypeOf(suprParam)(context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>

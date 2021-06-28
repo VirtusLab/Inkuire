@@ -38,7 +38,7 @@ val http4sVersion = "0.21.0"
 val catsVersion = "2.2.0"
 val circeVersion = "0.13.0"
 
-lazy val engineCommon = crossProject(JVMPlatform)
+lazy val engineCommon = crossProject(JSPlatform, JVMPlatform)
   .in(file("engineCommon"))
   .settings(
     name := "inkuire-engine-common",
@@ -54,9 +54,9 @@ lazy val engineCommon = crossProject(JVMPlatform)
   )
 
 lazy val engineHttp = project
-  .in(file("engineHttp"))
+  .in(file("./engineHttp"))
   .settings(
-    name := "inkuire-engine-http",
+    name := "engine-http",
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-server" % http4sVersion,
@@ -67,3 +67,17 @@ lazy val engineHttp = project
     assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
   )
   .dependsOn(engineCommon.jvm)
+
+lazy val engineJS = project
+  .in(file("./engineJs"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    name := "engine-js",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client" %%% "core" % "2.2.9",
+      "io.monix" %%% "monix" % "3.2.2",
+      "io.monix" %%% "monix-reactive" % "3.2.2"
+    ),
+    scalaJSUseMainModuleInitializer := true,
+  )
+  .dependsOn(engineCommon.js)

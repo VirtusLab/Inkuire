@@ -121,11 +121,14 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   override def parse(str: String): Either[String, Signature] =
     doParse(str) >>= convert >>= validate
 
+  val parsingErrorGenericMessage =
+    "Could not parse provided signature. Example signature looks like this: List[Int] => (Int => Boolean) => Int"
+
   private def doParse(str: String): Either[String, Signature] = {
     import scalaSignatureParser._
     scalaSignatureParser.parseAll(signature, str) match {
       case Success(matched, _) => Right(matched)
-      case Failure(msg, _)     => Left(msg)
+      case Failure(msg, _)     => Left(parseError(parsingErrorGenericMessage))
       case Error(msg, _)       => Left(msg)
     }
   }
@@ -164,11 +167,10 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     }
   }
 
-  private def validate(sgn: Signature): Either[String, Signature] = {
+  private def validate(sgn: Signature): Either[String, Signature] =
     for {
       _ <- validateConstraintsForNonVariables(sgn)
     } yield sgn
-  }
 
   private def validateConstraintsForNonVariables(sgn: Signature): Either[String, Unit] =
     Either.cond(
@@ -176,24 +178,4 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
       (),
       "Constraints can only be defined for declared variables"
     )
-
-  private def validateTypeParamsArgs(sgn: Signature): Either[String, Unit] = {
-    sgn.receiver.map(doValidateVariance).getOrElse(().right) >>
-      sgn.arguments.map(doValidateVariance).foldLeft[Either[String, Unit]](().right)(_ >> _) >>
-      doValidateVariance(sgn.result) >>
-      sgn.context.constraints.values.toSeq.flatten
-        .map(doValidateTypeParamsArgs)
-        .foldLeft[Either[String, Unit]](().right)(_ >> _)
-  }
-
-  private def doValidateVariance(v: Variance): Either[String, Unit] = doValidateTypeParamsArgs(v.typ)
-
-  private def doValidateTypeParamsArgs(t: Type): Either[String, Unit] = {
-    t match {
-      case t: Type if t.params.nonEmpty =>
-        Either.cond(!t.isVariable, (), "Type arguments are not allowed for type parameters") >>
-          t.params.map(x => doValidateTypeParamsArgs(x.typ)).foldLeft[Either[String, Unit]](().right)(_ >> _)
-      case _ => ().right
-    }
-  }
 }
