@@ -47,7 +47,8 @@ class HttpServer extends OutputHandler {
           logger.info(s"Parsed signature: " + signature)
           env.resolver.resolve(parsed)
         }
-        .map(resolved => formatter.createOutput(signature, env.matcher |??| resolved))
+        .map { resolved => env.matcher |??| resolved }
+        .map { results => formatter.createOutput(signature, results) }
     }
 
     def static(file: String, blocker: Blocker, request: Request[IO]) =

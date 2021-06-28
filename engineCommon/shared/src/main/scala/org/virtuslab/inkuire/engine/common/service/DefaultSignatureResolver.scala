@@ -18,7 +18,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
       .distinct
     signatures match {
       //TODO change to sth more informative, actual unresolved types
-      case List() => Left(resolveError("Could not resolve types in given signature"))
+      case List() => Left(resolveError("Could not resolve types in provided signature"))
       case _      => Right(ResolveResult(signatures))
     }
   }
