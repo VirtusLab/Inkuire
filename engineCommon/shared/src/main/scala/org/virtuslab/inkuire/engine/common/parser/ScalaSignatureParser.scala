@@ -134,7 +134,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   }
 
   private def convert(sgn: Signature): Either[String, Signature] = {
-    val converter: Type => Type = resolve(sgn.context.vars)
+    val converter: TypeLike => TypeLike = resolve(sgn.context.vars)
     sgn
       .modifyAll(_.receiver.each.typ, _.result.typ)
       .using(converter)
@@ -152,18 +152,22 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
       case _                      => false
     }
 
-  private def resolve(vars: Set[String])(t: Type): Type = {
-    val converter: Type => Type = resolve(vars)
+  private def resolve(vars: Set[String])(t: TypeLike): TypeLike = {
+    val converter: TypeLike => TypeLike = resolve(vars)
     t match {
-      case u if u.isUnresolved =>
+      case u: Type if u.isUnresolved =>
         val resolvedOneLvl = if (vars.find(TypeName(_) == u.name).nonEmpty || isVariableByName(u)) {
           u.asVariable
         } else {
           u.asConcrete
         }
         resolvedOneLvl.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
-      case _ =>
+      case t: Type =>
         t.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
+      case o: AndType =>
+        o.modifyAll(_.left, _.right).using(converter)
+      case o: OrType =>
+        o.modifyAll(_.left, _.right).using(converter)
     }
   }
 
