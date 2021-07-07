@@ -18,8 +18,7 @@ Currently supported langauges are Kotlin and Scala 3.
 ## Live Demo
 
 Feel free to test Inkuire locally or remotely at:
-- HTTP engine for Scala 3 stdlib -> [here](http://ec2-3-125-115-167.eu-central-1.compute.amazonaws.com:8080/query)
-- Scaladoc for stdlib with Inkuire support -> [here](https://scala3doc.virtuslab.com/pr-inkuire/scala3/docs/index.html)
+- Scaladoc for stdlib with Inkuire support -> [here](https://dotty.epfl.ch/api/index.html)
 
 ---
 
@@ -31,6 +30,6 @@ Scaladoc:
 
 ---
 
-If you see any bugs, please create an issue in our repository [Github](https://github.com/VirtusLab/Inkuire)
+If you see any bugs, please create an issue [Github](https://github.com/VirtusLab/Inkuire)
 
 For Kotlin support see [legacy](https://github.com/VirtusLab/Inkuire/tree/legacy) branch.
