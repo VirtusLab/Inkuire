@@ -26,18 +26,18 @@ object EngineModelSerializers {
     } yield parsed
 
   implicit val typelikeEncoder: Encoder[TypeLike] = Encoder.instance {
-    case t: Type => Json.obj("typelikekind" -> Json.fromString("type")).deepMerge(t.asJson)
+    case t: Type    => Json.obj("typelikekind" -> Json.fromString("type")).deepMerge(t.asJson)
     case t: AndType => Json.obj("typelikekind" -> Json.fromString("andtype")).deepMerge(t.asJson)
-    case t: OrType => Json.obj("typelikekind" -> Json.fromString("ortype")).deepMerge(t.asJson)
+    case t: OrType  => Json.obj("typelikekind" -> Json.fromString("ortype")).deepMerge(t.asJson)
   }
 
   implicit val typelikeDecoder: Decoder[TypeLike] = (src: HCursor) =>
     for {
       kind <- src.downField("typelikekind").as[String]
       parsed <- kind match {
-        case "type"     => src.value.as[Type]
-        case "andtype"  => src.value.as[AndType]
-        case "ortype"   => src.value.as[OrType]
+        case "type"    => src.value.as[Type]
+        case "andtype" => src.value.as[AndType]
+        case "ortype"  => src.value.as[OrType]
       }
     } yield parsed
 

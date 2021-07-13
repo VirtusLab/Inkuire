@@ -48,7 +48,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
               }
             case t => Seq(t)
           }
-          
+
         }
         .map { rcvrType =>
           signature.modify(_.receiver.each.typ).setTo(rcvrType)
@@ -78,7 +78,9 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
   private def mostGeneral(types: Seq[TypeLike]): Seq[TypeLike] = { //TODO can be applied deeper if needed
     types.filter {
       case typ: Type =>
-        (ag.getAllParentsITIDs(typ).toSet - typ.itid.get).intersect(types.collect{ case t: Type => t.itid.get }.toSet).isEmpty
+        (ag.getAllParentsITIDs(typ).toSet - typ.itid.get)
+          .intersect(types.collect { case t: Type => t.itid.get }.toSet)
+          .isEmpty
       case _ => true
     }.distinct
   }
@@ -163,10 +165,13 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
       case t =>
         Seq(t)
     }
-    resolved.map(_ -> typ).filter {
-      case (t: Type, typ: Type) => t.params.size == typ.params.size
-      case _ => true
-    }.map(_._1)
+    resolved
+      .map(_ -> typ)
+      .filter {
+        case (t: Type, typ: Type) => t.params.size == typ.params.size
+        case _ => true
+      }
+      .map(_._1)
   }
 
   private def copyITID(typ: Type, dri: Option[ITID]): Type =
