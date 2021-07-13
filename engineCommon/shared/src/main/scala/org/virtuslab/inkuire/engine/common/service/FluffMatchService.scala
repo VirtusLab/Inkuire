@@ -62,7 +62,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
     }.distinct
   }.toMap
 
-  private def retrieveVariables(t: Type): Seq[ITID] =
+  private def retrieveVariables(t: TypeLike): Seq[ITID] =
     t match {
       case t: Type if t.isVariable => Seq(t.itid.get)
       case g: Type                 => g.params.map(_.typ).flatMap(retrieveVariables)
@@ -106,25 +106,25 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
   extends VarianceOps {
 
   var tab = ""
-  implicit class TypeOps(typ: Type) {
-    def isSubTypeOf(supr: Type)(context: SignatureContext): State[VariableBindings, Boolean] = {
+  implicit class TypeOps(typ: TypeLike) {
+    def isSubTypeOf(supr: TypeLike)(context: SignatureContext): State[VariableBindings, Boolean] = {
       (typ, supr) match {
-        case (t, _) if t.isStarProjection => State.pure(true)
-        case (_, s) if s.isStarProjection => State.pure(true)
+        case (t: Type, _) if t.isStarProjection => State.pure(true)
+        case (_, s: Type) if s.isStarProjection => State.pure(true)
         //TODO #58 Support for TypeVariables as GenericTypes or not
-        case (typ, supr) if typ.isVariable && typ.isGeneric =>
+        case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
           State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
             State.pure(typ.params.size == supr.params.size)
         //TODO #58 Support for TypeVariables as GenericTypes or not
-        case (typ, supr) if supr.isVariable && supr.isGeneric =>
+        case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
             State.pure(typ.params.size == supr.params.size)
-        case (typ, supr) if typ.isVariable && supr.isVariable =>
+        case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
           val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
           val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
           State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
             State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
-        case (typ, supr) if supr.isVariable =>
+        case (typ: Type, supr: Type) if supr.isVariable =>
           if (supr.itid.get.isParsed) {
             State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
               State.pure(false)
@@ -140,7 +140,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
                     }
                 }
           }
-        case (typ, supr) if typ.isVariable =>
+        case (typ: Type, supr: Type) if typ.isVariable =>
           if (typ.itid.get.isParsed) {
             val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
             State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
@@ -159,8 +159,8 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
             State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
               State.pure(true)
           }
-        case (typ, supr) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
-        case (typ, supr) =>
+        case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
+        case (typ: Type, supr: Type) =>
           if (nodes.contains(typ.itid.get)) {
             specializeParents(typ, nodes(typ.itid.get)).toList
               .foldLeft(State.pure[VariableBindings, Boolean](false)) {
@@ -171,40 +171,53 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
                   }
               }
           } else State.pure(false) //TODO remove when everything is correctly resolved
+        case (AndType(left, right), supr) =>
+          left.isSubTypeOf(supr)(context).flatMap { res =>
+            if (res) right.isSubTypeOf(supr)(context)
+            else State.pure(false)
+          }
+        case (typ, AndType(left, right)) =>
+          typ.isSubTypeOf(left)(context).flatMap { res =>
+            if (res) State.pure(true)
+            else typ.isSubTypeOf(right)(context)
+          }
+        case (OrType(left, right), supr) =>
+          left.isSubTypeOf(supr)(context).flatMap { res =>
+            if (res) State.pure(true)
+            else right.isSubTypeOf(supr)(context)
+          }
+        case (typ, OrType(left, right)) =>
+          typ.isSubTypeOf(left)(context).flatMap { res =>
+            if (res) typ.isSubTypeOf(right)(context)
+            else State.pure(false)
+          }
       }
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[Type] = { //TODO check if HKTs work correctly-ish
-    val bindings = node._1.params.map(_.typ.name).zip(concreteType.params.map(_.typ)).toMap
-    node._2.map {
-      case t if !t.isVariable =>
-        t.modify(_.params.each.typ).using(p => bindings.getOrElse(p.name, p))
-      case t => t
+  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[TypeLike] = {
+    val (declaration, parents) = node
+    val bindings =
+      declaration.params
+        .collect(_.typ.asInstanceOf[Type].name) // Params here have to be `Type`s
+        .zip(concreteType.params.map(_.typ))
+        .toMap
+    def substituteBindings(parent: TypeLike): TypeLike = parent match {
+      case t: Type if t.isVariable =>
+        bindings.getOrElse(t.name, t)
+      case t: Type =>
+        t.modify(_.params.each.typ).using(substituteBindings)
+      case t: OrType =>
+        t.modifyAll(_.left, _.right).using(substituteBindings)
+      case t: AndType =>
+        t.modifyAll(_.left, _.right).using(substituteBindings)
     }
+    parents.map(substituteBindings)
   }
 
   def getAllParentsITIDs(tpe: Type): Seq[ITID] = {
     tpe.itid.get +: nodes.get(tpe.itid.get).toSeq.flatMap(_._2).flatMap(getAllParentsITIDs(_))
   }
-
-  private def specializeType(parsedType: Type, possibleMatch: Type): Type =
-    (parsedType, possibleMatch) match {
-      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
-        t.modify(_.params)
-          .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
-      case _ => possibleMatch
-    }
-
-  private def specializeVariance(parsedType: Variance, possibleMatch: Variance): Variance =
-    (parsedType.typ, possibleMatch.typ) match {
-      case (pT, t) if pT.params.nonEmpty && t.params.nonEmpty =>
-        val typ = t
-          .modify(_.params)
-          .using(_.zip(pT.params).map(p => specializeVariance(p._1, p._2)))
-        typ.zipVariance(possibleMatch)
-      case _ => possibleMatch
-    }
 
   def checkTypesWithVariances(
     types:   Seq[Variance],
@@ -241,8 +254,6 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
     ((typ, supr): @unchecked) match {
-      case (typ, supr) if typ.typ.isStarProjection || supr.typ.isStarProjection =>
-        State.pure(true)
       case (Covariance(typParam), Covariance(suprParam)) =>
         typParam.isSubTypeOf(suprParam)(context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
