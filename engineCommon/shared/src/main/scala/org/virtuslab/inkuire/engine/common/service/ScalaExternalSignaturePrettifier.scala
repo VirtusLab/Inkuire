@@ -36,9 +36,9 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
       s"${t.name}[${prettifyArgs(t.params)}]"
     case t: Type => s"${t.name}"
     case AndType(left, right) =>
-      prettifyType(left) + " & " + prettifyType(right)
+      "(" + prettifyType(left) + " & " + prettifyType(right) + ")"
     case OrType(left, right) =>
-      prettifyType(left) + " | " + prettifyType(right)
+      "(" + prettifyType(left) + " | " + prettifyType(right) + ")"
     case _ => t.toString
   }
 }

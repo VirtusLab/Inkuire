@@ -49,9 +49,9 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
         s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
       case t: Type => s"${t.name}${if (t.nullable) "?" else ""}"
       case AndType(left, right) =>
-        prettifyType(left) + " & " + prettifyType(right)
+        "(" + prettifyType(left) + " & " + prettifyType(right) + ")"
       case OrType(left, right) =>
-        prettifyType(left) + " | " + prettifyType(right)
+        "(" + prettifyType(left) + " | " + prettifyType(right) + ")"
       case _ => t.toString
     }
   }
