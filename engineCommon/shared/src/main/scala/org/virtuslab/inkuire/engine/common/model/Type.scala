@@ -3,6 +3,8 @@ package org.virtuslab.inkuire.engine.common.model
 import com.softwaremill.quicklens._
 import TypeName._
 
+sealed trait TypeLike
+
 case class Type(
   name:             TypeName,
   params:           Seq[Variance] = Seq.empty,
@@ -11,7 +13,7 @@ case class Type(
   isVariable:       Boolean = false,
   isStarProjection: Boolean = false,
   isUnresolved:     Boolean = true
-) {
+) extends TypeLike {
   def ? : Type = this.modify(_.nullable).setTo(true)
 
   def isGeneric: Boolean = params.nonEmpty
@@ -20,6 +22,9 @@ case class Type(
 
   def asConcrete: Type = this.modify(_.isVariable).setTo(false)
 }
+
+case class AndType(left: TypeLike, right: TypeLike) extends TypeLike
+case class OrType(left: TypeLike, right: TypeLike) extends TypeLike
 
 object Type {
   implicit class StringTypeOps(str: String) {

@@ -4,7 +4,7 @@ import cats.kernel.Monoid
 
 case class SignatureContext(
   vars:        Set[String],
-  constraints: Map[String, Seq[Type]]
+  constraints: Map[String, Seq[TypeLike]]
 ) {
   override def equals(obj: Any): Boolean =
     obj match {

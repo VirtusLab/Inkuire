@@ -40,7 +40,7 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
   private def prettifyArgs(args: Seq[Variance]): String =
     args.map(_.typ).map(prettifyType).mkString(", ")
 
-  private def prettifyType(t: Type): String = {
+  private def prettifyType(t: TypeLike): String = {
     t match {
       case t: Type if t.isStarProjection => "*"
       case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
@@ -48,6 +48,10 @@ class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
       case t: Type if t.isGeneric =>
         s"${t.name}<${prettifyArgs(t.params)}>${if (t.nullable) "?" else ""}"
       case t: Type => s"${t.name}${if (t.nullable) "?" else ""}"
+      case AndType(left, right) =>
+        "(" + prettifyType(left) + " & " + prettifyType(right) + ")"
+      case OrType(left, right) =>
+        "(" + prettifyType(left) + " | " + prettifyType(right) + ")"
       case _ => t.toString
     }
   }
