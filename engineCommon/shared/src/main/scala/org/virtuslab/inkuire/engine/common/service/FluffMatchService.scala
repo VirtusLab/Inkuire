@@ -6,6 +6,8 @@ import com.softwaremill.quicklens._
 import cats.implicits._
 import scala.util.Random
 
+import scala.util.chaining._
+
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
@@ -37,7 +39,8 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
         }
     }
-    inkuireDb.functions.filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
+    inkuireDb.functions
+      .filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
@@ -144,11 +147,11 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
         //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
           State.modify[VariableBindings](_.add(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
-            State.pure(typ.params.size == supr.params.size)
+            checkTypeParamsByVariance(typ, supr, context)
         //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
-            State.pure(typ.params.size == supr.params.size)
+            checkTypeParamsByVariance(typ, supr, context)
         case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
           val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
           val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
@@ -285,12 +288,19 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
     supr:    Variance,
     context: SignatureContext
   ): State[VariableBindings, Boolean] = {
-    ((typ, supr): @unchecked) match {
+    (typ, supr) match {
       case (Covariance(typParam), Covariance(suprParam)) =>
         typParam.isSubTypeOf(suprParam)(context)
       case (Contravariance(typParam), Contravariance(suprParam)) =>
         suprParam.isSubTypeOf(typParam)(context)
       case (Invariance(typParam), Invariance(suprParam)) =>
+        typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
+          if (res1) suprParam.isSubTypeOf(typParam)(context)
+          else State.pure(false)
+        }
+      case (v1, v2) => // Treating not matching variances as invariant
+        val typParam = v1.typ
+        val suprParam = v2.typ
         typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
           if (res1) suprParam.isSubTypeOf(typParam)(context)
           else State.pure(false)
