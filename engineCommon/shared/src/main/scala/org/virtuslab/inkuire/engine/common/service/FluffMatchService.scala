@@ -12,17 +12,16 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
-      val ok = for {
-        okTypes <- ancestryGraph.checkTypesWithVariances(
+      ancestryGraph.checkTypesWithVariances(
           sgn.typesWithVariances,
           supr.typesWithVariances,
           sgn.context |+| supr.context
-        )
-
-        bindings <- State.get[VariableBindings]
-        okBindings = checkBindings(bindings)
-      } yield okTypes && okBindings
-      ok.runA(VariableBindings.empty).value
+        ).flatMap { okTypes =>
+          State.get[VariableBindings].map { bindings =>
+            if (okTypes) checkBindings(bindings)
+            else false
+          }
+        }.runA(VariableBindings.empty).value
     }
   }
 
