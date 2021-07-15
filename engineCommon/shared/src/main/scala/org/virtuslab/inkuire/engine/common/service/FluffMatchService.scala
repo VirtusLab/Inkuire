@@ -12,16 +12,20 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
-      ancestryGraph.checkTypesWithVariances(
+      ancestryGraph
+        .checkTypesWithVariances(
           sgn.typesWithVariances,
           supr.typesWithVariances,
           sgn.context |+| supr.context
-        ).flatMap { okTypes =>
+        )
+        .flatMap { okTypes =>
           State.get[VariableBindings].map { bindings =>
             if (okTypes) checkBindings(bindings)
             else false
           }
-        }.runA(VariableBindings.empty).value
+        }
+        .runA(VariableBindings.empty)
+        .value
     }
   }
 
@@ -53,7 +57,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
                 case _ => false
               }
           case _ :: _ :: Nil => false
-          case _ => true
+          case _             => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
   }
@@ -137,7 +141,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           }
         case (typ: TypeLambda, supr: TypeLambda) =>
           val dummyTypes = genDummyTypes(typ.args.size)
-          val typResult = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
+          val typResult  = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
           val suprResult = substituteBindings(supr.result, supr.args.flatMap(_.itid).zip(dummyTypes).toMap)
           if (typ.args.size == supr.args.size) typResult.isSubTypeOf(suprResult)(context)
           else State.pure(false)
@@ -212,13 +216,14 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
   private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[TypeLike] = {
     val (declaration, parents) = node
     def resITID(t: TypeLike): Option[ITID] = t match {
-      case t: Type => t.itid
+      case t: Type       => t.itid
       case t: TypeLambda => resITID(t.result)
       case _ => None
     }
     val bindings: Map[ITID, TypeLike] =
       declaration.params
-        .map(_.typ).map(resITID)
+        .map(_.typ)
+        .map(resITID)
         .flatMap(identity)
         .zip(concreteType.params.map(_.typ))
         .toMap
@@ -228,7 +233,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
   private def substituteBindings(parent: TypeLike, bindings: Map[ITID, TypeLike]): TypeLike = parent match {
     case t: Type if t.isVariable =>
       t.itid match {
-        case None => t.modify(_.params.each.typ).using(substituteBindings(_, bindings))
+        case None       => t.modify(_.params.each.typ).using(substituteBindings(_, bindings))
         case Some(itid) => bindings.get(itid).getOrElse(t)
       }
     case t: Type =>
@@ -300,7 +305,7 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           else State.pure(false)
         }
       case (v1, v2) => // Treating not matching variances as invariant
-        val typParam = v1.typ
+        val typParam  = v1.typ
         val suprParam = v2.typ
         typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
           if (res1) suprParam.isSubTypeOf(typParam)(context)
