@@ -6,8 +6,6 @@ import com.softwaremill.quicklens._
 import cats.implicits._
 import scala.util.Random
 
-import scala.util.chaining._
-
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
@@ -48,10 +46,14 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
       types
         .sliding(2, 1)
         .forall {
-          case a :: b :: Nil =>
-            ancestryGraph
-              .getAllParentsITIDs(a)
-              .contains(b.itid.get) || ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
+          case (a: Type) :: (b: Type) :: Nil =>
+            (ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) ||
+              ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)) &&
+              a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
+                case (a: Type, b: Type) => a.itid == b.itid
+                case _ => false
+              }
+          case _ :: _ :: Nil => false
           case _ => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
