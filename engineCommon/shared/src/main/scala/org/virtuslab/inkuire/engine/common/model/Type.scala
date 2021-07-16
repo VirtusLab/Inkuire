@@ -26,6 +26,8 @@ case class Type(
 case class AndType(left: TypeLike, right: TypeLike) extends TypeLike
 case class OrType(left: TypeLike, right: TypeLike) extends TypeLike
 
+case class TypeLambda(args: Seq[Type], result: TypeLike) extends TypeLike
+
 object Type {
   implicit class StringTypeOps(str: String) {
     def concreteType: Type = Type(str)

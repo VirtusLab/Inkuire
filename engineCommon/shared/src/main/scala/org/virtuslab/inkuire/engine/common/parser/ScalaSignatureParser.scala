@@ -168,6 +168,8 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
         o.modifyAll(_.left, _.right).using(converter)
       case o: OrType =>
         o.modifyAll(_.left, _.right).using(converter)
+      case t: TypeLambda =>
+        t.modify(_.result).using(converter)
     }
   }
 
