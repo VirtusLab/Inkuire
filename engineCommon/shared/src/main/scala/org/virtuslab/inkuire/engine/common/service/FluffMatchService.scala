@@ -40,7 +40,9 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
         }
     }
+    val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     inkuireDb.functions
+      .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
       .filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 

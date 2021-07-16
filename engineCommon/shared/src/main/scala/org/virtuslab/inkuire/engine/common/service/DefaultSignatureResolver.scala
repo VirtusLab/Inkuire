@@ -48,7 +48,6 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
               }
             case t => Seq(t)
           }
-
         }
         .map { rcvrType =>
           signature.modify(_.receiver.each.typ).setTo(rcvrType)
