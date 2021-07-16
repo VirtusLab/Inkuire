@@ -14,7 +14,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
     val signatures = resolveAllPossibleSignatures(parsed).toList
       .map(moveToReceiverIfPossible)
       .flatMap { sgn => convertReceivers(sgn).toList }
-      // .flatMap { sgn => permutateParams(sgn).toList }
+      .flatMap { sgn => permutateParams(sgn).toList }
       .distinct
     signatures match {
       //TODO change to sth more informative, actual unresolved types
