@@ -37,7 +37,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
-          sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
+          sgn == against || !(sgn.canSubstituteFor(against) && !against.canSubstituteFor(sgn)) // TODO this can possibly fail for unresolved variance
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
@@ -199,16 +199,16 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           }
         case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ: Type, supr: Type) =>
-          if (nodes.contains(typ.itid.get) || typeAliases.contains(typ.itid.get)) {
-            (nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)) ++ typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)))
-              .foldLeft(State.pure[VariableBindings, Boolean](false)) {
-                case (acc, t) =>
-                  acc.flatMap { cond =>
-                    if (cond) State.pure[VariableBindings, Boolean](true)
-                    else t.isSubTypeOf(supr)(context)
-                  }
-              }
-          } else State.pure(false) //TODO remove when everything is correctly resolved
+          nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map(_ -> supr)
+            .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+            .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+            .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+              case (acc, (t, s)) =>
+                acc.flatMap { cond =>
+                  if (cond) State.pure(true)
+                  else t.isSubTypeOf(s)(context)
+                }
+            }
       }
     }
   }
