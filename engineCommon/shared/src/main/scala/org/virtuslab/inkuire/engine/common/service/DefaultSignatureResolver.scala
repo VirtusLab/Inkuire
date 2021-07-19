@@ -4,13 +4,11 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 
-class DefaultSignatureResolver(inkuireDb: InkuireDb)
-  extends BaseSignatureResolver
-  with VarianceOps {
+class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with VarianceOps {
 
-  val ag = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
+  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
   val implicitConversions = inkuireDb.conversions
-  val ancestryGraph = inkuireDb.types
+  val ancestryGraph       = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {
     val signatures = resolveAllPossibleSignatures(parsed).toList

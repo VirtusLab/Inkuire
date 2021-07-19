@@ -23,14 +23,18 @@ object InkuireDb {
     override def combine(x: InkuireDb, y: InkuireDb): InkuireDb =
       InkuireDb(
         functions = (x.functions ++ y.functions).distinct,
-        types = (x.types.toSeq ++ y.types.toSeq).distinct.groupBy(_._1).view.mapValues { seqOfvalues =>
-          seqOfvalues.tail.foldLeft(seqOfvalues.head._2) {
-            case (acc, e) =>
-              val (typ, parents) = acc
-              val (_, (_, newParents)) = e
-              typ -> (parents ++ newParents)
+        types = (x.types.toSeq ++ y.types.toSeq).distinct
+          .groupBy(_._1)
+          .view
+          .mapValues { seqOfvalues =>
+            seqOfvalues.tail.foldLeft(seqOfvalues.head._2) {
+              case (acc, e) =>
+                val (typ, parents)       = acc
+                val (_, (_, newParents)) = e
+                typ -> (parents ++ newParents)
+            }
           }
-        }.toMap,
+          .toMap,
         implicitConversions = x.implicitConversions ++ y.implicitConversions,
         typeAliases = x.typeAliases ++ y.typeAliases
       )

@@ -37,7 +37,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
-          sgn == against || !(sgn.canSubstituteFor(against) && !against.canSubstituteFor(sgn)) // TODO this can possibly fail for unresolved variance
+          sgn == against || !(sgn.canSubstituteFor(against) && !against.canSubstituteFor(sgn))
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
@@ -113,8 +113,11 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]], typeAliases: Map[ITID, TypeLike])
-  extends VarianceOps {
+case class AncestryGraph(
+  nodes:               Map[ITID, (Type, Seq[Type])],
+  implicitConversions: Map[ITID, Seq[Type]],
+  typeAliases:         Map[ITID, TypeLike]
+) extends VarianceOps {
 
   implicit class TypeOps(typ: TypeLike) {
     def isSubTypeOf(supr: TypeLike)(context: SignatureContext): State[VariableBindings, Boolean] = {
@@ -199,7 +202,11 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           }
         case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ: Type, supr: Type) =>
-          nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map(_ -> supr)
+          nodes
+            .get(typ.itid.get)
+            .toList
+            .flatMap(node => specializeParents(typ, node))
+            .map(_ -> supr)
             .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
             .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
             .foldLeft(State.pure[VariableBindings, Boolean](false)) {
