@@ -17,7 +17,7 @@ object Main extends App {
   val out          = new HttpServer
   val matchService = (db: InkuireDb) => new FluffMatchService(db)
   val prettifier   = new ScalaExternalSignaturePrettifier
-  val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db.types, db.conversions)
+  val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db)
   val parser       = new ScalaSignatureParserService
 
   configReader

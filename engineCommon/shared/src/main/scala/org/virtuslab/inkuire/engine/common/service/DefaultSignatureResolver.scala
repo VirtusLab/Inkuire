@@ -4,11 +4,13 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 
-class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
+class DefaultSignatureResolver(inkuireDb: InkuireDb)
   extends BaseSignatureResolver
   with VarianceOps {
 
-  val ag = AncestryGraph(ancestryGraph, implicitConversions)
+  val ag = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
+  val implicitConversions = inkuireDb.conversions
+  val ancestryGraph = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {
     val signatures = resolveAllPossibleSignatures(parsed).toList
@@ -140,7 +142,7 @@ class DefaultSignatureResolver(ancestryGraph: Map[ITID, (Type, Seq[Type])], impl
           t.modify(_.itid)
             .setTo(ITID(t.name.name, isParsed = true).some)
         )
-      case t: Type if t.isVariable && t.isGeneric =>
+      case t: Type if t.isVariable && t.isGeneric => //TODO I'm fairly certain that this case works for Arrow.kt - Kind
         for {
           kind <-
             ancestryGraph.values

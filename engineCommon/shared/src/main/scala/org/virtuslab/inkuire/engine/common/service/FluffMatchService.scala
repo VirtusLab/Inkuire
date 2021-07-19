@@ -8,7 +8,7 @@ import scala.util.Random
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
+  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -113,7 +113,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
+case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]], typeAliases: Map[ITID, TypeLike])
   extends VarianceOps {
 
   implicit class TypeOps(typ: TypeLike) {
@@ -151,11 +151,9 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           State.pure(false)
         case (_, _: TypeLambda) =>
           State.pure(false)
-        //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
           State.modify[VariableBindings](_.add(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
             checkTypeParamsByVariance(typ, supr, context)
-        //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
             checkTypeParamsByVariance(typ, supr, context)
@@ -201,8 +199,8 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           }
         case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ: Type, supr: Type) =>
-          if (nodes.contains(typ.itid.get)) {
-            specializeParents(typ, nodes(typ.itid.get)).toList
+          if (nodes.contains(typ.itid.get) || typeAliases.contains(typ.itid.get)) {
+            (nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)) ++ typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)))
               .foldLeft(State.pure[VariableBindings, Boolean](false)) {
                 case (acc, t) =>
                   acc.flatMap { cond =>
@@ -215,7 +213,16 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[TypeLike] = {
+  def dealias(concreteType: Type, node: TypeLike): Option[TypeLike] = (concreteType, node) match {
+    case (t: Type, rhs: Type) if !t.isGeneric =>
+      Some(rhs)
+    case (t: Type, rhs: TypeLambda) if t.params.size == rhs.args.size =>
+      Some(substituteBindings(rhs.result, rhs.args.flatMap(_.itid).zip(t.params.map(_.typ)).toMap))
+    case _ =>
+      None
+  }
+
+  private def specializeParents(concreteType: Type, node: (Type, Seq[TypeLike])): Seq[TypeLike] = {
     val (declaration, parents) = node
     def resITID(t: TypeLike): Option[ITID] = t match {
       case t: Type       => t.itid
