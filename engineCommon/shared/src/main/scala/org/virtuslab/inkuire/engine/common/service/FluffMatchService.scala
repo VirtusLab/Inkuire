@@ -8,7 +8,7 @@ import scala.util.Random
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions)
+  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -37,10 +37,12 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
-          sgn == against || !sgn.canSubstituteFor(against) // TODO this can possibly fail for unresolved variance
+          sgn == against || !(sgn.canSubstituteFor(against) && !against.canSubstituteFor(sgn))
         }
     }
+    val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     inkuireDb.functions
+      .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
       .filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 
@@ -111,8 +113,11 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
   }
 }
 
-case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversions: Map[ITID, Seq[Type]])
-  extends VarianceOps {
+case class AncestryGraph(
+  nodes:               Map[ITID, (Type, Seq[Type])],
+  implicitConversions: Map[ITID, Seq[Type]],
+  typeAliases:         Map[ITID, TypeLike]
+) extends VarianceOps {
 
   implicit class TypeOps(typ: TypeLike) {
     def isSubTypeOf(supr: TypeLike)(context: SignatureContext): State[VariableBindings, Boolean] = {
@@ -149,11 +154,9 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           State.pure(false)
         case (_, _: TypeLambda) =>
           State.pure(false)
-        //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
           State.modify[VariableBindings](_.add(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
             checkTypeParamsByVariance(typ, supr, context)
-        //TODO #58 Support for TypeVariables as GenericTypes or not
         case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
           State.modify[VariableBindings](_.add(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
             checkTypeParamsByVariance(typ, supr, context)
@@ -199,21 +202,34 @@ case class AncestryGraph(nodes: Map[ITID, (Type, Seq[Type])], implicitConversion
           }
         case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
         case (typ: Type, supr: Type) =>
-          if (nodes.contains(typ.itid.get)) {
-            specializeParents(typ, nodes(typ.itid.get)).toList
-              .foldLeft(State.pure[VariableBindings, Boolean](false)) {
-                case (acc, t) =>
-                  acc.flatMap { cond =>
-                    if (cond) State.pure[VariableBindings, Boolean](true)
-                    else t.isSubTypeOf(supr)(context)
-                  }
-              }
-          } else State.pure(false) //TODO remove when everything is correctly resolved
+          nodes
+            .get(typ.itid.get)
+            .toList
+            .flatMap(node => specializeParents(typ, node))
+            .map(_ -> supr)
+            .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+            .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+            .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+              case (acc, (t, s)) =>
+                acc.flatMap { cond =>
+                  if (cond) State.pure(true)
+                  else t.isSubTypeOf(s)(context)
+                }
+            }
       }
     }
   }
 
-  private def specializeParents(concreteType: Type, node: (Type, Seq[Type])): Seq[TypeLike] = {
+  def dealias(concreteType: Type, node: TypeLike): Option[TypeLike] = (concreteType, node) match {
+    case (t: Type, rhs: Type) if !t.isGeneric =>
+      Some(rhs)
+    case (t: Type, rhs: TypeLambda) if t.params.size == rhs.args.size =>
+      Some(substituteBindings(rhs.result, rhs.args.flatMap(_.itid).zip(t.params.map(_.typ)).toMap))
+    case _ =>
+      None
+  }
+
+  private def specializeParents(concreteType: Type, node: (Type, Seq[TypeLike])): Seq[TypeLike] = {
     val (declaration, parents) = node
     def resITID(t: TypeLike): Option[ITID] = t match {
       case t: Type       => t.itid

@@ -25,6 +25,7 @@ import scala.io.Source
 import scala.util.chaining._
 
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
+import cats.kernel.Monoid
 
 class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
 
@@ -104,16 +105,20 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
-    EitherT
-      .fromEither[IO](
-        EngineModelSerializers.deserialize(
-          appConfig.inkuirePaths
-            .flatMap(path => getURLs(new URL(path), ".json"))
-            .map(getURLContent)
-            .head //TODO custom file extension
-        )
-      )
-      .asInstanceOf[EitherT[IO, String, InkuireDb]]
+    appConfig.inkuirePaths
+      .flatMap(path => getURLs(new URL(path), ".json"))
+      .map(getURLContent)
+      .toList
+      .traverse(f => IO(f))
+      .map { contents =>
+        contents
+          .map(EngineModelSerializers.deserialize)
+          .collect {
+            case Right(db) => db
+          }
+          .pipe(Monoid.combineAll[InkuireDb])
+      }
+      .pipe(EitherT.right(_))
   }
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
