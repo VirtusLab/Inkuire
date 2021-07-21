@@ -13,14 +13,16 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
   val ancestryGraph       = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {
-    val signatures = resolveAllPossibleSignatures(parsed).map(_.toList)
-      .map(_.map(moveToReceiverIfPossible))
-      .map(_.flatMap { sgn => convertReceivers(sgn).toList })
-      .map(_.flatMap { sgn => permutateParams(sgn).toList })
-      .map(_.distinct)
+    val signatures = resolveAllPossibleSignatures(parsed).map(
+      _.toList
+        .map(moveToReceiverIfPossible)
+        .flatMap { sgn => convertReceivers(sgn).toList }
+        .flatMap { sgn => permutateParams(sgn).toList }
+        .distinct
+    )
     signatures match {
       case Left(unresolvedType) => Left(resolveError(s"Could not resolve type: $unresolvedType"))
-      case Right(signatures)      => Right(ResolveResult(signatures))
+      case Right(signatures)    => Right(ResolveResult(signatures))
     }
   }
 
@@ -118,14 +120,14 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
             .mapValues(resolveMultipleTypes(_).toOption.get.head)
             .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
       } yield signature
-      .modify(_.receiver)
-      .setTo(receiver)
-      .modify(_.arguments)
-      .setTo(args)
-      .modify(_.result)
-      .setTo(result)
-      .modify(_.context.constraints)
-      .setTo(constraints) 
+        .modify(_.receiver)
+        .setTo(receiver)
+        .modify(_.arguments)
+        .setTo(args)
+        .modify(_.result)
+        .setTo(result)
+        .modify(_.context.constraints)
+        .setTo(constraints)
     }
   }
 
@@ -144,23 +146,26 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case t: Type if t.isStarProjection => Right(Seq(t))
       case t: Type if t.isVariable =>
         resolveMultipleTypes(t.params.map(_.typ)).map(_.map { params =>
-          t.modify(_.itid).setTo(ITID(t.name.name, isParsed = true).some).modify(_.params).setTo(params.zipVariances(t.params))
+          t.modify(_.itid)
+            .setTo(ITID(t.name.name, isParsed = true).some)
+            .modify(_.params)
+            .setTo(params.zipVariances(t.params))
         })
       case t: Type if t.isGeneric =>
-          resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
-            ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-              case _ :: _ =>
-                Right(for {
-                  generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
-                  params <- params.map(_.zipVariances(generic.params))
-                } yield copyITID(t.modify(_.params).setTo(params), generic.itid))
-              case _ => Left(t.name.name)
-            }
+        resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
+          ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
+            case _ :: _ =>
+              Right(for {
+                generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
+                params <- params.map(_.zipVariances(generic.params))
+              } yield copyITID(t.modify(_.params).setTo(params), generic.itid))
+            case _ => Left(t.name.name)
           }
+        }
       case t: Type =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-          case types@(_ :: _) => Right(types)
-          case _ => Left(t.name.name)
+          case types @ (_ :: _) => Right(types)
+          case _                => Left(t.name.name)
         }
       case t =>
         Right(Seq(t))
@@ -168,11 +173,11 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
     resolved
       .map(
         _.map(_ -> typ)
-        .filter {
-          case (t: Type, typ: Type) => t.params.size == typ.params.size
-          case _ => true
-        }
-        .map(_._1)
+          .filter {
+            case (t: Type, typ: Type) => t.params.size == typ.params.size
+            case _ => true
+          }
+          .map(_._1)
       )
   }
 
