@@ -11,4 +11,10 @@ trait VarianceOps {
       case _: UnresolvedVariance => UnresolvedVariance(typ)
     }
   }
+
+  implicit class TypeVariancesOps(types: Seq[TypeLike]) {
+    def zipVariances(variances: Seq[Variance]): Seq[Variance] = types.zip(variances).map {
+      case (t, v) => t.zipVariance(v)
+    }
+  }
 }

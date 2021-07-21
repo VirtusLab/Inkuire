@@ -3,6 +3,8 @@ package org.virtuslab.inkuire.engine.common.service
 import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
+import cats.data.EitherT
+import cats.data.Nested
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with VarianceOps {
 
@@ -11,15 +13,16 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
   val ancestryGraph       = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {
-    val signatures = resolveAllPossibleSignatures(parsed).toList
-      .map(moveToReceiverIfPossible)
-      .flatMap { sgn => convertReceivers(sgn).toList }
-      .flatMap { sgn => permutateParams(sgn).toList }
-      .distinct
+    val signatures = resolveAllPossibleSignatures(parsed).map(
+      _.toList
+        .map(moveToReceiverIfPossible)
+        .flatMap { sgn => convertReceivers(sgn).toList }
+        .flatMap { sgn => permutateParams(sgn).toList }
+        .distinct
+    )
     signatures match {
-      //TODO change to sth more informative, actual unresolved types
-      case List() => Left(resolveError("Could not resolve types in provided signature"))
-      case _      => Right(ResolveResult(signatures))
+      case Left(unresolvedType) => Left(resolveError(s"Could not resolve type: $unresolvedType"))
+      case Right(signatures)    => Right(ResolveResult(signatures))
     }
   }
 
@@ -98,79 +101,84 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       .distinct
   }
 
-  private def resolveAllPossibleSignatures(signature: Signature): Seq[Signature] = {
+  private def resolveAllPossibleSignatures(signature: Signature): Either[String, Seq[Signature]] = {
     for {
       receiver <-
         signature.receiver
-          .fold[Seq[Option[Contravariance]]](Seq(None))(r =>
-            resolvePossibleVariances(Contravariance(r.typ)).map(_.some.asInstanceOf[Option[Contravariance]])
+          .fold[Either[String, Seq[Option[Contravariance]]]](Right(Seq(None)))(r =>
+            resolvePossibleVariances(Contravariance(r.typ)).map(_.map(_.some.asInstanceOf[Option[Contravariance]]))
           )
       args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance))
       result <- resolvePossibleVariances(Covariance(signature.result.typ))
-      constraints =
-        signature.context.constraints.view
-          .mapValues(resolveMultipleTypes(_).head)
-          .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
-    } yield signature
-      .modify(_.receiver)
-      .setTo(receiver)
-      .modify(_.arguments)
-      .setTo(args)
-      .modify(_.result)
-      .setTo(result)
-      .modify(_.context.constraints)
-      .setTo(constraints)
+    } yield {
+      for {
+        receiver <- receiver
+        args <- args
+        result <- result
+        constraints =
+          signature.context.constraints.view
+            .mapValues(resolveMultipleTypes(_).toOption.get.head)
+            .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
+      } yield signature
+        .modify(_.receiver)
+        .setTo(receiver)
+        .modify(_.arguments)
+        .setTo(args)
+        .modify(_.result)
+        .setTo(result)
+        .modify(_.context.constraints)
+        .setTo(constraints)
+    }
   }
 
-  private def resolvePossibleVariances[V <: Variance](v: V): Seq[V] = {
+  private def resolvePossibleVariances[V <: Variance](v: V): Either[String, Seq[V]] = {
     val typ   = v.typ
     val types = resolvePossibleTypes(typ)
     if (v.isInstanceOf[Contravariance]) {
-      mostSpecific(types).map(_.zipVariance(v).asInstanceOf[V])
+      types.map(types => mostSpecific(types).map(_.zipVariance(v).asInstanceOf[V]))
     } else if (v.isInstanceOf[Covariance]) {
-      mostGeneral(types).map(_.zipVariance(v).asInstanceOf[V])
-    } else types.map(_.zipVariance(v).asInstanceOf[V])
+      types.map(types => mostGeneral(types).map(_.zipVariance(v).asInstanceOf[V]))
+    } else types.map(_.map(_.zipVariance(v).asInstanceOf[V]))
   }
 
-  private def resolvePossibleTypes(typ: TypeLike): Seq[TypeLike] = {
-    val resolved = typ match {
-      case t: Type if t.isStarProjection => Seq(t)
-      case t: Type if t.isVariable && !t.isGeneric =>
-        Seq(
+  private def resolvePossibleTypes(typ: TypeLike): Either[String, Seq[TypeLike]] = {
+    val resolved: Either[String, Seq[TypeLike]] = typ match {
+      case t: Type if t.isStarProjection => Right(Seq(t))
+      case t: Type if t.isVariable =>
+        resolveMultipleTypes(t.params.map(_.typ)).map(_.map { params =>
           t.modify(_.itid)
             .setTo(ITID(t.name.name, isParsed = true).some)
-        )
-      case t: Type if t.isVariable && t.isGeneric => //TODO I'm fairly certain that this case works for Arrow.kt - Kind
-        for {
-          kind <-
-            ancestryGraph.values
-              .map(_._1)
-              .filter(_.name == t.name)
-              .filter(_.params.size == t.params.size - 1)
-              .filter(_.params.nonEmpty)
-              .toSeq
-          params <- resolveMultipleTypes(t.params.map(_.typ))
-        } yield kind.modify(_.params).setTo((t +: params).map(Invariance.apply))
+            .modify(_.params)
+            .setTo(params.zipVariances(t.params))
+        })
       case t: Type if t.isGeneric =>
-        for {
-          generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
-          params <- resolveMultipleTypes(t.params.map(_.typ))
-            .map(_.zip(generic.params).map {
-              case (p, v) => p.zipVariance(v)
-            })
-        } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
+        resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
+          ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
+            case _ :: _ =>
+              Right(for {
+                generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
+                params <- params.map(_.zipVariances(generic.params))
+              } yield copyITID(t.modify(_.params).setTo(params), generic.itid))
+            case _ => Left(t.name.name)
+          }
+        }
       case t: Type =>
-        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
+        ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
+          case types @ (_ :: _) => Right(types)
+          case _                => Left(t.name.name)
+        }
       case t =>
-        Seq(t)
+        Right(Seq(t))
     }
     resolved
-      .map(_ -> typ)
-      .filter {
-        case (t: Type, typ: Type) => t.params.size == typ.params.size
-        case _ => true
-      }
-      .map(_._1)
+      .map(
+        _.map(_ -> typ)
+          .filter {
+            case (t: Type, typ: Type) => t.params.size == typ.params.size
+            case _ => true
+          }
+          .map(_._1)
+      )
   }
 
   private def copyITID(typ: Type, dri: Option[ITID]): Type =
@@ -179,25 +187,35 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case _                  => typ
     }
 
-  private def resolveMultipleVariances[V <: Variance](args: Seq[V]): Seq[Seq[V]] = {
+  private def resolveMultipleVariances[V <: Variance](args: Seq[V]): Either[String, Seq[Seq[V]]] = {
     args match {
-      case Nil => Seq(Seq.empty)
+      case Nil => Right(Seq(Seq.empty))
       case h :: t =>
         for {
           arg <- resolvePossibleVariances[V](h)
           rest <- resolveMultipleVariances[V](t)
-        } yield arg +: rest
+        } yield {
+          for {
+            arg <- arg
+            rest <- rest
+          } yield arg +: rest
+        }
     }
   }
 
-  private def resolveMultipleTypes(args: Seq[TypeLike]): Seq[Seq[TypeLike]] = {
+  private def resolveMultipleTypes(args: Seq[TypeLike]): Either[String, Seq[Seq[TypeLike]]] = {
     args match {
-      case Nil => Seq(Seq.empty)
+      case Nil => Right(Seq(Seq.empty))
       case h :: t =>
         for {
           arg <- resolvePossibleTypes(h)
           rest <- resolveMultipleTypes(t)
-        } yield arg +: rest
+        } yield {
+          for {
+            arg <- arg
+            rest <- rest
+          } yield arg +: rest
+        }
     }
   }
 }

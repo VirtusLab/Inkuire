@@ -156,12 +156,11 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     val converter: TypeLike => TypeLike = resolve(vars)
     t match {
       case u: Type if u.isUnresolved =>
-        val resolvedOneLvl = if (vars.find(TypeName(_) == u.name).nonEmpty || isVariableByName(u)) {
-          u.asVariable
+        if (vars.find(TypeName(_) == u.name).nonEmpty || isVariableByName(u)) {
+          converter(u.asVariable)
         } else {
-          u.asConcrete
+          converter(u.asConcrete)
         }
-        resolvedOneLvl.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
       case t: Type =>
         t.modify(_.params.each).using(x => UnresolvedVariance(converter(x.typ)))
       case o: AndType =>
