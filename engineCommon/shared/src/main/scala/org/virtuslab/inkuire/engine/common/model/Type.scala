@@ -18,9 +18,9 @@ case class Type(
 
   def isGeneric: Boolean = params.nonEmpty
 
-  def asVariable: Type = this.modify(_.isVariable).setTo(true)
+  def asVariable: Type = this.modify(_.isVariable).setTo(true).modify(_.isUnresolved).setTo(false)
 
-  def asConcrete: Type = this.modify(_.isVariable).setTo(false)
+  def asConcrete: Type = this.modify(_.isVariable).setTo(false).modify(_.isUnresolved).setTo(false)
 }
 
 case class AndType(left: TypeLike, right: TypeLike) extends TypeLike

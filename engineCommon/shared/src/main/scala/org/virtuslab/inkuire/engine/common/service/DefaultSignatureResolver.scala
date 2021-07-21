@@ -135,29 +135,14 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
   private def resolvePossibleTypes(typ: TypeLike): Seq[TypeLike] = {
     val resolved = typ match {
       case t: Type if t.isStarProjection => Seq(t)
-      case t: Type if t.isVariable && !t.isGeneric =>
-        Seq(
-          t.modify(_.itid)
-            .setTo(ITID(t.name.name, isParsed = true).some)
-        )
-      case t: Type if t.isVariable && t.isGeneric => //TODO I'm fairly certain that this case works for Arrow.kt - Kind
-        for {
-          kind <-
-            ancestryGraph.values
-              .map(_._1)
-              .filter(_.name == t.name)
-              .filter(_.params.size == t.params.size - 1)
-              .filter(_.params.nonEmpty)
-              .toSeq
-          params <- resolveMultipleTypes(t.params.map(_.typ))
-        } yield kind.modify(_.params).setTo((t +: params).map(Invariance.apply))
+      case t: Type if t.isVariable =>
+        resolveMultipleTypes(t.params.map(_.typ)).map { params =>
+          t.modify(_.itid).setTo(ITID(t.name.name, isParsed = true).some).modify(_.params).setTo(params.zipVariances(t.params))
+        }
       case t: Type if t.isGeneric =>
         for {
           generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
-          params <- resolveMultipleTypes(t.params.map(_.typ))
-            .map(_.zip(generic.params).map {
-              case (p, v) => p.zipVariance(v)
-            })
+          params <- resolveMultipleTypes(t.params.map(_.typ)).map(_.zipVariances(generic.params))
         } yield copyITID(t.modify(_.params).setTo(params), generic.itid)
       case t: Type =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
