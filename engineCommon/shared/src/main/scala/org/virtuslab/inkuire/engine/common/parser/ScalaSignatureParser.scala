@@ -42,7 +42,7 @@ class ScalaSignatureParser extends BaseSignatureParser {
       (singleType <~ "=>") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
 
   def curriedFunctionTypes: Parser[Seq[Type]] =
-    "()" ~> ("=>" ~> singleType) ^^ { case t => List(t) } |
+    "=>" ~> singleType ^^ { case t => List(t) } |
       curriedTypes
 
   private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): Type = {
