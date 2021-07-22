@@ -22,7 +22,8 @@ class OutputFormatter(prettifier: SignaturePrettifier) {
             pretty,
             sgn.name,
             sgn.packageName,
-            sgn.uri
+            sgn.uri,
+            sgn.entryType
           )
       }
 }

@@ -153,18 +153,18 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case t: Type if t.isGeneric =>
         resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
           ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-            case _ :: _ =>
+            case Nil => Left(t.name.name)
+            case _   =>
               Right(for {
                 generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
                 params <- params.map(_.zipVariances(generic.params))
               } yield copyITID(t.modify(_.params).setTo(params), generic.itid))
-            case _ => Left(t.name.name)
           }
         }
       case t: Type =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-          case types @ (_ :: _) => Right(types)
-          case _                => Left(t.name.name)
+          case Nil   => Left(t.name.name)
+          case types => Right(types)
         }
       case t =>
         Right(Seq(t))

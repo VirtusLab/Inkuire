@@ -4,7 +4,8 @@ case class Match(
   prettifiedSignature: String,
   functionName:        String,
   packageLocation:     String,
-  pageLocation:        String
+  pageLocation:        String,
+  entryType:           String
 )
 
 sealed trait OutputFormat
