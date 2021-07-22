@@ -119,7 +119,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   private val scalaSignatureParser = new ScalaSignatureParser
 
   override def parse(str: String): Either[String, Signature] =
-    doParse(str) >>= convert >>= validate
+    doParse(str) >>= convert >>= (s => Right(curry(s))) >>= validate
 
   val parsingErrorGenericMessage =
     "Could not parse provided signature. Example signature looks like this: List[Int] => (Int => Boolean) => Int"
@@ -169,6 +169,19 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
         o.modifyAll(_.left, _.right).using(converter)
       case t: TypeLambda =>
         t.modify(_.result).using(converter)
+    }
+  }
+
+  private def curry(e: Signature): Signature = {
+    e.result.typ match {
+      case t: Type if t.name.name == s"Function${t.params.size-1}" =>
+        curry(
+          e.copy(
+            arguments = e.arguments ++ t.params.init.map(_.typ).map(Contravariance(_)),
+            result = Covariance(t.params.last.typ)
+          )
+        )
+      case _ => e
     }
   }
 
