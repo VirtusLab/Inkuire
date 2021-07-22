@@ -17,7 +17,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       _.toList
         .map(moveToReceiverIfPossible)
         .flatMap { sgn => convertReceivers(sgn).toList }
-        .flatMap { sgn => permutateParams(sgn).toList }
         .distinct
     )
     signatures match {
