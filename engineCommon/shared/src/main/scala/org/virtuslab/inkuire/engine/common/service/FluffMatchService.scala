@@ -29,11 +29,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  override def |?|(resolveResult: ResolveResult)(against: ExternalSignature): Boolean = {
+  override def isMatch(resolveResult: ResolveResult)(against: ExternalSignature): Boolean = {
     resolveResult.signatures.exists(against.signature.canSubstituteFor(_))
   }
 
-  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+  override def findMatches(resolveResult: ResolveResult): Seq[ExternalSignature] = {
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
@@ -43,7 +43,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
-      .filter(|?|(resolveResult.modify(_.signatures).setTo(actualSignatures)))
+      .filter(isMatch(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
