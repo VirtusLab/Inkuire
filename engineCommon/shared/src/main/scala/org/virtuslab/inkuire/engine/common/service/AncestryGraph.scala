@@ -5,6 +5,8 @@ import cats.data.State
 import cats.implicits._
 import com.softwaremill.quicklens._
 import scala.util.Random
+import scala.util.chaining._
+import scala.collection.mutable.{Set => MSet}
 
 case class AncestryGraph(
   nodes:               Map[ITID, (Type, Seq[Type])],
@@ -12,103 +14,114 @@ case class AncestryGraph(
   typeAliases:         Map[ITID, TypeLike]
 ) extends VarianceOps {
 
+  val cacheNeg: MSet[(TypeLike, TypeLike)] = MSet.empty
+
   implicit class TypeOps(typ: TypeLike) {
     def isSubTypeOf(supr: TypeLike)(context: SignatureContext): State[VariableBindings, Boolean] = {
-      (typ, supr) match {
-        case (t: Type, _) if t.isStarProjection => State.pure(true)
-        case (_, s: Type) if s.isStarProjection => State.pure(true)
-        case (AndType(left, right), supr) =>
-          left.isSubTypeOf(supr)(context).flatMap { res =>
-            if (res) State.pure(true)
-            else right.isSubTypeOf(supr)(context)
-          }
-        case (typ, AndType(left, right)) =>
-          typ.isSubTypeOf(left)(context).flatMap { res =>
-            if (res) typ.isSubTypeOf(right)(context)
+      if (cacheNeg.contains((typ, supr))) State.pure(false)
+      else {
+        val res = (typ, supr) match {
+          case (t: Type, _) if t.isStarProjection => State.pure(true)
+          case (_, s: Type) if s.isStarProjection => State.pure(true)
+          case (AndType(left, right), supr) =>
+            left.isSubTypeOf(supr)(context).flatMap { res =>
+              if (res) State.pure(true)
+              else right.isSubTypeOf(supr)(context)
+            }
+          case (typ, AndType(left, right)) =>
+            typ.isSubTypeOf(left)(context).flatMap { res =>
+              if (res) typ.isSubTypeOf(right)(context)
+              else State.pure(false)
+            }
+          case (OrType(left, right), supr) =>
+            left.isSubTypeOf(supr)(context).flatMap { res =>
+              if (res) right.isSubTypeOf(supr)(context)
+              else State.pure(false)
+            }
+          case (typ, OrType(left, right)) =>
+            typ.isSubTypeOf(left)(context).flatMap { res =>
+              if (res) State.pure(true)
+              else typ.isSubTypeOf(right)(context)
+            }
+          case (typ: TypeLambda, supr: TypeLambda) =>
+            val dummyTypes = genDummyTypes(typ.args.size)
+            val typResult  = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
+            val suprResult = substituteBindings(supr.result, supr.args.flatMap(_.itid).zip(dummyTypes).toMap)
+            if (typ.args.size == supr.args.size) typResult.isSubTypeOf(suprResult)(context)
             else State.pure(false)
-          }
-        case (OrType(left, right), supr) =>
-          left.isSubTypeOf(supr)(context).flatMap { res =>
-            if (res) right.isSubTypeOf(supr)(context)
-            else State.pure(false)
-          }
-        case (typ, OrType(left, right)) =>
-          typ.isSubTypeOf(left)(context).flatMap { res =>
-            if (res) State.pure(true)
-            else typ.isSubTypeOf(right)(context)
-          }
-        case (typ: TypeLambda, supr: TypeLambda) =>
-          val dummyTypes = genDummyTypes(typ.args.size)
-          val typResult  = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
-          val suprResult = substituteBindings(supr.result, supr.args.flatMap(_.itid).zip(dummyTypes).toMap)
-          if (typ.args.size == supr.args.size) typResult.isSubTypeOf(suprResult)(context)
-          else State.pure(false)
-        case (_: TypeLambda, _) =>
-          State.pure(false)
-        case (_, _: TypeLambda) =>
-          State.pure(false)
-        case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
-          State.modify[VariableBindings](_.add(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
-            checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
-          State.modify[VariableBindings](_.add(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
-            checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
-          val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
-          val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
-          State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
-            State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
-        case (typ: Type, supr: Type) if supr.isVariable =>
-          if (supr.itid.get.isParsed) {
-            State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-              State.pure(true)
-          } else {
-            val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
-            State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-              constraints
-                .foldLeft(State.pure[VariableBindings, Boolean](true)) {
-                  case (acc, t) =>
-                    acc.flatMap { cond =>
-                      if (cond) typ.isSubTypeOf(t)(context)
-                      else State.pure(false)
-                    }
-                }
-          }
-        case (typ: Type, supr: Type) if typ.isVariable =>
-          if (typ.itid.get.isParsed) {
-            val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
-            State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
-              if (constraints.nonEmpty) {
+          case (_: TypeLambda, _) =>
+            State.pure(false)
+          case (_, _: TypeLambda) =>
+            State.pure(false)
+          case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
+            State.modify[VariableBindings](_.add(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
+              checkTypeParamsByVariance(typ, supr, context)
+          case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
+            State.modify[VariableBindings](_.add(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
+              checkTypeParamsByVariance(typ, supr, context)
+          case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
+            val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
+            val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
+            State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
+              State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
+          case (typ: Type, supr: Type) if supr.isVariable =>
+            if (supr.itid.get.isParsed) {
+              State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+                State.pure(true)
+            } else {
+              val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
+              State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
                 constraints
-                  .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                  .foldLeft(State.pure[VariableBindings, Boolean](true)) {
                     case (acc, t) =>
                       acc.flatMap { cond =>
-                        if (cond) State.pure[VariableBindings, Boolean](true)
-                        else t.isSubTypeOf(supr)(context)
+                        if (cond) typ.isSubTypeOf(t)(context)
+                        else State.pure(false)
                       }
                   }
-              } else State.pure(true)
             }
-          } else {
-            State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-              State.pure(true)
+          case (typ: Type, supr: Type) if typ.isVariable =>
+            if (typ.itid.get.isParsed) {
+              val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
+              State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
+                if (constraints.nonEmpty) {
+                  constraints
+                    .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                      case (acc, t) =>
+                        acc.flatMap { cond =>
+                          if (cond) State.pure[VariableBindings, Boolean](true)
+                          else t.isSubTypeOf(supr)(context)
+                        }
+                    }
+                } else State.pure(true)
+              }
+            } else {
+              State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
+                State.pure(true)
+            }
+          case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
+          case (typ: Type, supr: Type) =>
+            nodes
+              .get(typ.itid.get)
+              .toList
+              .flatMap(node => specializeParents(typ, node))
+              .map(_ -> supr)
+              .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+              .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+              .foldLeft(State.pure[VariableBindings, Boolean](false)) {
+                case (acc, (t, s)) =>
+                  acc.flatMap { cond =>
+                    if (cond) State.pure(true)
+                    else t.isSubTypeOf(s)(context)
+                  }
+              }
+        }
+        res
+          .asInstanceOf[State[VariableBindings, Boolean]]
+          .map { b =>
+            if (!b) cacheNeg.add((typ, supr))
+            b
           }
-        case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) =>
-          nodes
-            .get(typ.itid.get)
-            .toList
-            .flatMap(node => specializeParents(typ, node))
-            .map(_ -> supr)
-            .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
-            .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
-            .foldLeft(State.pure[VariableBindings, Boolean](false)) {
-              case (acc, (t, s)) =>
-                acc.flatMap { cond =>
-                  if (cond) State.pure(true)
-                  else t.isSubTypeOf(s)(context)
-                }
-            }
       }
     }
   }
