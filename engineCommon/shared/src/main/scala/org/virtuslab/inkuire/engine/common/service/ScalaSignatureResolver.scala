@@ -166,6 +166,26 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
           case Nil   => Left(t.name.name)
           case types => Right(types)
         }
+      case OrType(left, right) =>
+        for {
+          l <- resolvePossibleTypes(left)
+          r <- resolvePossibleTypes(right)
+        } yield {
+          for {
+            r <- r
+            l <- l
+          } yield OrType(l, r)
+        }
+      case AndType(left, right) =>
+        for {
+          l <- resolvePossibleTypes(left)
+          r <- resolvePossibleTypes(right)
+        } yield {
+          for {
+            r <- r
+            l <- l
+          } yield AndType(l, r)
+        }
       case t =>
         Right(Seq(t))
     }

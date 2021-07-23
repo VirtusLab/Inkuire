@@ -127,23 +127,23 @@ case class AncestryGraph(
         case (_, s: Type) if s.isStarProjection => State.pure(true)
         case (AndType(left, right), supr) =>
           left.isSubTypeOf(supr)(context).flatMap { res =>
-            if (res) right.isSubTypeOf(supr)(context)
-            else State.pure(false)
-          }
-        case (typ, AndType(left, right)) =>
-          typ.isSubTypeOf(left)(context).flatMap { res =>
-            if (res) State.pure(true)
-            else typ.isSubTypeOf(right)(context)
-          }
-        case (OrType(left, right), supr) =>
-          left.isSubTypeOf(supr)(context).flatMap { res =>
             if (res) State.pure(true)
             else right.isSubTypeOf(supr)(context)
           }
-        case (typ, OrType(left, right)) =>
+        case (typ, AndType(left, right)) =>
           typ.isSubTypeOf(left)(context).flatMap { res =>
             if (res) typ.isSubTypeOf(right)(context)
             else State.pure(false)
+          }
+        case (OrType(left, right), supr) =>
+          left.isSubTypeOf(supr)(context).flatMap { res =>
+            if (res) right.isSubTypeOf(supr)(context)
+            else State.pure(false)
+          }
+        case (typ, OrType(left, right)) =>
+          typ.isSubTypeOf(left)(context).flatMap { res =>
+            if (res) State.pure(true)
+            else typ.isSubTypeOf(right)(context)
           }
         case (typ: TypeLambda, supr: TypeLambda) =>
           val dummyTypes = genDummyTypes(typ.args.size)
