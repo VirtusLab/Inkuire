@@ -24,6 +24,6 @@ object Main extends App {
 
   def startApp(): Unit = {
     val inkuirePath = Globals.pathToRoot + "scripts/"
-    val worker     = new Worker(inkuirePath + "inkuire-worker.js")
+    val worker      = new Worker(inkuirePath + "inkuire-worker.js")
   }
 }

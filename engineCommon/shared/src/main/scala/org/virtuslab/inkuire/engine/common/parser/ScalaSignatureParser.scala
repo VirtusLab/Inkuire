@@ -184,7 +184,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
 
   private def curry(e: Signature): Signature = {
     e.result.typ match {
-      case t: Type if t.name.name == s"Function${t.params.size-1}" =>
+      case t: Type if t.name.name == s"Function${t.params.size - 1}" =>
         curry(
           e.copy(
             arguments = e.arguments ++ t.params.init.map(_.typ).map(Contravariance(_)),

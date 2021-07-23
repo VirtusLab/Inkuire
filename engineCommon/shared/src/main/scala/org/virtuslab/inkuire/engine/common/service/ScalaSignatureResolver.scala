@@ -154,7 +154,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
           ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
             case Nil => Left(t.name.name)
-            case _   =>
+            case _ =>
               Right(for {
                 generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
                 params <- params.map(_.zipVariances(generic.params))
