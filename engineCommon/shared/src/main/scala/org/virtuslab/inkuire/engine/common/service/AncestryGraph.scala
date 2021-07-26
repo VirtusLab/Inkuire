@@ -20,7 +20,7 @@ case class AncestryGraph(
     def isSubTypeOf(supr: TypeLike)(context: SignatureContext): State[VariableBindings, Boolean] = {
       if (cacheNeg.contains((typ, supr))) State.pure(false)
       else {
-        val res = (typ, supr) match {
+        val res: State[VariableBindings, Boolean] = (typ, supr) match {
           case (t: Type, _) if t.isStarProjection => State.pure(true)
           case (_, s: Type) if s.isStarProjection => State.pure(true)
           case (AndType(left, right), supr) =>
@@ -117,7 +117,6 @@ case class AncestryGraph(
               }
         }
         res
-          .asInstanceOf[State[VariableBindings, Boolean]]
           .map { b =>
             if (!b) cacheNeg.add((typ, supr))
             b
