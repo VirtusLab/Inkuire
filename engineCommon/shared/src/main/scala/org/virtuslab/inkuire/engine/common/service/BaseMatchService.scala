@@ -4,6 +4,6 @@ import org.virtuslab.inkuire.engine.common.model.{ExternalSignature, InkuireDb, 
 
 trait BaseMatchService {
   def inkuireDb: InkuireDb
-  def |??|(resolveResult: ResolveResult): Seq[ExternalSignature]
-  def |?|(resolveResult:  ResolveResult)(against: ExternalSignature): Boolean
+  def findMatches(resolveResult: ResolveResult): Seq[ExternalSignature]
+  def isMatch(resolveResult:     ResolveResult)(against: ExternalSignature): Boolean
 }

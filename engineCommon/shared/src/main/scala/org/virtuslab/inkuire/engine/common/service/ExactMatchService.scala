@@ -4,10 +4,10 @@ import org.virtuslab.inkuire.engine.common.model.{ExternalSignature, InkuireDb, 
 
 class ExactMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
 
-  override def |??|(resolveResult: ResolveResult): Seq[ExternalSignature] = {
-    inkuireDb.functions.filter(|?|(resolveResult))
+  override def findMatches(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+    inkuireDb.functions.filter(isMatch(resolveResult))
   }
 
-  override def |?|(resolveResult: ResolveResult)(against: ExternalSignature): Boolean =
+  override def isMatch(resolveResult: ResolveResult)(against: ExternalSignature): Boolean =
     resolveResult.signatures.contains(against.signature)
 }

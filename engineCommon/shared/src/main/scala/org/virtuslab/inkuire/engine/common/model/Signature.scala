@@ -10,6 +10,11 @@ case class Signature(
 }
 
 object Signature {
-  def apply(receiver: Option[Type], arguments: Seq[Type], result: Type, context: SignatureContext): Signature =
+  def apply(
+    receiver:  Option[TypeLike],
+    arguments: Seq[TypeLike],
+    result:    TypeLike,
+    context:   SignatureContext
+  ): Signature =
     Signature(receiver.map(Contravariance), arguments.map(Contravariance), Covariance(result), context)
 }

@@ -27,7 +27,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
             .fromIterable(env.db.functions)
             .filterEvalF { eSgn =>
               IO.async[Boolean] { f =>
-                f(Right(env.matcher.|?|(r)(eSgn)))
+                f(Right(env.matcher.isMatch(r)(eSgn)))
               }
             }
             .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))

@@ -47,7 +47,7 @@ class HttpServer extends OutputHandler {
           logger.info(s"Parsed signature: " + signature)
           env.resolver.resolve(parsed)
         }
-        .map { resolved => env.matcher |??| resolved }
+        .map { resolved => env.matcher findMatches resolved }
         .map { results => formatter.createOutput(signature, results) }
     }
 

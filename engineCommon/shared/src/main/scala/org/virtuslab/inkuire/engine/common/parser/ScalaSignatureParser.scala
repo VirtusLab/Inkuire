@@ -24,28 +24,38 @@ class ScalaSignatureParser extends BaseSignatureParser {
       tupleType |
       typ
 
-  def functionType: Parser[Type] =
-    "()" ~> "=>" ~> singleType |
-      "(" ~> curriedFunctionTypes <~ ")" ^^ {
-        case types => mapToGenericFunctionType(None, types.init, types.last)
-      }
+  def typeLike: Parser[TypeLike] =
+    singleType |
+      orType |
+      andType
 
-  def tupleTypes: Parser[Seq[Type]] =
-    (singleType <~ ",") ~ tupleTypes ^^ { case t1 ~ ts => t1 +: ts } |
-      (singleType <~ ",") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
+  def orType: Parser[OrType] =
+    "(" ~> typeLike ~ ("|" ~> typeLike) <~ ")" ^^ { case t1 ~ t2 => OrType(t1, t2) }
+
+  def andType: Parser[AndType] =
+    "(" ~> typeLike ~ ("&" ~> typeLike) <~ ")" ^^ { case t1 ~ t2 => AndType(t1, t2) }
+
+  def functionType: Parser[Type] =
+    "(" ~> curriedFunctionTypes <~ ")" ^^ {
+      case types => mapToGenericFunctionType(None, types.init, types.last)
+    }
+
+  def tupleTypes: Parser[Seq[TypeLike]] =
+    (typeLike <~ ",") ~ tupleTypes ^^ { case t1 ~ ts => t1 +: ts } |
+      (typeLike <~ ",") ~ typeLike ^^ { case t1 ~ t2 => List(t1, t2) }
 
   def tupleType: Parser[Type] =
     "(" ~> tupleTypes <~ ")" ^^ { case types => mapToTupleType(types) }
 
-  def curriedTypes: Parser[Seq[Type]] =
-    (singleType <~ "=>") ~ curriedTypes ^^ { case t1 ~ ts => t1 +: ts } |
-      (singleType <~ "=>") ~ singleType ^^ { case t1 ~ t2 => List(t1, t2) }
+  def curriedTypes: Parser[Seq[TypeLike]] =
+    (typeLike <~ "=>") ~ curriedTypes ^^ { case t1 ~ ts => t1 +: ts } |
+      (typeLike <~ "=>") ~ typeLike ^^ { case t1 ~ t2 => List(t1, t2) }
 
-  def curriedFunctionTypes: Parser[Seq[Type]] =
-    "()" ~> ("=>" ~> singleType) ^^ { case t => List(t) } |
+  def curriedFunctionTypes: Parser[Seq[TypeLike]] =
+    "=>" ~> typeLike ^^ { case t => List(t) } |
       curriedTypes
 
-  private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[Type], result: Type): Type = {
+  private def mapToGenericFunctionType(receiver: Option[Type], args: Seq[TypeLike], result: TypeLike): Type = {
     val params = receiver.fold(args :+ result)(_ +: args :+ result)
     Type(
       s"Function${params.size - 1}",
@@ -53,7 +63,7 @@ class ScalaSignatureParser extends BaseSignatureParser {
     )
   }
 
-  private def mapToTupleType(args: Seq[Type]): Type =
+  private def mapToTupleType(args: Seq[TypeLike]): Type =
     Type(
       s"Tuple${args.size}",
       params = args.map(UnresolvedVariance)
@@ -64,9 +74,9 @@ class ScalaSignatureParser extends BaseSignatureParser {
       case baseType ~ types => Type(baseType, types.map(UnresolvedVariance))
     }
 
-  def types: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
+  def types: Parser[Seq[TypeLike]] = list(typeLike) | empty[List[TypeLike]]
 
-  def typeArguments: Parser[Seq[Type]] = list(singleType) | empty[List[Type]]
+  def typeArguments: Parser[Seq[TypeLike]] = list(typeLike) | empty[List[TypeLike]]
 
   def typeVariable: Parser[(String, Seq[Type])] =
     (identifier <~ "<:") ~ singleType ^^ { case typeVar ~ constraint => (typeVar, Seq(constraint)) } |
@@ -94,9 +104,9 @@ class ScalaSignatureParser extends BaseSignatureParser {
     curriedSignature
 
   def mapToSignature(
-    rcvr:     Option[Type],
-    args:     Seq[Type],
-    result:   Type,
+    rcvr:     Option[TypeLike],
+    args:     Seq[TypeLike],
+    result:   TypeLike,
     typeVars: (Seq[String], Map[String, Seq[Type]]),
     where:    Map[String, Seq[Type]]
   ): Signature =
@@ -119,7 +129,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   private val scalaSignatureParser = new ScalaSignatureParser
 
   override def parse(str: String): Either[String, Signature] =
-    doParse(str) >>= convert >>= validate
+    doParse(str) >>= convert >>= (s => Right(curry(s))) >>= validate
 
   val parsingErrorGenericMessage =
     "Could not parse provided signature. Example signature looks like this: List[Int] => (Int => Boolean) => Int"
@@ -169,6 +179,19 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
         o.modifyAll(_.left, _.right).using(converter)
       case t: TypeLambda =>
         t.modify(_.result).using(converter)
+    }
+  }
+
+  private def curry(e: Signature): Signature = {
+    e.result.typ match {
+      case t: Type if t.name.name == s"Function${t.params.size - 1}" =>
+        curry(
+          e.copy(
+            arguments = e.arguments ++ t.params.init.map(_.typ).map(Contravariance(_)),
+            result = Covariance(t.params.last.typ)
+          )
+        )
+      case _ => e
     }
   }
 

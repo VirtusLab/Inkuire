@@ -4,5 +4,6 @@ case class ExternalSignature(
   signature:   Signature,
   name:        String,
   packageName: String,
-  uri:         String
+  uri:         String,
+  entryType:   String
 )

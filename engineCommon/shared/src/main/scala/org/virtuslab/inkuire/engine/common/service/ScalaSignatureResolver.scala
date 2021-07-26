@@ -17,7 +17,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       _.toList
         .map(moveToReceiverIfPossible)
         .flatMap { sgn => convertReceivers(sgn).toList }
-        .flatMap { sgn => permutateParams(sgn).toList }
         .distinct
     )
     signatures match {
@@ -154,18 +153,38 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case t: Type if t.isGeneric =>
         resolveMultipleTypes(t.params.map(_.typ)).flatMap { params =>
           ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-            case _ :: _ =>
+            case Nil => Left(t.name.name)
+            case _ =>
               Right(for {
                 generic <- ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq
                 params <- params.map(_.zipVariances(generic.params))
               } yield copyITID(t.modify(_.params).setTo(params), generic.itid))
-            case _ => Left(t.name.name)
           }
         }
       case t: Type =>
         ancestryGraph.values.map(_._1).filter(_.name == t.name).toSeq match {
-          case types @ (_ :: _) => Right(types)
-          case _                => Left(t.name.name)
+          case Nil   => Left(t.name.name)
+          case types => Right(types)
+        }
+      case OrType(left, right) =>
+        for {
+          l <- resolvePossibleTypes(left)
+          r <- resolvePossibleTypes(right)
+        } yield {
+          for {
+            r <- r
+            l <- l
+          } yield OrType(l, r)
+        }
+      case AndType(left, right) =>
+        for {
+          l <- resolvePossibleTypes(left)
+          r <- resolvePossibleTypes(right)
+        } yield {
+          for {
+            r <- r
+            l <- l
+          } yield AndType(l, r)
         }
       case t =>
         Right(Seq(t))
