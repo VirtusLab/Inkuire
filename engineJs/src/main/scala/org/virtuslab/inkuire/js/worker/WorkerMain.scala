@@ -6,7 +6,6 @@ import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
 import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
-import org.virtuslab.inkuire.js.Globals
 import org.virtuslab.inkuire.js.handlers.{JSInputHandler, JSOutputHandler}
 
 import scala.scalajs.js
