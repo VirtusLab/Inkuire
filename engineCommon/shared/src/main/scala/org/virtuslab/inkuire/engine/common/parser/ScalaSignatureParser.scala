@@ -10,7 +10,8 @@ import org.virtuslab.inkuire.engine.common.model._
 class ScalaSignatureParser extends BaseSignatureParser {
 
   def concreteType: Parser[Type] =
-    identifier ^^ (Type(_, isUnresolved = true))
+    identifier ^^ (Type(_, isUnresolved = true)) |
+      "`" ~> identifier <~ "`" ^^ (Type(_, isUnresolved = false))
 
   def typ: Parser[Type] =
     genericType |
