@@ -24,21 +24,18 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
   private def tryGetURLContent(url: String): Future[Either[String, String]] =
     Ajax.get(url)
       .map(_.responseText.pipe(Right(_)))
-      .fallbackTo(Future(Left("Inkuire seems to be disabled. To enable it add `-Ygenerate-inkuire` flag to scaladoc options.")))
+      .fallbackTo(Future(Left("Could not read contents of file")))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
-    //Assuming we get link to config
-    val configLink = args.headOption match {
-      case Some(url) => Right(url)
-      case None      => Left("Missing configuration link")
-    }
-    configLink
+    args
+      .headOption.toRight("Missing configuration url")
       .map(tryGetURLContent)
       .flatTraverse(f => IO.fromFuture(IO(f)))
       .map(_.flatMap(parseConfig))
       .pipe(new EitherT(_))
+      .leftMap(_ => "Inkuire seems to be disabled. To enable it add `-Ygenerate-inkuire` flag to scaladoc options.")
   }
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
