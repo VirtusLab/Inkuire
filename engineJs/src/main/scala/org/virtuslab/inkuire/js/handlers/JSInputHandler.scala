@@ -22,15 +22,16 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
     Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
 
   private def tryGetURLContent(url: String): Future[Either[String, String]] =
-    Ajax.get(url)
+    Ajax
+      .get(url)
       .map(_.responseText.pipe(Right(_)))
       .fallbackTo(Future(Left("Could not read contents of file")))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
-    args
-      .headOption.toRight("Missing configuration url")
+    args.headOption
+      .toRight("Missing configuration url")
       .map(tryGetURLContent)
       .flatTraverse(f => IO.fromFuture(IO(f)))
       .map(_.flatMap(parseConfig))
