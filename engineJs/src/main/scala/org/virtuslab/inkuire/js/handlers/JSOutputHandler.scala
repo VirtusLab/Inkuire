@@ -42,7 +42,6 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
           subject.onNext(v)
           Ack.Continue
         case Left(v) =>
-          println(s"From output: $v")
           jsHandler.handleQueryEnded(v)
           Ack.Continue
       }

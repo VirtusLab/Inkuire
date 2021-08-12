@@ -18,32 +18,36 @@ import scala.util.chaining._
 import cats.kernel.Monoid
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
-  private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
+  private def getURLContent(url: String): Future[String] =
+    Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
+
+  private def tryGetURLContent(url: String): Future[Either[String, String]] =
+    Ajax
+      .get(url)
+      .map(_.responseText.pipe(Right(_)))
+      .fallbackTo(Future(Left("Could not read contents of file")))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
-    //Assuming we get link to config
-    val configLink = args.headOption match {
-      case Some(url) => Right(url)
-      case None      => Left("Missing configuration link")
-    }
-    configLink
-      .map(getURLContent)
-      .map(_.map(parseConfig))
+    args.headOption
+      .toRight("Missing configuration url")
+      .map(tryGetURLContent)
       .flatTraverse(f => IO.fromFuture(IO(f)))
+      .map(_.flatMap(parseConfig))
       .pipe(new EitherT(_))
+      .leftMap(_ => "Inkuire seems to be disabled. To enable it add `-Ygenerate-inkuire` flag to scaladoc options.")
   }
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     appConfig.inkuirePaths
       .map(scriptPath + _)
-      .map(getURLContent)
+      .map(tryGetURLContent)
       .toList
       .traverse(f => IO.fromFuture(IO(f)))
       .map { contents =>
         contents
-          .map(EngineModelSerializers.deserialize)
+          .map(_.flatMap(EngineModelSerializers.deserialize))
           .collect {
             case Right(db) => db
           }
