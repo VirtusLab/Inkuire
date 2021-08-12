@@ -18,7 +18,13 @@ import scala.util.chaining._
 import cats.kernel.Monoid
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
-  private def getURLContent(url: String) = Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
+  private def getURLContent(url: String): Future[String] =
+    Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
+
+  private def tryGetURLContent(url: String): Future[Either[String, String]] =
+    Ajax.get(url)
+      .map(_.responseText.pipe(Right(_)))
+      .fallbackTo(Future(Left("Inkuire seems to be disabled. To enable it add `-Ygenerate-inkuire` flag to scaladoc options.")))
 
   implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
 
@@ -29,9 +35,9 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       case None      => Left("Missing configuration link")
     }
     configLink
-      .map(getURLContent)
-      .map(_.map(parseConfig))
+      .map(tryGetURLContent)
       .flatTraverse(f => IO.fromFuture(IO(f)))
+      .map(_.flatMap(parseConfig))
       .pipe(new EitherT(_))
   }
 

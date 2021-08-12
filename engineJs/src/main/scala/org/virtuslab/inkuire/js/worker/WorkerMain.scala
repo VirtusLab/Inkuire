@@ -28,15 +28,11 @@ object WorkerMain {
     val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db)
     val parser       = new ScalaSignatureParserService
 
-    println("Starting Inkuire")
-
     configReader
       .readConfig(Seq(scriptPath + "inkuire-config.json"))
       .flatMap { config: AppConfig =>
-        println(s"Reading InkuireDB on paths: ${config.inkuirePaths}")
         in.readInput(config)
           .semiflatMap { db: InkuireDb =>
-            println(s"Read ${db.functions.size} functions and ${db.types.size} types")
             out
               .serveOutput()
               .runA(
@@ -45,7 +41,7 @@ object WorkerMain {
           }
       }
       .fold(
-        str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"),
+        str => println(str),
         identity
       )
       .unsafeRunAsyncAndForget()
