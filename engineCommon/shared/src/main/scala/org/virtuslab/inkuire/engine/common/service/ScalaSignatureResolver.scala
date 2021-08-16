@@ -8,8 +8,8 @@ import cats.data.Nested
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with VarianceOps {
 
-  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
-  val implicitConversions = inkuireDb.conversions
+  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
+  val implicitConversions = inkuireDb.implicitConversions
   val ancestryGraph       = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {

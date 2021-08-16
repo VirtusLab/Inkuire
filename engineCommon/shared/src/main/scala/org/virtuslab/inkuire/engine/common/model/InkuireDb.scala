@@ -14,9 +14,7 @@ case class InkuireDb(
   types:               Map[ITID, (Type, Seq[Type])],
   implicitConversions: Seq[(TypeLike, Type)],
   typeAliases:         Map[ITID, TypeLike]
-) {
-  val conversions: Map[TypeLike, Seq[Type]] = implicitConversions.groupBy(_._1).view.mapValues(_.map(_._2).distinct).toMap
-}
+)
 
 object InkuireDb {
   implicit val inkuireDbMonoid = new Monoid[InkuireDb] {

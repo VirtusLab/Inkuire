@@ -8,7 +8,7 @@ import scala.util.Random
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
+  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -19,12 +19,12 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           sgn.context |+| supr.context
         )
         .flatMap { okTypes =>
-          State.get[VariableBindings].map { bindings =>
-            if (okTypes) checkBindings(bindings)
+          State.get[TypingState].map { typingState =>
+            if (okTypes) checkBindings(typingState.variableBindings)
             else false
           }
         }
-        .runA(VariableBindings.empty)
+        .runA(TypingState.empty)
         .value
     }
   }
