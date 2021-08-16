@@ -43,12 +43,9 @@ object EngineModelSerializers {
       }
     } yield parsed
 
-  implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.isParsed}=${id.uuid}"
+  implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.uuid}"
 
-  implicit val itidKeyDecoder: KeyDecoder[ITID] = (str: String) =>
-    if (str.startsWith("true=")) ITID.parsed(str.stripPrefix("true=")).some
-    else if (str.startsWith("false=")) ITID.external(str.stripPrefix("false=")).some
-    else None
+  implicit val itidKeyDecoder: KeyDecoder[ITID] = (str: String) => ITID(str).some
 
   def serialize(db: InkuireDb): String = db.asJson.toString
 

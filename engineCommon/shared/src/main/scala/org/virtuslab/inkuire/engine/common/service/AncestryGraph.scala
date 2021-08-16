@@ -10,7 +10,7 @@ import scala.collection.mutable.{Set => MSet}
 
 case class AncestryGraph(
   nodes:               Map[ITID, (Type, Seq[Type])],
-  implicitConversions: Map[ITID, Seq[Type]],
+  implicitConversions: Map[TypeLike, Seq[Type]],
   typeAliases:         Map[ITID, TypeLike]
 ) extends VarianceOps {
 
@@ -65,39 +65,29 @@ case class AncestryGraph(
             State.modify[VariableBindings](_.add(typ.itid.get, supr).add(supr.itid.get, typ)) >>
               State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
           case (typ: Type, supr: Type) if supr.isVariable =>
-            if (supr.itid.get.isParsed) {
-              State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
-                State.pure(true)
-            } else {
-              val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
-              State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+            val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
+            State.modify[VariableBindings](_.add(supr.itid.get, typ)) >>
+              constraints
+                .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+                  case (acc, t) =>
+                    acc.flatMap { cond =>
+                      if (cond) typ.isSubTypeOf(t)(context)
+                      else State.pure(false)
+                    }
+                }
+          case (typ: Type, supr: Type) if typ.isVariable =>
+            val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
+            State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
+              if (constraints.nonEmpty) {
                 constraints
-                  .foldLeft(State.pure[VariableBindings, Boolean](true)) {
+                  .foldLeft(State.pure[VariableBindings, Boolean](false)) {
                     case (acc, t) =>
                       acc.flatMap { cond =>
-                        if (cond) typ.isSubTypeOf(t)(context)
-                        else State.pure(false)
+                        if (cond) State.pure[VariableBindings, Boolean](true)
+                        else t.isSubTypeOf(supr)(context)
                       }
                   }
-            }
-          case (typ: Type, supr: Type) if typ.isVariable =>
-            if (typ.itid.get.isParsed) {
-              val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
-              State.modify[VariableBindings](_.add(typ.itid.get, supr)) >> {
-                if (constraints.nonEmpty) {
-                  constraints
-                    .foldLeft(State.pure[VariableBindings, Boolean](false)) {
-                      case (acc, t) =>
-                        acc.flatMap { cond =>
-                          if (cond) State.pure[VariableBindings, Boolean](true)
-                          else t.isSubTypeOf(supr)(context)
-                        }
-                    }
-                } else State.pure(true)
-              }
-            } else {
-              State.modify[VariableBindings](_.add(typ.itid.get, supr)) >>
-                State.pure(true)
+              } else State.pure(true)
             }
           case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
           case (typ: Type, supr: Type) =>
@@ -172,7 +162,7 @@ case class AncestryGraph(
       val name = s"dummy$i${Random.nextString(10)}"
       Type(
         name = TypeName(name),
-        itid = Some(ITID(name, isParsed = false)),
+        itid = Some(ITID(name)),
         isVariable = true
       )
     }
