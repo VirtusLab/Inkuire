@@ -15,66 +15,73 @@ case class AncestryGraph(
 ) extends VarianceOps {
 
   val cacheNeg: MSet[(TypeLike, TypeLike)] = MSet.empty
-
+  val p = new ScalaExternalSignaturePrettifier
   implicit class TypeOps(typ: TypeLike) {
-    def isSubTypeOfCheckCycle(supr: TypeLike)(implicit context: SignatureContext, checkImplicits: Boolean = true): State[TypingState, Boolean] =
-    State.get[TypingState].flatMap { ts =>
-        if (ts.visitedContains(typ)) {
+    def isSubTypeOfCheckCycle(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] =
+      State.get[TypingState].flatMap { ts =>
+        if (ts.visitedContains(typ -> supr)) {
           State.pure(false)
         } else {
-          State.modify[TypingState](_.addVisited(Set(typ))) >>
+          State.modify[TypingState](_.addVisited(Set(typ -> supr))) >>
             typ.isSubTypeOfActual(supr).flatMap { res =>
-              State.modify[TypingState](_.removeVisited(Set(typ))).map(_ => res)
+              State.modify[TypingState](_.removeVisited(Set(typ -> supr))).map(_ => res)
             }
         }
       }
 
-    def isSubTypeOfActual(supr: TypeLike)(implicit context: SignatureContext, checkImplicits: Boolean = true): State[TypingState, Boolean] =
-      (typ, supr) match {
-        case (t: Type, _) if t.isStarProjection => State.pure(true)
-        case (_, s: Type) if s.isStarProjection => State.pure(true)
-        case (AndType(left, right), supr) =>
-          left.isSubTypeOf(supr).flatMap { res =>
-            if (res) State.pure(true)
-            else right.isSubTypeOf(supr)
-          }
-        case (typ, AndType(left, right)) =>
-          typ.isSubTypeOf(left).flatMap { res =>
-            if (res) typ.isSubTypeOf(right)
-            else State.pure(false)
-          }
-        case (OrType(left, right), supr) =>
-          left.isSubTypeOf(supr).flatMap { res =>
-            if (res) right.isSubTypeOf(supr)
-            else State.pure(false)
-          }
-        case (typ, OrType(left, right)) =>
-          typ.isSubTypeOf(left).flatMap { res =>
-            if (res) State.pure(true)
-            else typ.isSubTypeOf(right)
-          }
-        case (typ: TypeLambda, supr: TypeLambda) =>
-          val dummyTypes = genDummyTypes(typ.args.size)
-          val typResult  = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
-          val suprResult = substituteBindings(supr.result, supr.args.flatMap(_.itid).zip(dummyTypes).toMap)
-          if (typ.args.size == supr.args.size) typResult.isSubTypeOf(suprResult)
+    /**
+     * Checks if typ is the subtype of supr (more or less)
+     * This check is a bit weaker than subtyping (aspecially in case of typevariables)
+     */
+    def isSubTypeOfActual(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] = (typ, supr) match {
+      case (t: Type, _) if t.isStarProjection => State.pure(true)
+      case (_, s: Type) if s.isStarProjection => State.pure(true)
+      case (AndType(left, right), supr) =>
+        left.isSubTypeOf(supr).flatMap { res =>
+          if (res) State.pure(true)
+          else right.isSubTypeOf(supr)
+        }
+      case (typ, AndType(left, right)) =>
+        typ.isSubTypeOf(left).flatMap { res =>
+          if (res) typ.isSubTypeOf(right)
           else State.pure(false)
-        case (_: TypeLambda, _) =>
-          State.pure(false)
-        case (_, _: TypeLambda) =>
-          State.pure(false)
-        case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
-          State.modify[TypingState](_.addBinding(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
-            checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
-          State.modify[TypingState](_.addBinding(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
-            checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
-          val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
-          val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
-          State.modify[TypingState](_.addBinding(typ.itid.get, supr).addBinding(supr.itid.get, typ)) >>
-            State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
-        case (typ: Type, supr: Type) if supr.isVariable =>
+        }
+      case (OrType(left, right), supr) =>
+        left.isSubTypeOf(supr).flatMap { res =>
+          if (res) right.isSubTypeOf(supr)
+          else State.pure(false)
+        }
+      case (typ, OrType(left, right)) =>
+        typ.isSubTypeOf(left).flatMap { res =>
+          if (res) State.pure(true)
+          else typ.isSubTypeOf(right)
+        }
+      case (typ: TypeLambda, supr: TypeLambda) =>
+        val dummyTypes = genDummyTypes(typ.args.size)
+        val typResult  = substituteBindings(typ.result, typ.args.flatMap(_.itid).zip(dummyTypes).toMap)
+        val suprResult = substituteBindings(supr.result, supr.args.flatMap(_.itid).zip(dummyTypes).toMap)
+        if (typ.args.size == supr.args.size) typResult.isSubTypeOf(suprResult)
+        else State.pure(false)
+      case (_: TypeLambda, _) =>
+        State.pure(false)
+      case (_, _: TypeLambda) =>
+        State.pure(false)
+      case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
+        State.modify[TypingState](_.addBinding(typ.itid.get, supr.modify(_.params).setTo(Seq.empty))) >>
+          checkTypeParamsByVariance(typ, supr, context)
+      case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
+        State.modify[TypingState](_.addBinding(supr.itid.get, typ.modify(_.params).setTo(Seq.empty))) >>
+          checkTypeParamsByVariance(typ, supr, context)
+      case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
+        val typConstraints  = context.constraints.get(typ.name.name).toSeq.flatten
+        val suprConstraints = context.constraints.get(supr.name.name).toSeq.flatten
+        State.modify[TypingState](_.addBinding(typ.itid.get, supr).addBinding(supr.itid.get, typ)) >>
+          State.pure(typConstraints == suprConstraints) // TODO #56 Better 'equality' between two TypeVariables
+      case (typ: Type, supr: Type) if supr.isVariable =>
+        if (supr.itid.get.isParsed) {
+          State.modify[TypingState](_.addBinding(supr.itid.get, typ)) >>
+            State.pure(true)
+        } else {
           val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
           State.modify[TypingState](_.addBinding(supr.itid.get, typ)) >>
             constraints
@@ -85,7 +92,9 @@ case class AncestryGraph(
                     else State.pure(false)
                   }
               }
-        case (typ: Type, supr: Type) if typ.isVariable =>
+        }
+      case (typ: Type, supr: Type) if typ.isVariable =>
+        if (typ.itid.get.isParsed) {
           val constraints = context.constraints.get(typ.name.name).toSeq.flatten.toList
           State.modify[TypingState](_.addBinding(typ.itid.get, supr)) >> {
             if (constraints.nonEmpty) {
@@ -94,35 +103,40 @@ case class AncestryGraph(
                   case (acc, t) =>
                     acc.flatMap { cond =>
                       if (cond) State.pure[TypingState, Boolean](true)
-                      else t.isSubTypeOf(supr)
+                      else t.isSubTypeOf(supr)(context)
                     }
                 }
             } else State.pure(true)
           }
-        case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
-        case (typ: Type, supr: Type) =>
-          (if (checkImplicits) applyImplicitConversions(typ) else State.pure[TypingState, Seq[TypeLike]](Seq.empty))
-            .flatMap { fromImplicitConversion =>
-              nodes
-                .get(typ.itid.get)
-                .toList
-                .flatMap(node => specializeParents(typ, node))
-                .map(_ -> supr)
-                .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
-                .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
-                .++(fromImplicitConversion.map(_ -> supr))
-                .foldLeft(State.pure[TypingState, Boolean](false)) {
-                  case (acc, (t, s)) =>
-                    acc.flatMap { cond =>
-                      if (cond) State.pure(true)
-                      else t.isSubTypeOf(s)
-                    }
-                }
-                .modify(_.removeVisited(fromImplicitConversion.toSet))
-            }
+        } else {
+          State.modify[TypingState](_.addBinding(typ.itid.get, supr)) >>
+            State.pure(true)
+        }
+      case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
+      case (typ: Type, supr: Type) =>
+        applyImplicitConversions(typ, supr)
+          .flatMap { fromImplicitConversion =>
+            nodes
+              .get(typ.itid.get)
+              .toList
+              .flatMap(node => specializeParents(typ, node))
+              .map(_ -> supr)
+              .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+              .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+              .++(fromImplicitConversion)
+              .foldLeft(State.pure[TypingState, Boolean](false)) {
+                case (acc, (t, s)) =>
+                  acc.flatMap { cond =>
+                    if (cond) State.pure(true)
+                    else t.isSubTypeOf(s)
+                  }
+              }
+              .modify(_.removeVisited(fromImplicitConversion.toSet))
+          }
       }
 
-    def isSubTypeOf(supr: TypeLike)(implicit context: SignatureContext, checkImplicits: Boolean = true): State[TypingState, Boolean] = {
+    def isSubTypeOf(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] = {
+      println(s"${p.prettifyType(typ)} <:< ${p.prettifyType(supr)}")
       if (cacheNeg.contains((typ, supr))) {
         State.pure(false)
       } else {
@@ -132,6 +146,38 @@ case class AncestryGraph(
           b
         }
       }
+    }
+
+    def isSubTypeOfIC(supr: TypeLike): Boolean = {
+      println(s"IC ${p.prettifyType(typ)} <:< ${p.prettifyType(supr)}")
+      if (cacheNeg.contains((typ, supr))) {
+        false
+      } else {
+        val res: Boolean = typ.isSubTypeOfICActual(supr)
+        if (!res) cacheNeg.add((typ, supr))
+        res
+      }
+    }
+
+    /**
+     * Checks if typ is the subtype of supr
+     * This should be more stronger than `isSubTypeActual`
+     * it is used to determine subtyping when applying implicit conversions
+     */
+    def isSubTypeOfICActual(supr: TypeLike): Boolean = (typ, supr) match { //TODO add wrapper with sharred cache
+      case (t: Type, _) if t.isStarProjection => true
+      case (_, s: Type) if s.isStarProjection => true
+      case (_, _: TypeLambda) => false
+      case (_: TypeLambda, _) => false
+      case (AndType(left, right), supr) => left.isSubTypeOfIC(supr) || right.isSubTypeOfIC(supr)
+      case (typ, AndType(left, right)) => typ.isSubTypeOfIC(left) && typ.isSubTypeOfIC(right)
+      case (OrType(left, right), supr) => left.isSubTypeOfIC(supr) && right.isSubTypeOfIC(supr)
+      case (typ, OrType(left, right)) => typ.isSubTypeOfIC(left) || typ.isSubTypeOfIC(right)
+      case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => false
+      case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => true
+      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => true
+      case (typ: Type, supr: Type) =>
+        typ.itid == supr.itid && typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.forall { case (t, s) => t.isSubTypeOfIC(s) }
     }
   }
 
@@ -161,16 +207,15 @@ case class AncestryGraph(
     parents.map(substituteBindings(_, bindings))
   }
 
-  private def applyImplicitConversions(candidate: Type)(implicit context: SignatureContext): State[TypingState, Seq[TypeLike]] = {
+  private def applyImplicitConversions(typ: Type, supr: Type)(implicit context: SignatureContext): State[TypingState, Seq[(TypeLike, TypeLike)]] = {
     State.get[TypingState].map { typingState => 
       implicitConversions
         .filter {
-          case (_, t) => !typingState.visitedTypes.contains(t)
+          case (_, result) => !typingState.visitedTypes.contains(result -> supr)
         }
         .collect {
-          case (t, result) if candidate.isSubTypeOf(t)(context, checkImplicits = false).runA(typingState).value => result
+          case (t: Type, result) if typ.isSubTypeOfIC(t) => result -> supr
         }
-        .toSeq
     }
   }
 
@@ -195,7 +240,7 @@ case class AncestryGraph(
       val name = s"dummy$i${Random.nextString(10)}"
       Type(
         name = TypeName(name),
-        itid = Some(ITID(name)),
+        itid = Some(ITID(name, isParsed = false)),
         isVariable = true
       )
     }

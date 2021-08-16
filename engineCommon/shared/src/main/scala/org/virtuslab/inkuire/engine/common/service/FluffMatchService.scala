@@ -43,6 +43,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
+      .filter(fun => fun.name == "pipe")
       .filter(isMatch(resolveResult.modify(_.signatures).setTo(actualSignatures)))
   }
 

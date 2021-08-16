@@ -146,7 +146,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case t: Type if t.isVariable =>
         resolveMultipleTypes(t.params.map(_.typ)).map(_.map { params =>
           t.modify(_.itid)
-            .setTo(ITID(t.name.name).some)
+            .setTo(ITID(t.name.name, isParsed = true).some)
             .modify(_.params)
             .setTo(params.zipVariances(t.params))
         })

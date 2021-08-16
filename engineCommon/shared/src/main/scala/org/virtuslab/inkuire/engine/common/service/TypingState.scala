@@ -4,18 +4,18 @@ import org.virtuslab.inkuire.engine.common.model._
 
 case class TypingState(
   variableBindings: VariableBindings,
-  visitedTypes: Set[TypeLike] //TODO Hmmmmmmmmmmmmmmmmmmm
+  visitedTypes: Set[(TypeLike, TypeLike)] //TODO Hmmmmmmmmmmmmmmmmmmm
 ) {
   def addBinding(dri: ITID, typ: Type): TypingState =
     this.copy(variableBindings = variableBindings.add(dri, typ))
 
-  def addVisited(visited: Set[TypeLike]): TypingState =
+  def addVisited(visited: Set[(TypeLike, TypeLike)]): TypingState =
     this.copy(visitedTypes = this.visitedTypes ++ visited)
 
-  def removeVisited(visited: Set[TypeLike]): TypingState =
+  def removeVisited(visited: Set[(TypeLike, TypeLike)]): TypingState =
     this.copy(visitedTypes = this.visitedTypes -- visited)
 
-  def visitedContains(t: TypeLike): Boolean =
+  def visitedContains(t: (TypeLike, TypeLike)): Boolean =
     visitedTypes.contains(t)
 }
 
