@@ -114,26 +114,21 @@ case class AncestryGraph(
         }
       case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ: Type, supr: Type) =>
-        applyImplicitConversions(typ, supr)
-          .flatMap { fromImplicitConversion =>
-            nodes
-              .get(typ.itid.get)
-              .toList
-              .flatMap(node => specializeParents(typ, node))
-              .map(_ -> supr)
-              .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
-              .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
-              .++(fromImplicitConversion)
-              .foldLeft(State.pure[TypingState, Boolean](false)) {
-                case (acc, (t, s)) =>
-                  acc.flatMap { cond =>
-                    if (cond) State.pure(true)
-                    else t.isSubTypeOf(s)
-                  }
+        nodes
+          .get(typ.itid.get)
+          .toList
+          .flatMap(node => specializeParents(typ, node))
+          .map(_ -> supr)
+          .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+          .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+          .foldLeft(State.pure[TypingState, Boolean](false)) {
+            case (acc, (t, s)) =>
+              acc.flatMap { cond =>
+                if (cond) State.pure(true)
+                else t.isSubTypeOf(s)
               }
-              .modify(_.removeVisited(fromImplicitConversion.toSet))
           }
-      }
+    }
 
     def isSubTypeOf(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] = {
       println(s"${p.prettifyType(typ)} <:< ${p.prettifyType(supr)}")
@@ -149,7 +144,7 @@ case class AncestryGraph(
     }
 
     def isSubTypeOfIC(supr: TypeLike): Boolean = {
-      println(s"IC ${p.prettifyType(typ)} <:< ${p.prettifyType(supr)}")
+      // println(s"IC ${p.prettifyType(typ)} <:< ${p.prettifyType(supr)}")
       if (cacheNeg.contains((typ, supr))) {
         false
       } else {
@@ -179,7 +174,26 @@ case class AncestryGraph(
       case (typ: Type, supr: Type) =>
         typ.itid == supr.itid && typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.forall { case (t, s) => t.isSubTypeOfIC(s) }
     }
+
+    def boundVarsIC(supr: TypeLike): List[(Type, Type)] = (typ, supr) match { //TODO add wrapper with sharred cache
+      case (t: Type, _) if t.isStarProjection => List.empty
+      case (_, s: Type) if s.isStarProjection => List.empty
+      case (_, _: TypeLambda) => List.empty
+      case (_: TypeLambda, _) => List.empty
+      case (AndType(left, right), supr) => left.boundVarsIC(supr) ++ right.boundVarsIC(supr)
+      case (typ, AndType(left, right)) => typ.boundVarsIC(left) ++ typ.boundVarsIC(right)
+      case (OrType(left, right), supr) => left.boundVarsIC(supr) ++ right.boundVarsIC(supr)
+      case (typ, OrType(left, right)) => typ.boundVarsIC(left) ++ typ.boundVarsIC(right)
+      case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => List.empty
+      case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => List(typ -> supr)
+      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => List(typ -> supr)
+      case (typ: Type, supr: Type) => List.empty
+    }
   }
+
+  def isSubTypeOfIC(typ: Type, supr: TypeLike): Boolean = typ.isSubTypeOfIC(supr)
+
+  def boundVarsIC(typ: TypeLike, supr: TypeLike): List[(Type, Type)] = typ.boundVarsIC(supr)
 
   def dealias(concreteType: Type, node: TypeLike): Option[TypeLike] = (concreteType, node) match {
     case (t: Type, rhs: Type) if !t.isGeneric =>
@@ -219,7 +233,7 @@ case class AncestryGraph(
     }
   }
 
-  private def substituteBindings(parent: TypeLike, bindings: Map[ITID, TypeLike]): TypeLike = parent match {
+  def substituteBindings(parent: TypeLike, bindings: Map[ITID, TypeLike]): TypeLike = parent match {
     case t: Type if t.isVariable =>
       t.itid match {
         case None       => t.modify(_.params.each.typ).using(substituteBindings(_, bindings))
