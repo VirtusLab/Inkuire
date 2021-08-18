@@ -15,8 +15,7 @@ case class AncestryGraph(
 ) extends VarianceOps {
 
   val cacheNeg: MSet[(TypeLike, TypeLike)] = MSet.empty
-  val cacheNegIC: MSet[(TypeLike, TypeLike)] = MSet.empty
-  val p = new ScalaExternalSignaturePrettifier
+
   implicit class TypeOps(typ: TypeLike) {
     /**
      * Checks if typ is the subtype of supr (more or less)
@@ -125,57 +124,7 @@ case class AncestryGraph(
         }
       }
     }
-
-    def isSubTypeOfIC(supr: TypeLike)(implicit topLevel: Boolean = false): Boolean = {
-      if (cacheNegIC.contains((typ, supr))) {
-        false
-      } else {
-        val res: Boolean = typ.isSubTypeOfICActual(supr)
-        if (!res) cacheNegIC.add((typ, supr))
-        res
-      }
-    }
-
-    /**
-     * Checks if typ is the subtype of supr
-     * This should be stronger than `isSubTypeActual`
-     * it is used to determine subtyping when applying implicit conversions
-     */
-    def isSubTypeOfICActual(supr: TypeLike)(implicit topLevel: Boolean = false): Boolean = (typ, supr) match {
-      case (t: Type, _) if t.isStarProjection => false
-      case (_, s: Type) if s.isStarProjection => false
-      case (_, _: TypeLambda) => false
-      case (_: TypeLambda, _) => false
-      case (AndType(left, right), supr) => false
-      case (typ, AndType(left, right)) => false
-      case (OrType(left, right), supr) => false
-      case (typ, OrType(left, right)) => false
-      case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => false
-      case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => !topLevel
-      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => false
-      case (typ: Type, supr: Type) =>
-        typ.itid == supr.itid && typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.forall { case (t, s) => t.isSubTypeOfIC(s)(topLevel = false) }
-    }
-
-    def boundVarsIC(supr: TypeLike): Seq[(Type, Type)] = (typ, supr) match {
-      case (t: Type, _) if t.isStarProjection => Seq.empty
-      case (_, s: Type) if s.isStarProjection => Seq.empty
-      case (_, _: TypeLambda) => Seq.empty
-      case (_: TypeLambda, _) => Seq.empty
-      case (AndType(left, right), supr) => Seq.empty
-      case (typ, AndType(left, right)) => Seq.empty
-      case (OrType(left, right), supr) => Seq.empty
-      case (typ, OrType(left, right)) => Seq.empty
-      case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => Seq.empty
-      case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => Seq(supr -> typ)
-      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => Seq.empty
-      case (typ: Type, supr: Type) => typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.flatMap { case (t, s) => t.boundVarsIC(s) }
-    }
   }
-
-  def isSubTypeOfIC(typ: Type, supr: TypeLike): Boolean = typ.isSubTypeOfIC(supr)(true)
-
-  def boundVarsIC(typ: TypeLike, supr: TypeLike): Seq[(Type, Type)] = typ.boundVarsIC(supr)
 
   def dealias(concreteType: Type, node: TypeLike): Option[TypeLike] = (concreteType, node) match {
     case (t: Type, rhs: Type) if !t.isGeneric =>

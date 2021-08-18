@@ -11,28 +11,6 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
 
-  val prettifier = new ScalaExternalSignaturePrettifier
-
-  val functions: Seq[ExternalSignature] = inkuireDb.functions.flatMap { func =>
-    val fromConversions = inkuireDb.implicitConversions.filter { ic =>
-      func.signature.receiver.nonEmpty && ancestryGraph.isSubTypeOfIC(ic._2, func.signature.receiver.get.typ)
-    }.map { ic =>
-      changeReceiver(func, ic._1, ic._2)
-    }.filter { convertedFunc =>
-      prettifier.prettifySignature(convertedFunc.signature) != prettifier.prettifySignature(func.signature)
-    }
-    Seq(func) ++ fromConversions
-  }
-
-  println(inkuireDb.functions.size)
-  println(functions.size)
-
-  def changeReceiver(func: ExternalSignature, to: TypeLike, from: Type): ExternalSignature = {
-    val boundVars: Seq[(Type, Type)] = ancestryGraph.boundVarsIC(func.signature.receiver.get.typ, from)
-    val varBindings: Map[ITID, Type] = boundVars.map { case (key, v) => key.itid.get -> v }.toMap
-    func.modify(_.signature.receiver.each.typ).setTo(ancestryGraph.substituteBindings(to, varBindings))
-  }
-
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
       ancestryGraph
@@ -65,7 +43,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     val actualResolveResult = resolveResult.modify(_.signatures).setTo(actualSignatures)
-    functions
+    inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
       .filter(isMatch(actualResolveResult))
       .distinctBy(_.uuid)
