@@ -6,4 +6,6 @@ case class ExternalSignature(
   packageName: String,
   uri:         String,
   entryType:   String
-)
+) {
+  val uuid: String = entryType + packageName + name + uri
+}

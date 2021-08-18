@@ -10,20 +10,20 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
 
   val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
 
-  val functions = inkuireDb.functions.flatMap { func =>
+  val functions: Seq[ExternalSignature] = inkuireDb.functions.flatMap { func =>
     val fromConversions = inkuireDb.implicitConversions.filter { ic =>
       func.signature.receiver.nonEmpty && ancestryGraph.isSubTypeOfIC(ic._2, func.signature.receiver.get.typ)
     }.map { ic =>
       changeReceiver(func, ic._1, ic._2)
     }
-    Seq(func) :+ fromConversions
+    Seq(func) ++ fromConversions
   }
 
   def changeReceiver(func: ExternalSignature, to: TypeLike, from: Type): ExternalSignature = {
-    val boundVars: List[(Type, Type)] = ancestryGraph.boundVarsIC(func.signature.receiver.get.typ, from)
+    val boundVars: Seq[(Type, Type)] = ancestryGraph.boundVarsIC(func.signature.receiver.get.typ, from)
     val varBindings: Map[ITID, Type] = boundVars.map { case (key, v) => key.itid.get -> v }.toMap
     func
-      .modify(_.signature.receiver.each.typ).setTo(to)
+      .modify(_.signature.receiver.each.typ).setTo(ancestryGraph.substituteBindings(to, varBindings))
       .modify(_.signature.arguments.each.typ).using(ancestryGraph.substituteBindings(_, varBindings))
       .modify(_.signature.result.typ).using(ancestryGraph.substituteBindings(_, varBindings))
   }
@@ -59,10 +59,10 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
-    inkuireDb.functions
+    functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
-      .filter(fun => fun.name == "pipe")
       .filter(isMatch(resolveResult.modify(_.signatures).setTo(actualSignatures)))
+      .distinctBy(_.uuid)
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
