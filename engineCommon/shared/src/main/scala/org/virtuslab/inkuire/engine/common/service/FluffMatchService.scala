@@ -9,7 +9,8 @@ import scala.util.chaining._
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
+  val ancestryGraph: AncestryGraph =
+    AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -42,7 +43,7 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
-    val actualResolveResult = resolveResult.modify(_.signatures).setTo(actualSignatures)
+    val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
     inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
       .filter(isMatch(actualResolveResult))
