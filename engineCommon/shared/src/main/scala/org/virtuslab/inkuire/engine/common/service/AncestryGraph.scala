@@ -15,20 +15,9 @@ case class AncestryGraph(
 ) extends VarianceOps {
 
   val cacheNeg: MSet[(TypeLike, TypeLike)] = MSet.empty
+  val cacheNegIC: MSet[(TypeLike, TypeLike)] = MSet.empty
   val p = new ScalaExternalSignaturePrettifier
   implicit class TypeOps(typ: TypeLike) {
-    def isSubTypeOfCheckCycle(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] =
-      State.get[TypingState].flatMap { ts =>
-        if (ts.visitedContains(typ -> supr)) {
-          State.pure(false)
-        } else {
-          State.modify[TypingState](_.addVisited(Set(typ -> supr))) >>
-            typ.isSubTypeOfActual(supr).flatMap { res =>
-              State.modify[TypingState](_.removeVisited(Set(typ -> supr))).map(_ => res)
-            }
-        }
-      }
-
     /**
      * Checks if typ is the subtype of supr (more or less)
      * This check is a bit weaker than subtyping (aspecially in case of typevariables)
@@ -114,13 +103,9 @@ case class AncestryGraph(
         }
       case (typ: Type, supr: Type) if typ.itid == supr.itid => checkTypeParamsByVariance(typ, supr, context)
       case (typ: Type, supr: Type) =>
-        nodes
-          .get(typ.itid.get)
-          .toList
-          .flatMap(node => specializeParents(typ, node))
-          .map(_ -> supr)
-          .++(typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr))
+        typeAliases.get(typ.itid.get).toList.flatMap(alias => dealias(typ, alias)).map(_ -> supr)
           .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
+          .++(nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map(_ -> supr))
           .foldLeft(State.pure[TypingState, Boolean](false)) {
             case (acc, (t, s)) =>
               acc.flatMap { cond =>
@@ -134,8 +119,7 @@ case class AncestryGraph(
       if (cacheNeg.contains((typ, supr))) {
         State.pure(false)
       } else {
-        val res: State[TypingState, Boolean] = typ.isSubTypeOfCheckCycle(supr)
-        res.map { b =>
+        typ.isSubTypeOfActual(supr).map { b =>
           if (!b) cacheNeg.add((typ, supr))
           b
         }
@@ -143,11 +127,11 @@ case class AncestryGraph(
     }
 
     def isSubTypeOfIC(supr: TypeLike)(implicit topLevel: Boolean = false): Boolean = {
-      if (cacheNeg.contains((typ, supr))) {
+      if (cacheNegIC.contains((typ, supr))) {
         false
       } else {
         val res: Boolean = typ.isSubTypeOfICActual(supr)
-        if (!res) cacheNeg.add((typ, supr))
+        if (!res) cacheNegIC.add((typ, supr))
         res
       }
     }
@@ -162,13 +146,13 @@ case class AncestryGraph(
       case (_, s: Type) if s.isStarProjection => false
       case (_, _: TypeLambda) => false
       case (_: TypeLambda, _) => false
-      case (AndType(left, right), supr) => left.isSubTypeOfIC(supr) || right.isSubTypeOfIC(supr)
-      case (typ, AndType(left, right)) => typ.isSubTypeOfIC(left) && typ.isSubTypeOfIC(right)
-      case (OrType(left, right), supr) => left.isSubTypeOfIC(supr) && right.isSubTypeOfIC(supr)
-      case (typ, OrType(left, right)) => typ.isSubTypeOfIC(left) || typ.isSubTypeOfIC(right)
+      case (AndType(left, right), supr) => false
+      case (typ, AndType(left, right)) => false
+      case (OrType(left, right), supr) => false
+      case (typ, OrType(left, right)) => false
       case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => false
       case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => !topLevel
-      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => !topLevel
+      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => false
       case (typ: Type, supr: Type) =>
         typ.itid == supr.itid && typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.forall { case (t, s) => t.isSubTypeOfIC(s)(topLevel = false) }
     }
@@ -178,13 +162,13 @@ case class AncestryGraph(
       case (_, s: Type) if s.isStarProjection => Seq.empty
       case (_, _: TypeLambda) => Seq.empty
       case (_: TypeLambda, _) => Seq.empty
-      case (AndType(left, right), supr) => left.boundVarsIC(supr) ++ right.boundVarsIC(supr)
-      case (typ, AndType(left, right)) => typ.boundVarsIC(left) ++ typ.boundVarsIC(right)
-      case (OrType(left, right), supr) => left.boundVarsIC(supr) ++ right.boundVarsIC(supr)
-      case (typ, OrType(left, right)) => typ.boundVarsIC(left) ++ typ.boundVarsIC(right)
+      case (AndType(left, right), supr) => Seq.empty
+      case (typ, AndType(left, right)) => Seq.empty
+      case (OrType(left, right), supr) => Seq.empty
+      case (typ, OrType(left, right)) => Seq.empty
       case (typ: Type, supr: Type) if typ.isVariable && !supr.isVariable => Seq.empty
       case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable => Seq(supr -> typ)
-      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => Seq(typ -> supr)
+      case (typ: Type, supr: Type) if !typ.isVariable && supr.isVariable => Seq.empty
       case (typ: Type, supr: Type) => typ.params.zip(supr.params).map { case (t, s) => (t.typ, s.typ) }.flatMap { case (t, s) => t.boundVarsIC(s) }
     }
   }
@@ -217,18 +201,6 @@ case class AncestryGraph(
         .zip(concreteType.params.map(_.typ))
         .toMap
     parents.map(substituteBindings(_, bindings))
-  }
-
-  private def applyImplicitConversions(typ: Type, supr: Type)(implicit context: SignatureContext): State[TypingState, Seq[(TypeLike, TypeLike)]] = {
-    State.get[TypingState].map { typingState => 
-      implicitConversions
-        .filter {
-          case (_, result) => !typingState.visitedTypes.contains(result -> supr)
-        }
-        .collect {
-          case (t: Type, result) if typ.isSubTypeOfIC(t) => result -> supr
-        }
-    }
   }
 
   def substituteBindings(parent: TypeLike, bindings: Map[ITID, TypeLike]): TypeLike = parent match {

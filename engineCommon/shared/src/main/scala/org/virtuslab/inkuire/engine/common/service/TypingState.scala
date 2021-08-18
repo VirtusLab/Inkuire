@@ -1,24 +1,15 @@
 package org.virtuslab.inkuire.engine.common.service
 
 import org.virtuslab.inkuire.engine.common.model._
+import com.softwaremill.quicklens._
 
 case class TypingState(
-  variableBindings: VariableBindings,
-  visitedTypes: Set[(TypeLike, TypeLike)] //TODO Hmmmmmmmmmmmmmmmmmmm
+  variableBindings: VariableBindings
 ) {
   def addBinding(dri: ITID, typ: Type): TypingState =
-    this.copy(variableBindings = variableBindings.add(dri, typ))
-
-  def addVisited(visited: Set[(TypeLike, TypeLike)]): TypingState =
-    this.copy(visitedTypes = this.visitedTypes ++ visited)
-
-  def removeVisited(visited: Set[(TypeLike, TypeLike)]): TypingState =
-    this.copy(visitedTypes = this.visitedTypes -- visited)
-
-  def visitedContains(t: (TypeLike, TypeLike)): Boolean =
-    visitedTypes.contains(t)
+    this.modify(_.variableBindings).using(_.add(dri, typ))
 }
 
 object TypingState {
-  def empty: TypingState = TypingState(VariableBindings.empty, Set.empty)
+  def empty: TypingState = TypingState(VariableBindings.empty)
 }

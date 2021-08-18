@@ -3,7 +3,9 @@ package org.virtuslab.inkuire.engine.common.model
 import com.softwaremill.quicklens._
 import TypeName._
 
-sealed trait TypeLike
+sealed trait TypeLike {
+  def itid: Option[ITID]
+}
 
 case class Type(
   name:             TypeName,
@@ -23,10 +25,16 @@ case class Type(
   def asConcrete: Type = this.modify(_.isVariable).setTo(false).modify(_.isUnresolved).setTo(false)
 }
 
-case class AndType(left: TypeLike, right: TypeLike) extends TypeLike
-case class OrType(left: TypeLike, right: TypeLike) extends TypeLike
+case class AndType(left: TypeLike, right: TypeLike) extends TypeLike {
+  def itid: Option[ITID] = None
+}
+case class OrType(left: TypeLike, right: TypeLike) extends TypeLike {
+  def itid: Option[ITID] = None
+}
 
-case class TypeLambda(args: Seq[Type], result: TypeLike) extends TypeLike
+case class TypeLambda(args: Seq[Type], result: TypeLike) extends TypeLike {
+  def itid: Option[ITID] = None
+}
 
 object Type {
   implicit class StringTypeOps(str: String) {

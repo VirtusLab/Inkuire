@@ -16,7 +16,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
     val signatures = resolveAllPossibleSignatures(parsed).map(
       _.toList
         .map(moveToReceiverIfPossible)
-        // .flatMap { sgn => convertReceivers(sgn).toList }
         .distinct
     )
     signatures match {
@@ -37,25 +36,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         .modify(_.arguments)
         .using(_.drop(1))
   }
-
-  // private def convertReceivers(signature: Signature): Seq[Signature] = {
-  //   if (signature.receiver.isEmpty) List(signature)
-  //   else {
-  //     signature.receiver.toSeq
-  //       .flatMap { rcvrVar =>
-  //         rcvrVar.typ match {
-  //           case t: Type =>
-  //             t.itid.toSeq.flatMap { rcvrITID =>
-  //               implicitConversions.get(rcvrITID).toSeq.flatten
-  //             }
-  //           case t => Seq(t)
-  //         }
-  //       }
-  //       .map { rcvrType =>
-  //         signature.modify(_.receiver.each.typ).setTo(rcvrType)
-  //       } :+ signature
-  //   }
-  // }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {
     (signature.receiver ++ signature.arguments).toList.permutations
