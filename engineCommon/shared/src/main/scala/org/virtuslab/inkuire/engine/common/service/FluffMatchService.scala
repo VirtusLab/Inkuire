@@ -5,10 +5,12 @@ import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
 import cats.implicits._
 import scala.util.Random
+import scala.util.chaining._
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
 
-  val ancestryGraph: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
+  val ancestryGraph: AncestryGraph =
+    AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
 
   implicit class TypeOps(sgn: Signature) {
     def canSubstituteFor(supr: Signature): Boolean = {
@@ -19,12 +21,12 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
           sgn.context |+| supr.context
         )
         .flatMap { okTypes =>
-          State.get[VariableBindings].map { bindings =>
-            if (okTypes) checkBindings(bindings)
+          State.get[TypingState].map { typingState =>
+            if (okTypes) checkBindings(typingState.variableBindings)
             else false
           }
         }
-        .runA(VariableBindings.empty)
+        .runA(TypingState.empty)
         .value
     }
   }
@@ -41,9 +43,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
+    val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
     inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
-      .filter(isMatch(resolveResult.modify(_.signatures).setTo(actualSignatures)))
+      .filter(isMatch(actualResolveResult))
+      .distinctBy(_.uuid)
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {

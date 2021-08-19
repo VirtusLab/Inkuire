@@ -12,11 +12,9 @@ import cats.kernel.Monoid
 case class InkuireDb(
   functions:           Seq[ExternalSignature],
   types:               Map[ITID, (Type, Seq[Type])],
-  implicitConversions: Seq[(ITID, Type)],
+  implicitConversions: Seq[(TypeLike, Type)],
   typeAliases:         Map[ITID, TypeLike]
-) {
-  val conversions: Map[ITID, Seq[Type]] = implicitConversions.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
-}
+)
 
 object InkuireDb {
   implicit val inkuireDbMonoid = new Monoid[InkuireDb] {

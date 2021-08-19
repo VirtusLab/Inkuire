@@ -8,15 +8,14 @@ import cats.data.Nested
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with VarianceOps {
 
-  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.conversions, inkuireDb.typeAliases)
-  val implicitConversions = inkuireDb.conversions
+  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
+  val implicitConversions = inkuireDb.implicitConversions
   val ancestryGraph       = inkuireDb.types
 
   override def resolve(parsed: Signature): Either[String, ResolveResult] = {
     val signatures = resolveAllPossibleSignatures(parsed).map(
       _.toList
         .map(moveToReceiverIfPossible)
-        .flatMap { sgn => convertReceivers(sgn).toList }
         .distinct
     )
     signatures match {
@@ -36,25 +35,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         .setTo(Some(signature.arguments.head))
         .modify(_.arguments)
         .using(_.drop(1))
-  }
-
-  private def convertReceivers(signature: Signature): Seq[Signature] = {
-    if (signature.receiver.isEmpty) List(signature)
-    else {
-      signature.receiver.toSeq
-        .flatMap { rcvrVar =>
-          rcvrVar.typ match {
-            case t: Type =>
-              t.itid.toSeq.flatMap { rcvrITID =>
-                implicitConversions.get(rcvrITID).toSeq.flatten
-              }
-            case t => Seq(t)
-          }
-        }
-        .map { rcvrType =>
-          signature.modify(_.receiver.each.typ).setTo(rcvrType)
-        } :+ signature
-    }
   }
 
   private def permutateParams(signature: Signature): Seq[Signature] = {
