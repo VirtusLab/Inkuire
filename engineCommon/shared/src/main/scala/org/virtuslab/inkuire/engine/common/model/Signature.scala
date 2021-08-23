@@ -16,5 +16,5 @@ object Signature {
     result:    TypeLike,
     context:   SignatureContext
   ): Signature =
-    Signature(receiver.map(Contravariance), arguments.map(Contravariance), Covariance(result), context)
+    Signature(receiver.map(Contravariance.apply), arguments.map(Contravariance.apply), Covariance(result), context)
 }

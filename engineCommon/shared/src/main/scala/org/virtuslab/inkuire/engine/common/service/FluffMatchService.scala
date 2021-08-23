@@ -71,7 +71,6 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
                 case (a: Type, b: Type) => a.itid == b.itid
                 case _ => false
               }
-          case _ :: _ :: Nil => false
           case _             => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency

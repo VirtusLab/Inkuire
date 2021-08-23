@@ -8,31 +8,30 @@ import org.virtuslab.inkuire.engine.common.service._
 import org.virtuslab.inkuire.engine.http.cli.Cli
 import org.virtuslab.inkuire.engine.http.http.HttpServer
 
-object Main extends App {
+object Main {
+  def main(args: Array[String]): Unit = {
+    val configReader = new Cli
+    val in           = new Cli
+    val out          = new HttpServer
+    val matchService: InkuireDb => FluffMatchService = (db: InkuireDb) => new FluffMatchService(db)
+    val matchQualityService: InkuireDb => TopLevelMatchQualityService = (db: InkuireDb) =>
+      new TopLevelMatchQualityService(db)
+    val prettifier = new ScalaExternalSignaturePrettifier
+    val resolver: InkuireDb => DefaultSignatureResolver = (db: InkuireDb) => new DefaultSignatureResolver(db)
+    val parser = new ScalaSignatureParserService
 
-  val configReader = new Cli
-  val in           = new Cli
-  val out          = new HttpServer
-  val matchService: InkuireDb => FluffMatchService = (db: InkuireDb) => new FluffMatchService(db)
-  val matchQualityService: InkuireDb => TopLevelMatchQualityService = (db: InkuireDb) =>
-    new TopLevelMatchQualityService(db)
-  val prettifier = new ScalaExternalSignaturePrettifier
-  val resolver: InkuireDb => DefaultSignatureResolver = (db: InkuireDb) => new DefaultSignatureResolver(db)
-  val parser = new ScalaSignatureParserService
-
-  configReader
-    .readConfig(args)
-    .flatMap { config: AppConfig =>
-      in.readInput(config)
-        .semiflatMap { db: InkuireDb =>
-          out
-            .serveOutput()
-            .runA(
-              Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
-            )
-        }
-    }
-    .fold(str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"), identity)
-    .unsafeRunSync()
-
+    configReader
+      .readConfig(args)
+      .flatMap { (config: AppConfig) =>
+        in.readInput(config)
+          .semiflatMap { (db: InkuireDb) =>
+            out.serveOutput()
+              .runA(
+                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
+              )
+          }
+      }
+      .fold(str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"), identity)
+      .unsafeRunSync()
+  }
 }

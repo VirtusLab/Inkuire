@@ -44,6 +44,5 @@ class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
       s"${res.name}[_]"
     case TypeLambda(args, res) =>
       "[" + args.map(_.name.name).mkString(", ") + "] =>> " + prettifyType(res)
-    case _ => t.toString
   }
 }

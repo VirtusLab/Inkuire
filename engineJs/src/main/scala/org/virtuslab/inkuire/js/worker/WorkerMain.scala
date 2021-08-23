@@ -32,9 +32,9 @@ object WorkerMain {
 
     configReader
       .readConfig(Seq(scriptPath + "inkuire-config.json"))
-      .flatMap { config: AppConfig =>
+      .flatMap { (config: AppConfig) =>
         in.readInput(config)
-          .semiflatMap { db: InkuireDb =>
+          .semiflatMap { (db: InkuireDb) =>
             out
               .serveOutput()
               .runA(

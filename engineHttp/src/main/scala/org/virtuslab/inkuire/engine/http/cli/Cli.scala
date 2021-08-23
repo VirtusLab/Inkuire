@@ -86,12 +86,12 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
     IO {
       print(s"inkuire> ")
       readLine()
-    }.liftApp >>= { command: String =>
+    }.liftApp >>= { (command: String) =>
       if (command.toLowerCase == "exit") {
         IO { println("bye") }.liftApp
       } else {
         handleCommand(command) >>
-          serveOutput
+          serveOutput()
       }
     }
   }

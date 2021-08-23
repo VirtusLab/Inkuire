@@ -12,16 +12,22 @@ import org.http4s.dsl.io._
 import org.http4s.headers.Location
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
-import org.http4s.server.blaze._
 import org.http4s.server.middleware._
 import org.slf4j
 import org.slf4j.LoggerFactory
+import org.http4s.blaze.server._
+import io.circe.syntax._
+import io.circe.generic.auto._
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.io.Source
+import org.slf4j.LoggerFactory
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
+import org.http4s.server.Router
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
@@ -56,7 +62,7 @@ class HttpServer extends OutputHandler {
     def static(file: String, blocker: Blocker, request: Request[IO]) =
       StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
 
-    def appService(b: Blocker) =
+    def appService(b: Blocker): HttpRoutes[IO] =
       HttpRoutes
         .of[IO] {
           case GET -> Root / "query" =>
@@ -87,21 +93,20 @@ class HttpServer extends OutputHandler {
             )
           case req @ GET -> Root / "assets" / path => static(s"assets/$path", b, req)
         }
-        .orNotFound
 
-    val methodConfig = CORSConfig(
-      anyOrigin = true,
-      anyMethod = true,
-      allowCredentials = true,
-      maxAge = 1.day.toSeconds
-    )
+    val methodConfig = CORSConfig
+      .default
+      .withAnyOrigin(true)
+      .withAnyMethod(true)
+      .withAllowCredentials(true)
+      .withMaxAge(1.day)
 
     val app = for {
       blocker <- Blocker[IO]
       server <-
-        BlazeServerBuilder[IO]
+        BlazeServerBuilder[IO](global)
           .bindHttp(env.appConfig.getPort, env.appConfig.getAddress)
-          .withHttpApp(CORS(appService(blocker), methodConfig))
+          .withHttpApp(CORS(appService(blocker).orNotFound, methodConfig))
           .resource
     } yield server
 
