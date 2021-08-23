@@ -12,13 +12,14 @@ import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
 object Main extends App {
 
-  val configReader = new Cli
-  val in           = new Cli
-  val out          = new HttpServer
-  val matchService = (db: InkuireDb) => new FluffMatchService(db)
-  val prettifier   = new ScalaExternalSignaturePrettifier
-  val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db)
-  val parser       = new ScalaSignatureParserService
+  val configReader        = new Cli
+  val in                  = new Cli
+  val out                 = new HttpServer
+  val matchService        = (db: InkuireDb) => new FluffMatchService(db)
+  val matchQualityService = (db: InkuireDb) => new IsomorphismMatchQualityService(db)
+  val prettifier          = new ScalaExternalSignaturePrettifier
+  val resolver            = (db: InkuireDb) => new DefaultSignatureResolver(db)
+  val parser              = new ScalaSignatureParserService
 
   configReader
     .readConfig(args)
@@ -28,7 +29,7 @@ object Main extends App {
           out
             .serveOutput()
             .runA(
-              Env(db, matchService(db), prettifier, parser, resolver(db), config)
+              Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
             )
         }
     }

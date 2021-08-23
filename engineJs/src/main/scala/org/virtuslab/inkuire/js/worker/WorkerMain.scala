@@ -24,6 +24,7 @@ object WorkerMain {
     val in           = new JSInputHandler(scriptPath)
     val out          = new JSOutputHandler(handler)
     val matchService = (db: InkuireDb) => new FluffMatchService(db)
+    val matchQualityService = (db: InkuireDb) => new IsomorphismMatchQualityService(db)
     val prettifier   = new ScalaExternalSignaturePrettifier
     val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db)
     val parser       = new ScalaSignatureParserService
@@ -36,7 +37,7 @@ object WorkerMain {
             out
               .serveOutput()
               .runA(
-                Env(db, matchService(db), prettifier, parser, resolver(db), config)
+                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
               )
           }
       }
