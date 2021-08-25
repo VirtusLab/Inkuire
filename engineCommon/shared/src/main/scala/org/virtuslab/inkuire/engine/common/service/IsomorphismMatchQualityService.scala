@@ -3,14 +3,6 @@ package org.virtuslab.inkuire.engine.common.service
 import org.virtuslab.inkuire.engine.common.model._
 
 class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQualityService with MatchingOps {
-  
-  def sortMatches(functions: Seq[(ExternalSignature, Signature)]): Seq[ExternalSignature] = {
-    functions
-      .sortBy {
-        case (fun, matching) => matchQualityMetric(fun, matching)
-      }
-      .map(_._1)
-  }
 
   def matchQualityMetric(externalSignature: ExternalSignature, matching: Signature): Int =
     variancesMatchQualityMetric(
@@ -49,6 +41,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
   final val losingInformationCost = 10000
   final val losingVarInformationCost = 3000
   final val varToConcreteCost = 200
+  final val concreteToVarCost = 5000
   final val andOrOrTypeCost = 50
   final val dealiasCost = 10
   final val subTypeCost = 100
@@ -69,7 +62,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
       case (t: Type, _) if t.isStarProjection =>
         varToConcreteCost
       case (_, s: Type) if s.isStarProjection =>
-        varToConcreteCost
+        concreteToVarCost
       case (AndType(left, right), supr) => 
         andOrOrTypeCost + (typeMatchQualityMetric(left, supr) min typeMatchQualityMetric(right, supr))
       case (typ, AndType(left, right)) =>
@@ -90,9 +83,9 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric && supr.isVariable && supr.isGeneric =>
         varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric && supr.isGeneric =>
-        varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
+        varToConcreteCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric && typ.isGeneric =>
-        varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
+        concreteToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
         losingVarInformationCost
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
@@ -104,7 +97,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
       case (typ: Type, supr: Type) if supr.isVariable && typ.isGeneric =>
         losingVarInformationCost
       case (typ: Type, supr: Type) if supr.isVariable =>
-        varToConcreteCost
+        concreteToVarCost
       case (typ: Type, supr: Type) if typ.isVariable =>
         varToConcreteCost
       case (typ: Type, supr: Type) if typ.itid == supr.itid =>

@@ -11,6 +11,7 @@ import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import org.virtuslab.inkuire.engine.common.model.EndFormat
+import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
@@ -29,8 +30,16 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
               IO.async[Boolean] { f =>
                 f(Right(env.matcher.isMatch(r)(eSgn).nonEmpty))
               }
-            } //TODO JS sorting
-            .map(eSgn => outputFormatter.createOutput(query, Seq(eSgn)))
+            }
+            .map { eSgn =>
+              outputFormatter.createOutput(
+                query,
+                Seq(
+                  eSgn ->
+                    env.matchQualityService.matchQualityMetric(eSgn, env.matcher.isMatch(r)(eSgn).get)
+                )
+              )
+            }
             .:+(EndFormat)
         }
     }

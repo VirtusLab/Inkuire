@@ -3,14 +3,6 @@ package org.virtuslab.inkuire.engine.common.service
 import org.virtuslab.inkuire.engine.common.model._
 
 class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualityService with MatchingOps {
-  
-  def sortMatches(functions: Seq[(ExternalSignature, Signature)]): Seq[ExternalSignature] = {
-    functions
-      .sortBy {
-        case (fun, matching) => matchQualityMetric(fun, matching)
-      }
-      .map(_._1)
-  }
 
   def matchQualityMetric(externalSignature: ExternalSignature, matching: Signature): Int =
     variancesMatchQualityMetric(
@@ -36,19 +28,21 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
     }
 
   /** Classes thet generally mean loss of some information */
-  final val genericAF = Set(
+  final val avoidThose = Set(
     "Any",
     "Object",
     "AnyVal",
     "AnyRef",
-    "Matchable"
+    "Matchable",
+    "Nothing"
   ).map(TypeName.apply)
 
   /** Matching constants */
+  /** Matching constants */
   final val aLotCost = 1000000
   final val losingInformationCost = 10000
-  final val losingVarInformationCost = 3000
   final val varToConcreteCost = 200
+  final val concreteToVarCost = 5000
   final val andOrOrTypeCost = 50
   final val dealiasCost = 10
   final val subTypeCost = 100
@@ -91,30 +85,39 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric && supr.isVariable && supr.isGeneric =>
         varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric && supr.isGeneric =>
-        varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
+        varToConcreteCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric && typ.isGeneric =>
-        varToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
+        concreteToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
-        losingVarInformationCost
+        losingInformationCost
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
-        losingVarInformationCost
+        losingInformationCost
       case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
         varToVarCost
       case (typ: Type, supr: Type) if typ.isVariable && supr.isGeneric =>
-        losingVarInformationCost
+        losingInformationCost
       case (typ: Type, supr: Type) if supr.isVariable && typ.isGeneric =>
-        losingVarInformationCost
+        losingInformationCost
       case (typ: Type, supr: Type) if supr.isVariable =>
-        varToConcreteCost
+        concreteToVarCost
       case (typ: Type, supr: Type) if typ.isVariable =>
         varToConcreteCost
       case (typ: Type, supr: Type) if typ.isGeneric && !supr.isGeneric =>
         losingInformationCost
-      case (typ: Type, supr: Type) if !genericAF.contains(typ.name) && genericAF.contains(supr.name) =>
+      case (typ: Type, supr: Type) if !isGeneralised(typ) && isGeneralised(supr) =>
+        losingInformationCost
+      case (typ: Type, supr: Type) if !isGeneralised(supr) && isGeneralised(typ) =>
         losingInformationCost
       case (typ: Type, supr: Type) =>
-        equalCost
+        equalCost + variancesMatchQualityMetric(typ.params, supr.params)
     }
+  }
+
+  def isGeneralised(typ: TypeLike): Boolean = typ match {
+    case AndType(left, right) => isGeneralised(left) || isGeneralised(right)
+    case OrType(left, right) => isGeneralised(left) || isGeneralised(right)
+    case t: TypeLambda => isGeneralised(t.result)
+    case t: Type => avoidThose.contains(t.name)
   }
 
 }
