@@ -37,23 +37,21 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
   ).map(TypeName.apply)
 
   /** Matching constants */
-  final val aLotCost = 1000000
-  final val losingInformationCost = 10000
+  final val aLotCost                 = 1000000
+  final val losingInformationCost    = 10000
   final val losingVarInformationCost = 3000
-  final val varToConcreteCost = 200
-  final val concreteToVarCost = 5000
-  final val andOrOrTypeCost = 50
-  final val dealiasCost = 10
-  final val subTypeCost = 100
-  final val typeLambdaCost = 1
-  final val varToVarCost = 1
+  final val varToConcreteCost        = 200
+  final val concreteToVarCost        = 5000
+  final val andOrOrTypeCost          = 50
+  final val dealiasCost              = 10
+  final val subTypeCost              = 100
+  final val typeLambdaCost           = 1
+  final val varToVarCost             = 1
 
   val p = new ScalaExternalSignaturePrettifier
 
-  /**
-    * Returns match quality metric for two typelikes
+  /** Returns match quality metric for two typelikes
     * the lower the metric value, the better the match
-    * 
     */
   def typeMatchQualityMetric(typ: TypeLike, supr: TypeLike): Int = {
     (typ, supr) match {
@@ -63,7 +61,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
         varToConcreteCost
       case (_, s: Type) if s.isStarProjection =>
         concreteToVarCost
-      case (AndType(left, right), supr) => 
+      case (AndType(left, right), supr) =>
         andOrOrTypeCost + (typeMatchQualityMetric(left, supr) min typeMatchQualityMetric(right, supr))
       case (typ, AndType(left, right)) =>
         andOrOrTypeCost + (typeMatchQualityMetric(typ, left) min typeMatchQualityMetric(typ, right))
@@ -108,9 +106,12 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
           .toList
           .flatMap(alias => dealias(typ, alias))
           .map((_, supr, dealiasCost))
-          .++(db.typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map((typ, _, dealiasCost)))
+          .++(
+            db.typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map((typ, _, dealiasCost))
+          )
           .++(db.types.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map {
-            case t: Type if t.isGeneric != typ.isGeneric || genericAF.contains(t.name) => (t, supr, losingInformationCost)
+            case t: Type if t.isGeneric != typ.isGeneric || genericAF.contains(t.name) =>
+              (t, supr, losingInformationCost)
             case t => (t, supr, subTypeCost)
           })
           .map {

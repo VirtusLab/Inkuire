@@ -57,7 +57,7 @@ trait MatchingOps {
         .toMap
     parents.map(substituteBindings(_, bindings))
   }
-    
+
   implicit class TypeMatchingOps(typ: TypeLike) {
     def zipVariance(v: Variance): Variance = v match {
       case _: Contravariance     => Contravariance(typ)

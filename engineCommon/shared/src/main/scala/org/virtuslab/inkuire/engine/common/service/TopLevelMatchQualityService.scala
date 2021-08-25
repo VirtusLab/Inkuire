@@ -39,23 +39,21 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
 
   /** Matching constants */
   /** Matching constants */
-  final val aLotCost = 1000000
+  final val aLotCost              = 1000000
   final val losingInformationCost = 10000
-  final val varToConcreteCost = 200
-  final val concreteToVarCost = 5000
-  final val andOrOrTypeCost = 50
-  final val dealiasCost = 10
-  final val subTypeCost = 100
-  final val typeLambdaCost = 1
-  final val varToVarCost = 1
-  final val equalCost = 1
+  final val varToConcreteCost     = 200
+  final val concreteToVarCost     = 5000
+  final val andOrOrTypeCost       = 50
+  final val dealiasCost           = 10
+  final val subTypeCost           = 100
+  final val typeLambdaCost        = 1
+  final val varToVarCost          = 1
+  final val equalCost             = 1
 
   val p = new ScalaExternalSignaturePrettifier
 
-  /**
-    * Returns match quality metric for two typelikes
+  /** Returns match quality metric for two typelikes
     * the lower the metric value, the better the match
-    * 
     */
   def typeMatchQualityMetric(typ: TypeLike, supr: TypeLike): Int = {
     (typ, supr) match {
@@ -65,7 +63,7 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
         varToConcreteCost
       case (_, s: Type) if s.isStarProjection =>
         varToConcreteCost
-      case (AndType(left, right), supr) => 
+      case (AndType(left, right), supr) =>
         andOrOrTypeCost + (typeMatchQualityMetric(left, supr) min typeMatchQualityMetric(right, supr))
       case (typ, AndType(left, right)) =>
         andOrOrTypeCost + (typeMatchQualityMetric(typ, left) min typeMatchQualityMetric(typ, right))
@@ -115,9 +113,9 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
 
   def isGeneralised(typ: TypeLike): Boolean = typ match {
     case AndType(left, right) => isGeneralised(left) || isGeneralised(right)
-    case OrType(left, right) => isGeneralised(left) || isGeneralised(right)
+    case OrType(left, right)  => isGeneralised(left) || isGeneralised(right)
     case t: TypeLambda => isGeneralised(t.result)
-    case t: Type => avoidThose.contains(t.name)
+    case t: Type       => avoidThose.contains(t.name)
   }
 
 }
