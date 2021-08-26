@@ -28,7 +28,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
     }
 
   /** Classes thet generally mean loss of some information */
-  final val genericAF = Set(
+  final val avoid = Set(
     "Any",
     "Object",
     "AnyVal",
@@ -43,8 +43,8 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
   final val varToConcreteCost        = 200
   final val concreteToVarCost        = 5000
   final val andOrOrTypeCost          = 50
-  final val dealiasCost              = 10
-  final val subTypeCost              = 100
+  final val dealiasCost              = 2
+  final val subTypeCost              = 4
   final val typeLambdaCost           = 1
   final val varToVarCost             = 1
 
@@ -110,7 +110,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
             db.typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map((typ, _, dealiasCost))
           )
           .++(db.types.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map {
-            case t: Type if t.isGeneric != typ.isGeneric || genericAF.contains(t.name) =>
+            case t: Type if t.isGeneric != typ.isGeneric || avoid.contains(t.name) =>
               (t, supr, losingInformationCost)
             case t => (t, supr, subTypeCost)
           })
