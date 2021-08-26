@@ -73,7 +73,12 @@ object Templates {
             "Seq[Int] => Int",
             "[A, B] => A => B => A",
             "Int => Long => Int",
-            "Seq[Int] => (Int => Seq[Long]) => Seq[Long]"
+            "Seq[Int] => (Int => Seq[Long]) => Seq[Long]",
+            "A => (A => B) => B",
+            "A => (A => B) => A",
+            "Seq[A] => A",
+            "String => Char",
+            "String => Int => Char"
           )
         )
       )

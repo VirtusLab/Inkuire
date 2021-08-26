@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.data.EitherT
 import cats.data.Nested
 
-class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with VarianceOps {
+class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with MatchingOps {
 
   val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
   val implicitConversions = inkuireDb.implicitConversions

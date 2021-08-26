@@ -7,7 +7,7 @@ import cats.implicits._
 import scala.util.Random
 import scala.util.chaining._
 
-class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with VarianceOps {
+class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 
   val ancestryGraph: AncestryGraph =
     AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
@@ -31,11 +31,13 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
   }
 
-  override def isMatch(resolveResult: ResolveResult)(against: ExternalSignature): Boolean = {
-    resolveResult.signatures.exists(against.signature.canSubstituteFor(_))
+  override def isMatch(resolveResult: ResolveResult)(against: ExternalSignature): Option[Signature] = {
+    resolveResult.signatures.collectFirst {
+      case s if against.signature.canSubstituteFor(s) => s
+    }
   }
 
-  override def findMatches(resolveResult: ResolveResult): Seq[ExternalSignature] = {
+  override def findMatches(resolveResult: ResolveResult): Seq[(ExternalSignature, Signature)] = {
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
@@ -46,8 +48,11 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
     inkuireDb.functions
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
-      .filter(isMatch(actualResolveResult))
-      .distinctBy(_.uuid)
+      .map(fun => fun -> isMatch(actualResolveResult)(fun))
+      .collect {
+        case (fun, Some(matching)) => fun -> matching
+      }
+      .distinctBy(_._1.uuid)
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {

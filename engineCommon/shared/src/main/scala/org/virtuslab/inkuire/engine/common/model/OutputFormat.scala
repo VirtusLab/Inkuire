@@ -5,7 +5,8 @@ case class Match(
   functionName:        String,
   packageLocation:     String,
   pageLocation:        String,
-  entryType:           String
+  entryType:           String,
+  mq:                  Int
 )
 
 sealed trait OutputFormat

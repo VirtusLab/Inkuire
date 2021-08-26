@@ -75,7 +75,10 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
               .resolve(s)
               .fold(
                 handleResolveError,
-                r => putStrLn(env.prettifier.prettify(env.matcher findMatches r)).liftApp
+                r => {
+                  val matches = env.matcher.findMatches(r).map { case (fun, _) => fun }
+                  putStrLn(env.prettifier.prettify(matches)).liftApp
+                }
               )
           }
         )

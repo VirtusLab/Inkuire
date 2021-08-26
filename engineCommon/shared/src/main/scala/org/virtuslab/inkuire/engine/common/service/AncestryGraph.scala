@@ -12,7 +12,7 @@ case class AncestryGraph(
   nodes:               Map[ITID, (Type, Seq[Type])],
   implicitConversions: Seq[(TypeLike, Type)],
   typeAliases:         Map[ITID, TypeLike]
-) extends VarianceOps {
+) extends MatchingOps {
 
   val cacheNeg: MSet[(TypeLike, TypeLike)] = MSet.empty
 
@@ -130,58 +130,6 @@ case class AncestryGraph(
       }
     }
   }
-
-  def dealias(concreteType: Type, node: TypeLike): Option[TypeLike] = (concreteType, node) match {
-    case (t: Type, rhs: Type) if !t.isGeneric =>
-      Some(rhs)
-    case (t: Type, rhs: TypeLambda) if t.params.size == rhs.args.size =>
-      Some(substituteBindings(rhs.result, rhs.args.flatMap(_.itid).zip(t.params.map(_.typ)).toMap))
-    case _ =>
-      None
-  }
-
-  private def specializeParents(concreteType: Type, node: (Type, Seq[TypeLike])): Seq[TypeLike] = {
-    val (declaration, parents) = node
-    def resITID(t: TypeLike): Option[ITID] = t match {
-      case t: Type       => t.itid
-      case t: TypeLambda => resITID(t.result)
-      case _ => None
-    }
-    val bindings: Map[ITID, TypeLike] =
-      declaration.params
-        .map(_.typ)
-        .map(resITID)
-        .flatMap(identity)
-        .zip(concreteType.params.map(_.typ))
-        .toMap
-    parents.map(substituteBindings(_, bindings))
-  }
-
-  def substituteBindings(parent: TypeLike, bindings: Map[ITID, TypeLike]): TypeLike = parent match {
-    case t: Type if t.isVariable =>
-      t.itid match {
-        case None       => t.modify(_.params.each.typ).using(substituteBindings(_, bindings))
-        case Some(itid) => bindings.get(itid).getOrElse(t)
-      }
-    case t: Type =>
-      t.modify(_.params.each.typ).using(substituteBindings(_, bindings))
-    case t: OrType =>
-      t.modifyAll(_.left, _.right).using(substituteBindings(_, bindings))
-    case t: AndType =>
-      t.modifyAll(_.left, _.right).using(substituteBindings(_, bindings))
-    case t: TypeLambda =>
-      t.modify(_.result).using(substituteBindings(_, bindings))
-  }
-
-  private def genDummyTypes(n: Int) =
-    1.to(n).map { i =>
-      val name = s"dummy$i${Random.nextString(10)}"
-      Type(
-        name = TypeName(name),
-        itid = Some(ITID(name, isParsed = false)),
-        isVariable = true
-      )
-    }
 
   def getAllParentsITIDs(tpe: Type): Seq[ITID] = {
     tpe.itid.get +: nodes.get(tpe.itid.get).toSeq.flatMap(_._2).flatMap(getAllParentsITIDs(_))

@@ -18,15 +18,16 @@ object WorkerMain {
 
   @JSExport("main")
   def main(): Unit = {
-    val scriptPath   = ""
-    val handler      = new InkuireWorker(self)
-    val configReader = new JSInputHandler(scriptPath)
-    val in           = new JSInputHandler(scriptPath)
-    val out          = new JSOutputHandler(handler)
-    val matchService = (db: InkuireDb) => new FluffMatchService(db)
-    val prettifier   = new ScalaExternalSignaturePrettifier
-    val resolver     = (db: InkuireDb) => new DefaultSignatureResolver(db)
-    val parser       = new ScalaSignatureParserService
+    val scriptPath          = ""
+    val handler             = new InkuireWorker(self)
+    val configReader        = new JSInputHandler(scriptPath)
+    val in                  = new JSInputHandler(scriptPath)
+    val out                 = new JSOutputHandler(handler)
+    val matchService        = (db: InkuireDb) => new FluffMatchService(db)
+    val matchQualityService = (db: InkuireDb) => new TopLevelMatchQualityService(db)
+    val prettifier          = new ScalaExternalSignaturePrettifier
+    val resolver            = (db: InkuireDb) => new DefaultSignatureResolver(db)
+    val parser              = new ScalaSignatureParserService
 
     configReader
       .readConfig(Seq(scriptPath + "inkuire-config.json"))
@@ -36,7 +37,7 @@ object WorkerMain {
             out
               .serveOutput()
               .runA(
-                Env(db, matchService(db), prettifier, parser, resolver(db), config)
+                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
               )
           }
       }
