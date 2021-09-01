@@ -12,15 +12,15 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
   val implicitConversions = inkuireDb.implicitConversions
   val ancestryGraph       = inkuireDb.types
 
-  override def resolve(parsed: Signature): Either[String, ResolveResult] = {
-    val signatures = resolveAllPossibleSignatures(parsed).map(
+  override def resolve(parsed: ParsedSignature): Either[String, ResolveResult] = {
+    val signatures = resolveAllPossibleSignatures(parsed.signature).map(
       _.toList
         .map(moveToReceiverIfPossible)
         .distinct
     )
     signatures match {
       case Left(unresolvedType) => Left(resolveError(s"Could not resolve type: $unresolvedType"))
-      case Right(signatures)    => Right(ResolveResult(signatures))
+      case Right(signatures)    => Right(ResolveResult(signatures, parsed.filters))
     }
   }
 
