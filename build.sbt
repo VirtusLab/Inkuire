@@ -34,6 +34,16 @@ ThisBuild / developers := List(
 publish / skip := true
 ThisBuild / scalaVersion := "2.13.4"
 
+
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
+ThisBuild / scalacOptions ++= Seq(
+  "-Yrangepos",
+  "-Ywarn-unused"
+)
+
 val http4sVersion = "0.21.0"
 val catsVersion = "2.2.0"
 val circeVersion = "0.13.0"
