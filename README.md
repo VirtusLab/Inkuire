@@ -32,4 +32,4 @@ Scaladoc:
 
 If you see any bugs, please create an issue [Github](https://github.com/VirtusLab/Inkuire)
 
-For Kotlin support see [legacy](https://github.com/VirtusLab/Inkuire/tree/legacy) branch.
+For Kotlin support see [kotlin](https://github.com/VirtusLab/Inkuire/tree/kotlin) branch.
