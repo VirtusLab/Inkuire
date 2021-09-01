@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.NonEmptyList
 import org.virtuslab.inkuire.engine.common.model._
 
 class ScalaExternalSignaturePrettifier extends SignaturePrettifier {

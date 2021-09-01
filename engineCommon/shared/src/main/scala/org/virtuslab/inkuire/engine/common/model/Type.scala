@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.common.model
 
 import com.softwaremill.quicklens._
-import TypeName._
+import org.virtuslab.inkuire.engine.common.model.TypeName._
 
 sealed trait TypeLike {
   def itid: Option[ITID]
@@ -41,5 +41,5 @@ object Type {
     def concreteType: Type = Type(str)
     def typeVariable: Type = Type(str, isVariable = true)
   }
-  val StarProjection = Type(TypeName("_"), itid = Some(ITID("_", isParsed = true)), isStarProjection = true)
+  val StarProjection: Type = Type(TypeName("_"), itid = Some(ITID("_", isParsed = true)), isStarProjection = true)
 }

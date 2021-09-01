@@ -2,16 +2,15 @@ package org.virtuslab.inkuire.js.handlers
 
 import cats.effect.IO
 import monix.execution.Ack
-import monix.reactive.subjects.PublishSubject
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
+import monix.reactive.subjects.PublishSubject
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
-import org.virtuslab.inkuire.engine.common.model.{Engine, Signature}
+import org.virtuslab.inkuire.engine.common.model.EndFormat
+import org.virtuslab.inkuire.engine.common.model.Engine
+import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
-import org.virtuslab.inkuire.engine.common.model.EndFormat
-import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()

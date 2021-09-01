@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.common.parser
 
 import cats.Monoid
-import org.virtuslab.inkuire.engine.common.model.{Signature, Type}
+import org.virtuslab.inkuire.engine.common.model.Type
+import org.virtuslab.inkuire.engine.common.model._
 
 import scala.util.parsing.combinator.RegexParsers
-import org.virtuslab.inkuire.engine.common.model._
 
 abstract class BaseSignatureParser extends RegexParsers {
 

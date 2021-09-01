@@ -1,25 +1,26 @@
 package org.virtuslab.inkuire.js.handlers
 
 import cats.data.EitherT
-import cats.data.StateT
-import cats.instances.all._
-import cats.syntax.all._
+import cats.effect.ContextShift
 import cats.effect.IO
-import cats.implicits.catsSyntaxApplicativeId
-import io.circe.generic.auto._, io.circe.syntax._, io.circe.parser._
+import cats.instances.all._
+import cats.kernel.Monoid
+import cats.syntax.all._
+import io.circe.generic.auto._
+import io.circe.parser._
 import org.scalajs.dom.ext.Ajax
-import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler}
-import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
+import org.virtuslab.inkuire.engine.common.api.ConfigReader
+import org.virtuslab.inkuire.engine.common.api.InputHandler
+import org.virtuslab.inkuire.engine.common.model.AppConfig
+import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.chaining._
-import cats.kernel.Monoid
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
-  private def getURLContent(url: String): Future[String] =
-    Ajax.get(url).map(_.responseText).fallbackTo(Future(""))
 
   private def tryGetURLContent(url: String): Future[Either[String, String]] =
     Ajax
@@ -27,7 +28,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .map(_.responseText.pipe(Right(_)))
       .fallbackTo(Future(Left("Could not read contents of file")))
 
-  implicit def contextShift(implicit ec: ExecutionContext) = IO.contextShift(ec)
+  implicit def contextShift(implicit ec: ExecutionContext): ContextShift[IO] = IO.contextShift(ec)
 
   override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
     args.headOption

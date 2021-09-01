@@ -1,11 +1,11 @@
 package org.virtuslab.inkuire.engine.common.parser
 
-import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.common.model._
-import org.virtuslab.inkuire.engine.common.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
+import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
+
+import scala.util.matching.Regex
 
 class ScalaSignatureParser extends BaseSignatureParser {
 
@@ -152,7 +152,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     import scalaSignatureParser._
     scalaSignatureParser.parseAll(signature, str) match {
       case Success(matched, _) => Right(matched)
-      case Failure(msg, _)     => Left(parseError(parsingErrorGenericMessage))
+      case Failure(_, _)       => Left(parseError(parsingErrorGenericMessage))
       case Error(msg, _)       => Left(msg)
     }
   }
@@ -171,7 +171,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
       )
   }
 
-  val typeVariablePattern = """([A-Za-z][0-9]?)""".r
+  val typeVariablePattern: Regex = """([A-Za-z][0-9]?)""".r
   def isVariableByName(t: Type): Boolean =
     t.name.name match {
       case typeVariablePattern(_) => true

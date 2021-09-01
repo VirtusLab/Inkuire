@@ -1,31 +1,28 @@
 package org.virtuslab.inkuire.engine.http.cli
 
-import java.io.File
-import java.net.URL
-import java.nio.file.Paths
-
-import cats.Id
 import cats.data.EitherT
 import cats.data.StateT
-import cats.instances.all._
-import cats.syntax.all._
 import cats.effect.IO
+import cats.instances.all._
+import cats.kernel.Monoid
+import cats.syntax.all._
+import org.virtuslab.inkuire.engine.common.api.ConfigReader
+import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
-import org.virtuslab.inkuire.engine.common.api.{ConfigReader, InputHandler, OutputHandler}
-import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
+import org.virtuslab.inkuire.engine.common.model.AppConfig
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
+import org.virtuslab.inkuire.engine.common.model.Engine._
+import org.virtuslab.inkuire.engine.common.model.InkuireDb
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 import org.virtuslab.inkuire.engine.common.utils.helpers.IOHelpers
 import org.virtuslab.inkuire.engine.common.utils.syntax._
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
-import org.virtuslab.inkuire.engine.common.model.Engine._
 
-import scala.io.StdIn.readLine
+import java.io.File
+import java.net.URL
 import scala.annotation.tailrec
 import scala.io.Source
+import scala.io.StdIn.readLine
 import scala.util.chaining._
-
-import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import cats.kernel.Monoid
 
 class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpers {
 

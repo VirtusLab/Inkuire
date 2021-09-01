@@ -1,15 +1,16 @@
 package org.virtuslab.inkuire.js.worker
 
 import org.scalajs.dom.raw.DedicatedWorkerGlobalScope
-import org.scalajs.dom.webworkers.WorkerGlobalScope
+import org.virtuslab.inkuire.engine.common.model.AppConfig
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
-import org.virtuslab.inkuire.engine.common.model.{AppConfig, InkuireDb}
+import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service._
-import org.virtuslab.inkuire.js.handlers.{JSInputHandler, JSOutputHandler}
+import org.virtuslab.inkuire.js.handlers.JSInputHandler
+import org.virtuslab.inkuire.js.handlers.JSOutputHandler
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
+import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js.annotation.JSExportTopLevel
 
 // This code is used to generate function that will be called as initializer by worker
 @JSExportTopLevel("WorkerMain")

@@ -1,8 +1,8 @@
 package org.virtuslab.inkuire.engine.common.api
 
-import cats.implicits._
 import cats.data.StateT
 import cats.effect.IO
+import cats.implicits._
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.Engine._
 

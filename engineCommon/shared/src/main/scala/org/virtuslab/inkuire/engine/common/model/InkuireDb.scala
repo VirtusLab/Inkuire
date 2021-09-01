@@ -1,11 +1,5 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.implicits.{catsSyntaxOptionId, toBifunctorOps, toShow, toTraverseOps}
-import io.circe._
-import io.circe.parser._
-import io.circe.generic.auto._
-import io.circe.syntax._
-import com.softwaremill.quicklens._
 import cats.kernel.Monoid
 
 //TODO technically it would be better to have a different type for type declarations -> types: Map[ITID, (Declaration, Seq[Type])]
@@ -17,7 +11,7 @@ case class InkuireDb(
 )
 
 object InkuireDb {
-  implicit val inkuireDbMonoid = new Monoid[InkuireDb] {
+  implicit val inkuireDbMonoid: Monoid[InkuireDb] = new Monoid[InkuireDb] {
     override def combine(x: InkuireDb, y: InkuireDb): InkuireDb =
       InkuireDb(
         functions = (x.functions ++ y.functions).distinct,

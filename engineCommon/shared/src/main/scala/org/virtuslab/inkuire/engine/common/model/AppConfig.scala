@@ -1,7 +1,5 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import org.virtuslab.inkuire.engine.common.utils.syntax._
-import cats.implicits._
 import cats.kernel.Monoid
 
 case class AppConfig(
@@ -9,12 +7,12 @@ case class AppConfig(
   port:         Option[Int],
   inkuirePaths: Seq[String]
 ) {
-  def getAddress = address.getOrElse("0.0.0.0")
-  def getPort    = port.getOrElse(8080)
+  def getAddress: String = address.getOrElse("0.0.0.0")
+  def getPort:    Int    = port.getOrElse(8080)
 }
 
 object AppConfig {
-  implicit val appConfigMonoid = new Monoid[AppConfig] {
+  implicit val appConfigMonoid: Monoid[AppConfig] = new Monoid[AppConfig] {
     def empty: AppConfig = AppConfig(
       address = None,
       port = None,

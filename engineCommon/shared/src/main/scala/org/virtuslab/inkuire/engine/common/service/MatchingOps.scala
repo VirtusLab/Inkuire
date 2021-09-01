@@ -1,12 +1,13 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.model._
-import scala.util.Random
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.model._
+
+import scala.util.Random
 
 trait MatchingOps {
 
-  protected def genDummyTypes(n: Int) =
+  protected def genDummyTypes(n: Int): IndexedSeq[Type] =
     1.to(n).map { i =>
       val name = s"dummy$i${Random.nextString(10)}"
       Type(
