@@ -1,32 +1,33 @@
 package org.virtuslab.inkuire.engine.http.http
 
 import cats.effect._
-import cats.implicits._
-import io.circe.syntax._
 import io.circe.generic.auto._
+import io.circe.syntax._
+import org.http4s.HttpRoutes
+import org.http4s.MediaType
+import org.http4s.Request
+import org.http4s.StaticFile
+import org.http4s.UrlForm
 import org.http4s.dsl.io._
-import org.http4s.headers.{`Content-Type`, Location}
+import org.http4s.headers.Location
+import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
 import org.http4s.server.blaze._
 import org.http4s.server.middleware._
-import org.http4s.{HttpRoutes, MediaType, Request, StaticFile, Uri, UrlForm}
+import org.slf4j
+import org.slf4j.LoggerFactory
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
-import org.virtuslab.inkuire.engine.common.model.Engine._
-import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
-import scala.concurrent.duration._
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 import scala.concurrent.ExecutionContext.global
-import scala.io.Source
-import org.slf4j.LoggerFactory
-import org.virtuslab.inkuire.engine.common.model.ResultFormat
+import scala.concurrent.duration._
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
 class HttpServer extends OutputHandler {
 
-  val logger = LoggerFactory.getLogger(classOf[HttpServer])
+  val logger: slf4j.Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
   override def serveOutput(env: Env): IO[Unit] = {
 

@@ -5,11 +5,11 @@ import io.circe.syntax._
 import monix.eval.Task
 import monix.execution.Cancelable
 import monix.reactive._
-import org.scalajs.dom.{html, Event}
+import org.scalajs.dom.Event
 import org.scalajs.dom.raw.MessageEvent
-import org.scalajs.dom.webworkers.{DedicatedWorkerGlobalScope, Worker}
-import org.virtuslab.inkuire.js.worker.JSHandler
+import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
+import org.virtuslab.inkuire.js.worker.JSHandler
 
 class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {
   override def inputChanges: Observable[String] =

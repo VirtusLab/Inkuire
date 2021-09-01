@@ -28,7 +28,7 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
     }
 
   /** Classes thet generally mean loss of some information */
-  final val avoidThose = Set(
+  final val avoidThose: Set[TypeName] = Set(
     "Any",
     "Object",
     "AnyVal",
@@ -86,9 +86,9 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
         varToConcreteCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric && typ.isGeneric =>
         concreteToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
-      case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
+      case (typ: Type, _: Type) if typ.isVariable && typ.isGeneric =>
         losingInformationCost
-      case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
+      case (_: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
         losingInformationCost
       case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
         varToVarCost
@@ -96,9 +96,9 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
         losingInformationCost
       case (typ: Type, supr: Type) if supr.isVariable && typ.isGeneric =>
         losingInformationCost
-      case (typ: Type, supr: Type) if supr.isVariable =>
+      case (_: Type, supr: Type) if supr.isVariable =>
         concreteToVarCost
-      case (typ: Type, supr: Type) if typ.isVariable =>
+      case (typ: Type, _: Type) if typ.isVariable =>
         varToConcreteCost
       case (typ: Type, supr: Type) if typ.isGeneric && !supr.isGeneric =>
         losingInformationCost

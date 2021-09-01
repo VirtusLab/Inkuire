@@ -1,11 +1,8 @@
 package org.virtuslab.inkuire.engine.http.http
 
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
+import org.virtuslab.inkuire.engine.common.model.ResultFormat
 import scalatags.Text
 import scalatags.Text.all._
-
-import collection.JavaConverters._
-import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 object Templates {
   private def logoHtml =

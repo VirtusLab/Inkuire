@@ -1,9 +1,9 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.model._
 import cats.data.State
 import cats.implicits._
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.model._
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view.mapValues {

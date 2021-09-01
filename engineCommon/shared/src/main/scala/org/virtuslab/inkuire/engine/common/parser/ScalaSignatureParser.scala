@@ -1,11 +1,11 @@
 package org.virtuslab.inkuire.engine.common.parser
 
-import com.softwaremill.quicklens._
-import org.virtuslab.inkuire.engine.common.model._
-import org.virtuslab.inkuire.engine.common.utils.syntax._
 import cats.instances.all._
 import cats.syntax.all._
+import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
+
+import scala.util.matching.Regex
 
 class ScalaSignatureParser extends BaseSignatureParser {
 
@@ -101,8 +101,21 @@ class ScalaSignatureParser extends BaseSignatureParser {
         mapToSignature(None, types.dropRight(1), types.last, vars, Map.empty)
     }
 
-  def signature: Parser[Signature] =
-    curriedSignature
+  def packageIdentifier: Parser[String] = """[A-Za-z][a-zA-Z0-9_.]*""".r
+
+  def includeSignatureFilters: Parser[IncludeSignatureFilters] =
+    rep1("+" ~> packageIdentifier) ^^ IncludeSignatureFilters.apply
+
+  def excludeSignatureFilters: Parser[ExcludeSignatureFilters] =
+    rep("-" ~> packageIdentifier) ^^ ExcludeSignatureFilters.apply
+
+  def signatureFilters: Parser[SignatureFilters] =
+    includeSignatureFilters | excludeSignatureFilters
+
+  def signature: Parser[ParsedSignature] =
+    signatureFilters ~ curriedSignature ^^ {
+      case filters ~ siangture => ParsedSignature(siangture, filters)
+    }
 
   def mapToSignature(
     rcvr:     Option[TypeLike],
@@ -129,34 +142,36 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
 
   private val scalaSignatureParser = new ScalaSignatureParser
 
-  override def parse(str: String): Either[String, Signature] =
-    doParse(str) >>= convert >>= (s => Right(curry(s))) >>= validate
+  override def parse(str: String): Either[String, ParsedSignature] =
+    doParse(str) map convert map (s => curry(s)) >>= validate
 
   val parsingErrorGenericMessage =
     "Could not parse provided signature. Example signature looks like this: List[Int] => (Int => Boolean) => Int"
 
-  private def doParse(str: String): Either[String, Signature] = {
+  private def doParse(str: String): Either[String, ParsedSignature] = {
     import scalaSignatureParser._
     scalaSignatureParser.parseAll(signature, str) match {
       case Success(matched, _) => Right(matched)
-      case Failure(msg, _)     => Left(parseError(parsingErrorGenericMessage))
+      case Failure(_, _)       => Left(parseError(parsingErrorGenericMessage))
       case Error(msg, _)       => Left(msg)
     }
   }
 
-  private def convert(sgn: Signature): Either[String, Signature] = {
-    val converter: TypeLike => TypeLike = resolve(sgn.context.vars)
-    sgn
-      .modifyAll(_.receiver.each.typ, _.result.typ)
-      .using(converter)
-      .modify(_.arguments.each.typ)
-      .using(converter)
-      .modify(_.context.constraints.each.each)
-      .using(converter)
-      .right[String]
+  private def convert(pSgn: ParsedSignature): ParsedSignature = {
+    val converter: TypeLike => TypeLike = resolve(pSgn.signature.context.vars)
+    pSgn
+      .modify(_.signature)
+      .using(
+        _.modifyAll(_.receiver.each.typ, _.result.typ)
+          .using(converter)
+          .modify(_.arguments.each.typ)
+          .using(converter)
+          .modify(_.context.constraints.each.each)
+          .using(converter)
+      )
   }
 
-  val typeVariablePattern = """([A-Za-z][0-9]?)""".r
+  val typeVariablePattern: Regex = """([A-Za-z][0-9]?)""".r
   def isVariableByName(t: Type): Boolean =
     t.name.name match {
       case typeVariablePattern(_) => true
@@ -183,23 +198,27 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     }
   }
 
-  private def curry(e: Signature): Signature = {
-    e.result.typ match {
+  private def curry(pSgn: ParsedSignature): ParsedSignature = {
+    pSgn.signature.result.typ match {
       case t: Type if t.name.name == s"Function${t.params.size - 1}" =>
         curry(
-          e.copy(
-            arguments = e.arguments ++ t.params.init.map(_.typ).map(Contravariance(_)),
-            result = Covariance(t.params.last.typ)
-          )
+          pSgn
+            .modify(_.signature)
+            .using(
+              _.copy(
+                arguments = pSgn.signature.arguments ++ t.params.init.map(_.typ).map(Contravariance(_)),
+                result = Covariance(t.params.last.typ)
+              )
+            )
         )
-      case _ => e
+      case _ => pSgn
     }
   }
 
-  private def validate(sgn: Signature): Either[String, Signature] =
+  private def validate(pSgn: ParsedSignature): Either[String, ParsedSignature] =
     for {
-      _ <- validateConstraintsForNonVariables(sgn)
-    } yield sgn
+      _ <- validateConstraintsForNonVariables(pSgn.signature)
+    } yield pSgn
 
   private def validateConstraintsForNonVariables(sgn: Signature): Either[String, Unit] =
     Either.cond(

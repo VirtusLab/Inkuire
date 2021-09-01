@@ -1,26 +1,24 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.model._
-import com.softwaremill.quicklens._
 import cats.implicits._
-import cats.data.EitherT
-import cats.data.Nested
+import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.model._
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with MatchingOps {
 
-  val ag                  = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
+  val ag: AncestryGraph = AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)
   val implicitConversions = inkuireDb.implicitConversions
   val ancestryGraph       = inkuireDb.types
 
-  override def resolve(parsed: Signature): Either[String, ResolveResult] = {
-    val signatures = resolveAllPossibleSignatures(parsed).map(
+  override def resolve(parsed: ParsedSignature): Either[String, ResolveResult] = {
+    val signatures = resolveAllPossibleSignatures(parsed.signature).map(
       _.toList
         .map(moveToReceiverIfPossible)
         .distinct
     )
     signatures match {
       case Left(unresolvedType) => Left(resolveError(s"Could not resolve type: $unresolvedType"))
-      case Right(signatures)    => Right(ResolveResult(signatures))
+      case Right(signatures)    => Right(ResolveResult(signatures, parsed.filters))
     }
   }
 
@@ -35,25 +33,6 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         .setTo(Some(signature.arguments.head))
         .modify(_.arguments)
         .using(_.drop(1))
-  }
-
-  private def permutateParams(signature: Signature): Seq[Signature] = {
-    (signature.receiver ++ signature.arguments).toList.permutations
-      .map { params =>
-        if (signature.receiver.nonEmpty) {
-          signature
-            .modify(_.receiver)
-            .setTo(params.headOption)
-            .modify(_.arguments)
-            .setTo(params.drop(1))
-        } else {
-          signature
-            .modify(_.arguments)
-            .setTo(params)
-        }
-      }
-      .distinct
-      .toSeq
   }
 
   private def mostGeneral(types: Seq[TypeLike]): Seq[TypeLike] = { //TODO can be applied deeper if needed

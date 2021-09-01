@@ -28,7 +28,7 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
     }
 
   /** Classes thet generally mean loss of some information */
-  final val avoid = Set(
+  final val avoid: Set[TypeName] = Set(
     "Any",
     "Object",
     "AnyVal",
@@ -84,9 +84,9 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
         varToConcreteCost + variancesMatchQualityMetric(typ.params, supr.params)
       case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric && typ.isGeneric =>
         concreteToVarCost + variancesMatchQualityMetric(typ.params, supr.params)
-      case (typ: Type, supr: Type) if typ.isVariable && typ.isGeneric =>
+      case (typ: Type, _: Type) if typ.isVariable && typ.isGeneric =>
         losingVarInformationCost
-      case (typ: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
+      case (_: Type, supr: Type) if supr.isVariable && supr.isGeneric =>
         losingVarInformationCost
       case (typ: Type, supr: Type) if typ.isVariable && supr.isVariable =>
         varToVarCost
@@ -94,9 +94,9 @@ class IsomorphismMatchQualityService(val db: InkuireDb) extends BaseMatchQuality
         losingVarInformationCost
       case (typ: Type, supr: Type) if supr.isVariable && typ.isGeneric =>
         losingVarInformationCost
-      case (typ: Type, supr: Type) if supr.isVariable =>
+      case (_: Type, supr: Type) if supr.isVariable =>
         concreteToVarCost
-      case (typ: Type, supr: Type) if typ.isVariable =>
+      case (typ: Type, _: Type) if typ.isVariable =>
         varToConcreteCost
       case (typ: Type, supr: Type) if typ.itid == supr.itid =>
         variancesMatchQualityMetric(typ.params, supr.params)

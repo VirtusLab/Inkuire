@@ -1,11 +1,9 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.{State, StateT}
-import org.virtuslab.inkuire.engine.common.model._
-import com.softwaremill.quicklens._
+import cats.data.State
 import cats.implicits._
-import scala.util.Random
-import scala.util.chaining._
+import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.model._
 
 class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 
@@ -32,9 +30,13 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
   }
 
   override def isMatch(resolveResult: ResolveResult)(against: ExternalSignature): Option[Signature] = {
-    resolveResult.signatures.collectFirst {
-      case s if against.signature.canSubstituteFor(s) => s
-    }
+    if (resolveResult.filters.canMatch(against))
+      resolveResult.signatures
+        .collectFirst {
+          case s if against.signature.canSubstituteFor(s) => s
+        }
+    else
+      None
   }
 
   override def findMatches(resolveResult: ResolveResult): Seq[(ExternalSignature, Signature)] = {
@@ -46,7 +48,8 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
-    inkuireDb.functions
+    resolveResult.filters
+      .filterFrom(inkuireDb.functions)
       .filter(fun => Some(fun.signature.typesWithVariances.size) == actualSignaturesSize)
       .map(fun => fun -> isMatch(actualResolveResult)(fun))
       .collect {

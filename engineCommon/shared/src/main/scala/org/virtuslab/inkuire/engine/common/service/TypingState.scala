@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.model._
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.model._
 
 case class TypingState(
   variableBindings: VariableBindings

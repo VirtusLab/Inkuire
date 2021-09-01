@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.common.serialization
 
-import io.circe.parser.decode
+import cats.syntax.all._
 import io.circe._
 import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.circe.syntax._
-import cats.syntax.all._
 import org.virtuslab.inkuire.engine.common.model._
 
 object EngineModelSerializers {
