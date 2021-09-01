@@ -2,5 +2,5 @@ package org.virtuslab.inkuire.engine.common.model
 
 case class ResolveResult(
   signatures: Seq[Signature],
-  filters: SignatureFilters
+  filters:    SignatureFilters
 )

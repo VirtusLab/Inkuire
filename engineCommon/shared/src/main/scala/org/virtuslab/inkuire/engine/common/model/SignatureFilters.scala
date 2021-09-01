@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.common.model
 
 trait SignatureFilters {
   def filterFrom(externalSignatures: Seq[ExternalSignature]): Seq[ExternalSignature]
-  def canMatch(eSgn: ExternalSignature): Boolean
+  def canMatch(eSgn:                 ExternalSignature):      Boolean
 }
 
 object SignatureFilters {

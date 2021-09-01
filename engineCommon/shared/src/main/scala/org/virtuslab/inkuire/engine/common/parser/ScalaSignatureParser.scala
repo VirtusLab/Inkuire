@@ -159,14 +159,16 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
 
   private def convert(pSgn: ParsedSignature): ParsedSignature = {
     val converter: TypeLike => TypeLike = resolve(pSgn.signature.context.vars)
-    pSgn.modify(_.signature).using(
-      _.modifyAll(_.receiver.each.typ, _.result.typ)
-        .using(converter)
-        .modify(_.arguments.each.typ)
-        .using(converter)
-        .modify(_.context.constraints.each.each)
-        .using(converter)
-    )
+    pSgn
+      .modify(_.signature)
+      .using(
+        _.modifyAll(_.receiver.each.typ, _.result.typ)
+          .using(converter)
+          .modify(_.arguments.each.typ)
+          .using(converter)
+          .modify(_.context.constraints.each.each)
+          .using(converter)
+      )
   }
 
   val typeVariablePattern = """([A-Za-z][0-9]?)""".r
