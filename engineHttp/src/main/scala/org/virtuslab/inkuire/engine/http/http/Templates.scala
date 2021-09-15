@@ -7,7 +7,7 @@ import scalatags.Text.all._
 object Templates {
   private def logoHtml =
     div(id := "logo-div")(
-          img(id := "logo", src := s"/assets/Inkuire_vertical@4x.png")
+      img(id := "logo", src := s"/assets/Inkuire_vertical@4x.png")
     )
 
   private def resources =
