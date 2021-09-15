@@ -7,7 +7,7 @@ import scalatags.Text.all._
 object Templates {
   private def logoHtml =
     div(id := "logo-div")(
-      img(id := "logo", src := s"/assets/logoinkuire.png")
+      img(id := "logo", src := s"/assets/Inkuire_vertical@4x.png")
     )
 
   private def resources =
@@ -24,7 +24,7 @@ object Templates {
       ),
       link(rel := "stylesheet", href := "/assets/bootstrap-theme.css"),
       link(rel := "stylesheet", href := "/assets/styles.css"),
-      link(rel := "icon", `type` := "image/png", href := "/assets/favicon.png")
+      link(rel := "icon", `type` := "image/png", href := "/assets/Inkuire_sygnet@4x.png")
     )
 
   def formTemplate(): String = {
