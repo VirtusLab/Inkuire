@@ -34,15 +34,15 @@ ThisBuild / developers := List(
 publish / skip := true
 ThisBuild / scalaVersion := "3.0.2"
 
-
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
-ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
-ThisBuild / scalacOptions ++= Seq(
-  "-Yrangepos",
-  "-Ywarn-unused"
-)
+// Waiting for Scala 3 scalafix support
+// ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+// ThisBuild / semanticdbEnabled := true
+// ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+// ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
+// ThisBuild / scalacOptions ++= Seq(
+//   "-Yrangepos",
+//   "-Ywarn-unused"
+// )
 
 val http4sVersion = "0.22.2"
 val catsVersion = "2.6.1"

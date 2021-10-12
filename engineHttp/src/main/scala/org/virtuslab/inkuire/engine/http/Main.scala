@@ -21,7 +21,7 @@ object Main {
     val parser = new ScalaSignatureParserService
 
     configReader
-      .readConfig(args)
+      .readConfig(args.toSeq)
       .flatMap { (config: AppConfig) =>
         in.readInput(config)
           .semiflatMap { (db: InkuireDb) =>
