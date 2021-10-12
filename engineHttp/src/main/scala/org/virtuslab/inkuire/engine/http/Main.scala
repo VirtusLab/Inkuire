@@ -25,7 +25,8 @@ object Main {
       .flatMap { (config: AppConfig) =>
         in.readInput(config)
           .semiflatMap { (db: InkuireDb) =>
-            out.serveOutput()
+            out
+              .serveOutput()
               .runA(
                 Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
               )
