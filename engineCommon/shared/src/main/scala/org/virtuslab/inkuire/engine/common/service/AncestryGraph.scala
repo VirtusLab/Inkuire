@@ -74,7 +74,7 @@ case class AncestryGraph(
             val constraints = context.constraints.get(supr.name.name).toSeq.flatten.toList
             State.modify[TypingState](_.addBinding(supr.itid.get, typ)) >>
               constraints
-                .foldLeft(State.pure[TypingState, Boolean](true)) {
+                .foldLeft(State.pure(true)) {
                   case (acc, t) =>
                     acc.flatMap { cond =>
                       if (cond) typ.isSubTypeOf(t)(context)
@@ -88,10 +88,10 @@ case class AncestryGraph(
             State.modify[TypingState](_.addBinding(typ.itid.get, supr)) >> {
               if (constraints.nonEmpty) {
                 constraints
-                  .foldLeft(State.pure[TypingState, Boolean](false)) {
+                  .foldLeft(State.pure(false)) {
                     case (acc, t) =>
                       acc.flatMap { cond =>
-                        if (cond) State.pure[TypingState, Boolean](true)
+                        if (cond) State.pure(true)
                         else t.isSubTypeOf(supr)(context)
                       }
                   }
@@ -110,7 +110,7 @@ case class AncestryGraph(
             .map(_ -> supr)
             .++(typeAliases.get(supr.itid.get).toList.flatMap(alias => dealias(supr, alias)).map(typ -> _))
             .++(nodes.get(typ.itid.get).toList.flatMap(node => specializeParents(typ, node)).map(_ -> supr))
-            .foldLeft(State.pure[TypingState, Boolean](false)) {
+            .foldLeft(State.pure(false)) {
               case (acc, (t, s)) =>
                 acc.flatMap { cond =>
                   if (cond) State.pure(true)
@@ -144,11 +144,11 @@ case class AncestryGraph(
       types
         .zip(suprs)
         .toList
-        .foldLeft(State.pure[TypingState, Boolean](true)) {
+        .foldLeft(State.pure(true)) {
           case (acc, (externalType, queryType)) =>
             acc.flatMap { cond =>
               if (cond) checkByVariance(externalType, queryType, context)
-              else State.pure[TypingState, Boolean](false)
+              else State.pure(false)
             }
         }
     } else State.pure(false)
