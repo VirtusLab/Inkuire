@@ -94,8 +94,7 @@ class HttpServer extends OutputHandler {
           case req @ GET -> Root / "assets" / path => static(s"assets/$path", b, req)
         }
 
-    val methodConfig = CORSConfig
-      .default
+    val methodConfig = CORSConfig.default
       .withAnyOrigin(true)
       .withAnyMethod(true)
       .withAllowCredentials(true)

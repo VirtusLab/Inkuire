@@ -69,9 +69,9 @@ class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with 
               a.params.size == b.params.size &&
               a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
                 case (a: Type, b: Type) => a.itid == b.itid
-                case _ => false
+                case _                  => false
               }
-          case _             => true
+          case _ => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
   }

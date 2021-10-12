@@ -153,7 +153,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         _.map(_ -> typ)
           .filter {
             case (t: Type, typ: Type) => t.params.size == typ.params.size
-            case _ => true
+            case _                    => true
           }
           .map(_._1)
       )

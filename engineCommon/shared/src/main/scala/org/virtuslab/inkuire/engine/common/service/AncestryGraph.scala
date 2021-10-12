@@ -17,9 +17,10 @@ case class AncestryGraph(
 
   implicit class TypeOps(typ: TypeLike) {
 
-    /** Checks if typ is the subtype of supr (more or less)
-      * This check is a bit weaker than subtyping (aspecially in case of typevariables)
-      */
+    /**
+     * Checks if typ is the subtype of supr (more or less)
+     * This check is a bit weaker than subtyping (aspecially in case of typevariables)
+     */
     def isSubTypeOfActual(supr: TypeLike)(implicit context: SignatureContext): State[TypingState, Boolean] =
       (typ, supr) match {
         case (t: Type, _) if t.isStarProjection => State.pure(true)
