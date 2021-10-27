@@ -3,7 +3,7 @@ import java.util.Properties
 
 ThisBuild / name := "inkuire"
 ThisBuild / organization := "org.virtuslab.inkuire"
-ThisBuild / version := "0.1.2-SNAPSHOT"
+ThisBuild / version := "1.0.0-M3"
 
 ThisBuild / bintrayRepository := "Inkuire"
 ThisBuild / bintrayOrganization := Some("virtuslab")
