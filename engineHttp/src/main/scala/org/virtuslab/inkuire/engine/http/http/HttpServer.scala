@@ -70,7 +70,7 @@ class HttpServer extends OutputHandler {
                 fb => Ok(Templates.result(fb), `Content-Type`(MediaType.text.html))
               )
             }
-          case GET -> Root / "forSignature" :? SignatureParameter(signature) =>
+          case GET -> Root / "api" / "forSignature" :? SignatureParameter(signature) =>
             results(signature).fold(
               fa => BadRequest(fa),
               fb =>
