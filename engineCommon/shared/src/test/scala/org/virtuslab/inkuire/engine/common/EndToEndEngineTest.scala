@@ -14,11 +14,25 @@ class EndToEndEngineTest extends munit.FunSuite {
   }
   override def munitFixtures = List(testService)
 
-  test("map : List[A] => (A => B) => List[B]") {
-    assert(testService().query("List[A] => (A => B) => List[B]").exists(_.name == "map"))
+  def testFunctionFound(signature: String, funName: String)(implicit loc: munit.Location): Unit = {
+    test(s"$funName : $signature") {
+      assert(testService().query(signature).exists(_.name == funName))
+    }
   }
 
-  test("flatMap : List[A] => (A => List[B]) => List[B]") {
-    assert(testService().query("List[A] => (A => List[B]) => List[B]").exists(_.name == "flatMap"))
-  }
+  testFunctionFound("List[A] => (A => B) => List[B]", "map")
+
+  testFunctionFound("List[A] => (A => List[B]) => List[B]", "flatMap")
+
+  testFunctionFound("List[Int] => (Int => List[Float]) => List[Float]", "flatMap")
+
+  testFunctionFound("List[Int] => (Int => Float) => List[AnyVal]", "map")
+
+  testFunctionFound("Seq[Int] => (Int => String) => Seq[String]", "map")
+
+  testFunctionFound("A => (A => B) => B", "pipe")
+
+  testFunctionFound("Char => (Char => B) => B", "pipe")
+
+  testFunctionFound("Char => (Any => Double) => Double", "pipe")
 }
