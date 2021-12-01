@@ -14,6 +14,9 @@ class EndToEndEngineTest extends munit.FunSuite {
   }
   override def munitFixtures = List(testService)
 
+  /**
+    * Test whether a search using a `signature` includes `funName`
+    */
   def testFunctionFound(signature: String, funName: String)(implicit loc: munit.Location): Unit = {
     test(s"$funName : $signature") {
       assert(testService().query(signature).exists(_.name == funName))
@@ -35,4 +38,10 @@ class EndToEndEngineTest extends munit.FunSuite {
   testFunctionFound("Char => (Char => B) => B", "pipe")
 
   testFunctionFound("Char => (Any => Double) => Double", "pipe")
+
+  testFunctionFound("Boolean => A => Option[A]", "Option.when")
+
+  testFunctionFound("Boolean => B => A => Either[A, B]", "Either.cond")
+
+  testFunctionFound("IArray[Float] => (Float => Boolean) => Boolean", "IArray.forall") // TODO(kπ) IMHO should be just `forall` (generation bug)
 }
