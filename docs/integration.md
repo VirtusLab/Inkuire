@@ -17,15 +17,12 @@ REST API:
 - "/query" <- html with some example queries and a basic GUI to query the engine.
 (see [HttpServer.scala](/engineHttp/src/main/scala/org/virtuslab/inkuire/engine/http/http/HttpServer.scala))
 
-
-
 #### JavaScript worker integration
 
 Inkuire can be used as a JavaScript worker. This method is used in the official scaladoc for Scala 3. [link](https://dotty.epfl.ch/api/index.html) [code](https://github.com/lampepfl/dotty/tree/master/scaladoc)
 Code specific for this integration method is located in `engineJs` module.
 
-JS worker API:
-//TODO
+Js worker can be used in a similar way as in [Scaladoc Searchbar](https://github.com/lampepfl/dotty/blob/master/scaladoc-js/main/src/searchbar/engine/InkuireJSSearchEngine.scala).
 
 #### Scala library
 
