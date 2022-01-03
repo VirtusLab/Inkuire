@@ -2,11 +2,7 @@ import java.io.FileInputStream
 import java.util.Properties
 
 ThisBuild / name := "inkuire"
-ThisBuild / organization := "org.virtuslab.inkuire"
-ThisBuild / version := "0.1.2-SNAPSHOT"
-
-ThisBuild / bintrayRepository := "Inkuire"
-ThisBuild / bintrayOrganization := Some("virtuslab")
+ThisBuild / organization := "org.virtuslab"
 
 ThisBuild / homepage := Some(url("https://github.com/VirtusLab/Inkuire"))
 ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
