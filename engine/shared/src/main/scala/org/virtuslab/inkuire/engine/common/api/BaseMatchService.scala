@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.common.service
+package org.virtuslab.inkuire.engine.common.api
 
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 import org.virtuslab.inkuire.engine.common.model.InkuireDb

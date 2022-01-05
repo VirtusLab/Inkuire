@@ -14,8 +14,7 @@ class EndToEndEngineTest extends munit.FunSuite {
   }
   override def munitFixtures: List[Fixture[InkuireTestService]] = List(testService)
 
-  /**
-    * Test whether a search using a `signature` includes `funName`
+  /** Test whether a search using a `signature` includes `funName`
     */
   def testFunctionFound(signature: String, funName: String)(implicit loc: munit.Location): Unit = {
     test(s"$funName : $signature") {
@@ -43,5 +42,8 @@ class EndToEndEngineTest extends munit.FunSuite {
 
   testFunctionFound("Boolean => B => A => Either[A, B]", "Either.cond")
 
-  testFunctionFound("IArray[Float] => (Float => Boolean) => Boolean", "IArray.forall") // TODO(kπ) IMHO should be just `forall` (generation bug)
+  testFunctionFound(
+    "IArray[Float] => (Float => Boolean) => Boolean",
+    "IArray.forall"
+  ) // TODO(kπ) IMHO should be just `forall` (generation bug)
 }

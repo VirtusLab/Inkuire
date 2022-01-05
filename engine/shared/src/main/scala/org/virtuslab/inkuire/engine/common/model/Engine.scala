@@ -2,15 +2,14 @@ package org.virtuslab.inkuire.engine.common.model
 
 import cats.data.StateT
 import cats.effect.IO
-import org.virtuslab.inkuire.engine.common.parser.BaseSignatureParserService
-import org.virtuslab.inkuire.engine.common.service._
+import org.virtuslab.inkuire.engine.common.api._
 
 object Engine {
   case class Env(
     db:                  InkuireDb,
     matcher:             BaseMatchService,
     matchQualityService: BaseMatchQualityService,
-    prettifier:          SignaturePrettifier,
+    prettifier:          BaseSignaturePrettifier,
     parser:              BaseSignatureParserService,
     resolver:            BaseSignatureResolver,
     appConfig:           AppConfig

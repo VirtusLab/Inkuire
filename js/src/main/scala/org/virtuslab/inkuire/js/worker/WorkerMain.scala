@@ -1,11 +1,7 @@
 package org.virtuslab.inkuire.js.worker
 
 import org.scalajs.dom.raw.DedicatedWorkerGlobalScope
-import org.virtuslab.inkuire.engine.common.model.AppConfig
-import org.virtuslab.inkuire.engine.common.model.Engine.Env
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
-import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
-import org.virtuslab.inkuire.engine.common.service._
+import org.virtuslab.inkuire.engine.common.api.InkuireRunner
 import org.virtuslab.inkuire.js.handlers.JSInputHandler
 import org.virtuslab.inkuire.js.handlers.JSOutputHandler
 
@@ -19,34 +15,17 @@ object WorkerMain {
 
   @JSExport("main")
   def main(): Unit = {
-    val scriptPath          = ""
-    val handler             = new InkuireWorker(self)
-    val configReader        = new JSInputHandler(scriptPath)
-    val in                  = new JSInputHandler(scriptPath)
-    val out                 = new JSOutputHandler(handler)
-    val matchService        = (db: InkuireDb) => new FluffMatchService(db)
-    val matchQualityService = (db: InkuireDb) => new TopLevelMatchQualityService(db)
-    val prettifier          = new ScalaExternalSignaturePrettifier
-    val resolver            = (db: InkuireDb) => new DefaultSignatureResolver(db)
-    val parser              = new ScalaSignatureParserService
+    val scriptPath = ""
 
-    configReader
-      .readConfig(Seq(scriptPath + "inkuire-config.json"))
-      .flatMap { config: AppConfig =>
-        in.readInput(config)
-          .semiflatMap { db: InkuireDb =>
-            out
-              .serveOutput()
-              .runA(
-                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
-              )
-          }
-      }
-      .fold(
-        str => println(str),
-        identity
+    InkuireRunner
+      .scalaRunner(
+        new JSInputHandler(scriptPath),
+        new JSInputHandler(scriptPath),
+        new JSOutputHandler(new InkuireWorker(self))
       )
+      .run(Seq(scriptPath + "inkuire-config.json"))
       .unsafeRunAsyncAndForget()
+
   }
 
 }

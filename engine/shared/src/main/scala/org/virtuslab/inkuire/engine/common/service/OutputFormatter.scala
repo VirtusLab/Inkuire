@@ -1,11 +1,11 @@
 package org.virtuslab.inkuire.engine.http.http
 
+import org.virtuslab.inkuire.engine.common.api.BaseSignaturePrettifier
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 import org.virtuslab.inkuire.engine.common.model.Match
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
-import org.virtuslab.inkuire.engine.common.service.SignaturePrettifier
 
-class OutputFormatter(prettifier: SignaturePrettifier) {
+class OutputFormatter(prettifier: BaseSignaturePrettifier) {
   def createOutput(query: String, signatures: Seq[(ExternalSignature, Int)]): ResultFormat =
     ResultFormat(
       query,

@@ -1,7 +1,7 @@
-package org.virtuslab.inkuire.engine.common.service
+package org.virtuslab.inkuire.engine.common.api
 
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 
-trait SignaturePrettifier {
+trait BaseSignaturePrettifier {
   def prettify(sgns: Seq[ExternalSignature]): String
 }

@@ -1,5 +1,6 @@
 package org.virtuslab.inkuire.engine.common.service
 
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
 class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualityService with MatchingOps {

@@ -2,6 +2,7 @@ package org.virtuslab.inkuire.engine.common.service
 
 import cats.implicits._
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with MatchingOps {

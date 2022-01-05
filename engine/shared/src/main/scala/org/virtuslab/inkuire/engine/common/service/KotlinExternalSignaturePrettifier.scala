@@ -1,9 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
 import cats.data.NonEmptyList
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
-class KotlinExternalSignaturePrettifier extends SignaturePrettifier {
+class KotlinExternalSignaturePrettifier extends BaseSignaturePrettifier {
 
   override def prettify(sgns: Seq[ExternalSignature]): String =
     sgns.map(doPrettify).map(identity).mkString("\n")

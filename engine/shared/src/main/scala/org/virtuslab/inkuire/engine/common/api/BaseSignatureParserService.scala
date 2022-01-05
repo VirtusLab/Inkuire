@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.common.parser
+package org.virtuslab.inkuire.engine.common.api
 
 import org.virtuslab.inkuire.engine.common.model.ParsedSignature
 
