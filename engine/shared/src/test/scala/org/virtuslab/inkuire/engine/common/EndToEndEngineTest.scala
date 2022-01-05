@@ -3,7 +3,7 @@ package org.virtuslab.inkuire.engine.common
 import java.io.File
 
 class EndToEndEngineTest extends munit.FunSuite {
-  val testService = new Fixture[InkuireTestService]("testService") {
+  val testService: Fixture[InkuireTestService] = new Fixture[InkuireTestService]("testService") {
     var testService: InkuireTestService = null
     def apply() = testService
     override def beforeAll(): Unit = {
@@ -12,7 +12,7 @@ class EndToEndEngineTest extends munit.FunSuite {
     }
     override def afterAll(): Unit = {}
   }
-  override def munitFixtures = List(testService)
+  override def munitFixtures: List[Fixture[InkuireTestService]] = List(testService)
 
   /**
     * Test whether a search using a `signature` includes `funName`

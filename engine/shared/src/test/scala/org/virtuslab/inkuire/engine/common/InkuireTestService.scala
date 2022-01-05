@@ -1,17 +1,17 @@
 package org.virtuslab.inkuire.engine.common
 
+import cats.kernel.Monoid
+import org.virtuslab.inkuire.engine.common.model.ExternalSignature
+import org.virtuslab.inkuire.engine.common.model.InkuireDb
+import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
+import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
+import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
+import org.virtuslab.inkuire.engine.common.service.FluffMatchService
+
+import java.io.File
 import java.net.URL
 import scala.io.Source
-import java.io.File
-import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import cats.kernel.Monoid
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
-
 import scala.util.chaining._
-import org.virtuslab.inkuire.engine.common.service.FluffMatchService
-import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
-import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
-import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 
 class InkuireTestService(path: String) {
   
@@ -23,7 +23,7 @@ class InkuireTestService(path: String) {
 
   private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
 
-  val db =
+  val db: InkuireDb =
     getURLs(new URL(path), ".json")
       .map { file =>
         println(file)
