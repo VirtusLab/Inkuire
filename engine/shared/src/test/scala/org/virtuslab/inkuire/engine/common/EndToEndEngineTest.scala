@@ -7,7 +7,7 @@ class EndToEndEngineTest extends munit.FunSuite {
     var testService: InkuireTestService = null
     def apply() = testService
     override def beforeAll(): Unit = {
-      val file = new File("./engineCommon/shared/src/test/resources/inkuire-db.json")
+      val file = new File("./engine/shared/src/test/resources/inkuire-db.json")
       testService = new InkuireTestService(file.toURI.toURL.toString())
     }
     override def afterAll(): Unit = {}
