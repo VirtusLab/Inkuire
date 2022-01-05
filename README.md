@@ -1,7 +1,7 @@
 ![CI](https://github.com/VirtusLab/Inkuire/workflows/CI/badge.svg)
 
 ---
-<img src="engineHttp/src/main/resources/assets/Inkuire_vertical@4x.png"></img>
+<img src="http/src/main/resources/assets/Inkuire_vertical@4x.png"></img>
 
 # Inkuire - Hoogle-like searches for Scala 3 and Kotlin
 
