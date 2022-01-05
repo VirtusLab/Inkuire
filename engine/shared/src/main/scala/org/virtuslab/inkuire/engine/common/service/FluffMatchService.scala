@@ -3,9 +3,10 @@ package org.virtuslab.inkuire.engine.common.service
 import cats.data.State
 import cats.implicits._
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
-class FluffMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
+class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 
   val ancestryGraph: AncestryGraph =
     AncestryGraph(inkuireDb.types, inkuireDb.implicitConversions, inkuireDb.typeAliases)

@@ -102,7 +102,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader with IOHelpe
     else List(url)
   }
 
-  private def getURLContent(url: URL) = Source.fromInputStream(url.openStream()).getLines().mkString
+  private def getURLContent(url: URL): String = Source.fromInputStream(url.openStream()).getLines().mkString
 
   override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
     appConfig.inkuirePaths

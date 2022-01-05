@@ -1,8 +1,9 @@
 package org.virtuslab.inkuire.engine.common.service
 
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
-class ScalaExternalSignaturePrettifier extends SignaturePrettifier {
+class ScalaExternalSignaturePrettifier extends BaseSignaturePrettifier {
 
   override def prettify(sgns: Seq[ExternalSignature]): String =
     sgns.map(prettify).map(identity).mkString("\n")

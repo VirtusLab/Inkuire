@@ -3,6 +3,7 @@ package org.virtuslab.inkuire.engine.common.parser
 import cats.instances.all._
 import cats.syntax.all._
 import com.softwaremill.quicklens._
+import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
 
 import scala.util.matching.Regex

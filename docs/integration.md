@@ -15,7 +15,7 @@ Most of the code concerning this is located in `engineHttp` module.
 REST API:
 - "/forSignature" <- takes a parameter `signature` which is a string being the queried Scala signature. e.g. "/forSignature?signature="Int=>Int"".
 - "/query" <- html with some example queries and a basic GUI to query the engine.
-(see [HttpServer.scala](/engineHttp/src/main/scala/org/virtuslab/inkuire/engine/http/http/HttpServer.scala))
+(see [HttpServer.scala](/http/src/main/scala/org/virtuslab/inkuire/engine/http/http/HttpServer.scala))
 
 #### JavaScript worker integration
 
@@ -30,7 +30,7 @@ Js worker can be used in a similar way as in [Scaladoc Searchbar](https://github
 
 As any Scala codebase, it can be included as a library dependency.
 
-Then Inkuire can be used in a similar way to [Main](/engineHttp/src/main/scala/org/virtuslab/inkuire/engine/http/Main.scala).
+Then Inkuire can be used in a similar way to [Main](/http/src/main/scala/org/virtuslab/inkuire/engine/http/Main.scala).
 
 ### Data format
 

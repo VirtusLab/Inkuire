@@ -1,9 +1,7 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.model.ExternalSignature
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
-import org.virtuslab.inkuire.engine.common.model.ResolveResult
-import org.virtuslab.inkuire.engine.common.model.Signature
+import org.virtuslab.inkuire.engine.common.api._
+import org.virtuslab.inkuire.engine.common.model._
 
 class ExactMatchService(val inkuireDb: InkuireDb) extends BaseMatchService {
 
