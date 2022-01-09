@@ -219,14 +219,15 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
     tpe match {
       case t: Type if t.name.name == s"Function${t.params.size - 1}" =>
         val params = t.params.init.flatMap {
-          case UnresolvedVariance(t: Type) if t.name.name == s"Tuple${t.params.size}" => t.params.map(_.modify(_.typ).using(curryType))
+          case UnresolvedVariance(t: Type) if t.name.name == s"Tuple${t.params.size}" =>
+            t.params.map(_.modify(_.typ).using(curryType))
           case v => Seq(v.modify(_.typ).using(curryType))
         } :+ t.params.last
         t.modify(_.params).setTo(params).modify(_.name).setTo(s"Function${params.size - 1}")
       case t: Type => t.modify(_.params.each).using(_.modify(_.typ).using(curryType))
       case AndType(left, right) => AndType(curryType(left), curryType(right))
-      case OrType(left, right) => AndType(curryType(left), curryType(right))
-      case _ => tpe
+      case OrType(left, right)  => AndType(curryType(left), curryType(right))
+      case _                    => tpe
     }
 
   private def validate(pSgn: ParsedSignature): Either[String, ParsedSignature] =

@@ -57,7 +57,7 @@ class EndToEndEngineTest extends munit.FunSuite {
 
   // TODO(kπ) this is a bug in constraint checking
   // testFunctionFound("List[A] => A => (A => A => A) => A", "foldLeft")
-  
+
   // testFunctionFound("List[A] => A => ((A, A) => A) => A", "foldLeft")
 
   // testFunctionFound("F[A] => A => (A => A => A) => A", "foldLeft")
