@@ -46,4 +46,10 @@ class EndToEndEngineTest extends munit.FunSuite {
     "IArray[Float] => (Float => Boolean) => Boolean",
     "IArray.forall"
   ) // TODO(kπ) IMHO should be just `forall` (generation bug)
+
+  testFunctionFound("List[A] => B => ((B, A) => B) => B", "foldLeft")
+
+  testFunctionFound("List[A] => A => ((A, A) => A) => A", "foldLeft")
+
+  testFunctionFound("F[A] => B => ((B, A) => B) => B", "foldLeft")
 }
