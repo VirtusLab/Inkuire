@@ -15,7 +15,7 @@ import org.virtuslab.inkuire.js.worker.JSHandler
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
 
-  override def serveOutput(env: Engine.Env): IO[Unit] = {
+  override def serveOutput(env: Engine.Env): Unit = {
     val outputFormatter = new OutputFormatter(env.prettifier)
 
     def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
@@ -43,7 +43,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
         }
     }
 
-    IO.async { _ =>
+    IO.async { (_: Any) =>
       jsHandler.registerOutput(subject)
       jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
@@ -54,6 +54,6 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
           Ack.Continue
       }
       jsHandler.notifyEngineReady
-    }
+    }.unsafeRunAsyncAndForget
   }
 }

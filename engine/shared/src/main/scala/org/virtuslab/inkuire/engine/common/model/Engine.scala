@@ -1,8 +1,7 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.data.StateT
-import cats.effect.IO
 import org.virtuslab.inkuire.engine.common.api._
+import cats.data.State
 
 object Engine {
   case class Env(
@@ -15,9 +14,5 @@ object Engine {
     appConfig:           AppConfig
   )
 
-  type Engine[A] = StateT[IO, Env, A]
-
-  implicit class IOInkuireEngineSyntax[A](f: IO[A]) {
-    def liftApp: Engine[A] = StateT.liftF[IO, Env, A](f)
-  }
+  type Engine[A] = State[Env, A]
 }

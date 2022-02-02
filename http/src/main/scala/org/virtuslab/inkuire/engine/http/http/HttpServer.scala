@@ -29,7 +29,7 @@ class HttpServer extends OutputHandler {
 
   val logger: slf4j.Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
-  override def serveOutput(env: Env): IO[Unit] = {
+  override def serveOutput(env: Env): Unit = {
 
     implicit val cs:    ContextShift[IO] = IO.contextShift(global)
     implicit val timer: Timer[IO]        = IO.timer(global)
@@ -105,6 +105,6 @@ class HttpServer extends OutputHandler {
           .resource
     } yield server
 
-    app.use(_ => IO.never)
+    app.use(_ => IO.never).unsafeRunAsyncAndForget()
   }
 }

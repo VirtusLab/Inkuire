@@ -1,11 +1,6 @@
 package org.virtuslab.inkuire.engine.common.utils.helpers
 
-import cats.effect.IO
-
-trait IOHelpers {
-  def putStrLn(str: String): IO[Unit] = IO { println(str) }
-  def putStr(str:   String): IO[Unit] = IO { print(str) }
-
+object IOHelpers {
   val ANSI_RESET = "\u001B[0m";
   val ANSI_RED   = "\u001B[31m";
   val ANSI_BLUE  = "\u001B[34m";
