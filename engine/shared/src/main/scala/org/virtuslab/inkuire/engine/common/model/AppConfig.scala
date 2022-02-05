@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.kernel.Monoid
+import org.virtuslab.inkuire.engine.common.utils.fp._
 
 case class AppConfig(
   address:      Option[String] = None,
@@ -19,8 +19,8 @@ object AppConfig {
   )
 
   implicit val appConfigMonoid: Monoid[AppConfig] = new Monoid[AppConfig] {
-    def empty: AppConfig = AppConfig.empty
-    def combine(x: AppConfig, y: AppConfig): AppConfig =
+    def mempty: AppConfig = AppConfig.empty
+    def mappend(x: AppConfig, y: AppConfig): AppConfig =
       AppConfig(
         address = x.address.orElse(y.address),
         port = x.port.orElse(y.port),

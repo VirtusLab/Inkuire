@@ -11,11 +11,13 @@ import org.virtuslab.inkuire.engine.common.model.Engine
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
 
-  override def serveOutput(env: Engine.Env): Unit = {
+  override def serveOutput(env: Engine.Env)(implicit ec: ExecutionContext): Future[Unit] = {
     val outputFormatter = new OutputFormatter(env.prettifier)
 
     def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
@@ -54,6 +56,6 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
           Ack.Continue
       }
       jsHandler.notifyEngineReady
-    }.unsafeRunAsyncAndForget
+    }.unsafeToFuture()
   }
 }

@@ -1,12 +1,12 @@
 package org.virtuslab.inkuire.engine.common
 
-import cats.kernel.Monoid
 import org.virtuslab.inkuire.engine.common.model.ExternalSignature
 import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
 import org.virtuslab.inkuire.engine.common.service.SubstitutionMatchService
+import org.virtuslab.inkuire.engine.common.utils.fp._
 
 import java.io.File
 import java.net.URL

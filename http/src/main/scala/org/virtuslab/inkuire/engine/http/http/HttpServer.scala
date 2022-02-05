@@ -20,8 +20,9 @@ import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Engine.Env
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
@@ -29,10 +30,10 @@ class HttpServer extends OutputHandler {
 
   val logger: slf4j.Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
-  override def serveOutput(env: Env): Unit = {
+  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
 
-    implicit val cs:    ContextShift[IO] = IO.contextShift(global)
-    implicit val timer: Timer[IO]        = IO.timer(global)
+    implicit val cs:    ContextShift[IO] = IO.contextShift(ec)
+    implicit val timer: Timer[IO]        = IO.timer(ec)
 
     val formatter = new OutputFormatter(env.prettifier)
 
@@ -105,6 +106,6 @@ class HttpServer extends OutputHandler {
           .resource
     } yield server
 
-    app.use(_ => IO.never).unsafeRunAsyncAndForget()
+    app.use(_ => IO.never).unsafeToFuture()
   }
 }

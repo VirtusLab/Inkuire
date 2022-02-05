@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.kernel.Monoid
+import org.virtuslab.inkuire.engine.common.utils.fp._
 
 //TODO technically it would be better to have a different type for type declarations -> types: Map[ITID, (Declaration, Seq[Type])]
 case class InkuireDb(
@@ -12,7 +12,7 @@ case class InkuireDb(
 
 object InkuireDb {
   implicit val inkuireDbMonoid: Monoid[InkuireDb] = new Monoid[InkuireDb] {
-    override def combine(x: InkuireDb, y: InkuireDb): InkuireDb =
+    override def mappend(x: InkuireDb, y: InkuireDb): InkuireDb =
       InkuireDb(
         functions = (x.functions ++ y.functions).distinct,
         types = (x.types.toSeq ++ y.types.toSeq).distinct
@@ -31,6 +31,6 @@ object InkuireDb {
         typeAliases = x.typeAliases ++ y.typeAliases
       )
 
-    override def empty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty, Map.empty)
+    override def mempty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty, Map.empty)
   }
 }

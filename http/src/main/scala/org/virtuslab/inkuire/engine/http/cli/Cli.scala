@@ -1,11 +1,6 @@
 package org.virtuslab.inkuire.engine.http.cli
 
-import cats.data.EitherT
 import cats.data.State
-import cats.effect.IO
-import cats.instances.all._
-import cats.kernel.Monoid
-import cats.syntax.all._
 import org.virtuslab.inkuire.engine.common.api.ConfigReader
 import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
@@ -21,6 +16,9 @@ import scala.annotation.tailrec
 import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.chaining._
+import scala.concurrent.Future
+import org.virtuslab.inkuire.engine.common.utils.fp._
+import scala.concurrent.ExecutionContext
 
 class Cli extends InputHandler with OutputHandler with ConfigReader {
 
@@ -59,11 +57,11 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
         )
     }
 
-  override def serveOutput(env: Env): Unit = {
+  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
     print(s"inkuire> ")
     val command: String = readLine()
     if (command.toLowerCase == "exit") {
-      println("bye")
+      Future(println("bye"))
     } else {
       handleCommand(command)
       serveOutput(env)
@@ -78,26 +76,24 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
 
   private def getURLContent(url: URL): String = Source.fromInputStream(url.openStream()).getLines().mkString
 
-  override def readInput(appConfig: AppConfig): EitherT[IO, String, InkuireDb] = {
+  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): EitherT[Future, String, InkuireDb] = {
     appConfig.inkuirePaths
       .flatMap(path => getURLs(new URL(path), ".json"))
       .map(getURLContent)
       .toList
-      .traverse(f => IO(f))
-      .map { contents =>
-        contents
-          .map(EngineModelSerializers.deserialize)
-          .collect {
-            case Right(db) => db
-          }
-          .pipe(Monoid.combineAll[InkuireDb])
+      .map(EngineModelSerializers.deserialize)
+      .collect {
+        case Right(db) => db
       }
-      .pipe(EitherT.right(_))
+      .pipe(Monoid.combineAll[InkuireDb](_))
+      .pipe(Right(_))
+      .pipe(x => Future.apply[Either[String, InkuireDb]](x))
+      .pipe(new EitherT(_))
   }
 
-  override def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig] = {
+  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): EitherT[Future, String, AppConfig] = {
     parseArgs(AppConfig.parseCliOption)(args.toList)
-      .map(_.combineAll)
-      .pipe(config => new EitherT(IO(config)))
+      .map(Monoid.combineAll[AppConfig])
+      .pipe(config => new EitherT(Future(config)))
   }
 }
