@@ -4,7 +4,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 
 case class FutureExcept[A](value: Future[Either[String, A]]) {
-  def fmap[B](f: A => B)(implicit ec: ExecutionContext): FutureExcept[B] = new FutureExcept(value.map(_.map(f)))
+  def map[B](f: A => B)(implicit ec: ExecutionContext): FutureExcept[B] = new FutureExcept(value.map(_.map(f)))
   def flatMap[B](f: A => FutureExcept[B])(implicit ec: ExecutionContext): FutureExcept[B] =
     new FutureExcept(
       value.flatMap {

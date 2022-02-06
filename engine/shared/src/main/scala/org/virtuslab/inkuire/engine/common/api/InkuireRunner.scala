@@ -26,7 +26,7 @@ class InkuireRunner(
       .flatMap { config: AppConfig =>
         inputHandler
           .readInput(config)
-          .fmap { db: InkuireDb =>
+          .map { db: InkuireDb =>
             outputHandler
               .serveOutput(
                 Engine.Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
