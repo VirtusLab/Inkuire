@@ -56,9 +56,6 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
   private def parseConfig(config: String): Either[String, AppConfig] = {
     parse(config)
       .flatMap(_.as[AppConfig])
-      .pipe {
-        case Left(value) => Left(value.toString)
-        case Right(value) => Right(value)
-      }
+      .fold(l => Left(l.toString), Right.apply)
   }
 }

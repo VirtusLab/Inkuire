@@ -1,12 +1,10 @@
 package org.virtuslab.inkuire.engine.http.cli
 
-import org.virtuslab.inkuire.engine.common.utils.State
 import org.virtuslab.inkuire.engine.common.api.ConfigReader
 import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.AppConfig
-import org.virtuslab.inkuire.engine.common.model.Engine.Env
-import org.virtuslab.inkuire.engine.common.model.Engine._
+import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 
@@ -42,21 +40,19 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
     }
   }
 
-  private def handleCommand(input: String): Engine[Unit] =
-    State.get[Env].map { env =>
-      env.parser
-        .parse(input)
-        .flatMap { s =>
-          env.resolver.resolve(s)
-        }
-        .map { r =>
-          env.matcher.findMatches(r).map { case (fun, _) => fun }
-        }
-        .fold(
-          println,
-          matches => println(env.prettifier.prettify(matches))
-        )
-    }
+  private def handleCommand(env: Env, input: String): Unit =
+    env.parser
+      .parse(input)
+      .flatMap { s =>
+        env.resolver.resolve(s)
+      }
+      .map { r =>
+        env.matcher.findMatches(r).map { case (fun, _) => fun }
+      }
+      .fold(
+        println,
+        matches => println(env.prettifier.prettify(matches))
+      )
 
   override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
     print(s"inkuire> ")
@@ -64,8 +60,8 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
     if (command.toLowerCase == "exit") {
       Future(println("bye"))
     } else {
-      handleCommand(command)
-      serveOutput(env)
+      Future(handleCommand(env, command))
+        .flatMap(_ => serveOutput(env))
     }
   }
 

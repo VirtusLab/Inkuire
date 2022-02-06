@@ -8,6 +8,7 @@ import org.virtuslab.inkuire.engine.common.service.SubstitutionMatchService
 import org.virtuslab.inkuire.engine.common.service.TopLevelMatchQualityService
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.util.chaining._
 
 class InkuireRunner(
   val configReader:        ConfigReader,
@@ -26,11 +27,12 @@ class InkuireRunner(
       .flatMap { config: AppConfig =>
         inputHandler
           .readInput(config)
-          .map { db: InkuireDb =>
+          .flatMap { db: InkuireDb =>
             outputHandler
               .serveOutput(
-                Engine.Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
+                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
               )
+              .pipe(FutureExcept.fromFuture)
           }
       }
       .value

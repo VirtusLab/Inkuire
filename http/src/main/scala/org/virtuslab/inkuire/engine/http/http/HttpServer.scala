@@ -17,7 +17,7 @@ import org.http4s.server.middleware._
 import org.slf4j
 import org.slf4j.LoggerFactory
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
-import org.virtuslab.inkuire.engine.common.model.Engine.Env
+import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
 import scala.concurrent.duration._

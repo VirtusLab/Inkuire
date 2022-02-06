@@ -144,7 +144,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   override def parse(str: String): Either[String, ParsedSignature] =
     doParse(str)
       .map(convert)
-      .map(s => curry(s))
+      .map(curry)
       .flatMap(validate)
 
   val parsingErrorGenericMessage =
