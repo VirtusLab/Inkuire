@@ -1,7 +1,6 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
-import cats.implicits._
+import org.virtuslab.inkuire.engine.common.utils.State
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
 
@@ -29,26 +28,39 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
         cycle    = dfsState.stack.contains(current)
         visited  = dfsState.visited.contains(current)
         newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
-        _ <- State.set[DfsState](newState)
+        _ <- State.put[DfsState](newState)
         f <-
           if (!visited)
             dependencyGraph
               .getOrElse(current, Seq())
               .toList
-              .traverse(loop)
+              .map(loop)
+              .foldLeft(State.pure[DfsState, List[Boolean]](List.empty)) {
+                case (acc, s) => acc.flatMap { accValue =>
+                  s.map { sValue =>
+                    accValue :+ sValue
+                  }
+                }
+              }
           else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
 
     dependencyGraph.keys.toList
-      .traverse { v =>
+      .map { v =>
         for {
           dfsState <- State.get[DfsState]
           flag <- if (dfsState.visited.contains(v)) State.pure[DfsState, Boolean](false) else loop(v)
         } yield flag
       }
+      .foldLeft(State.pure[DfsState, List[Boolean]](List.empty)) {
+        case (acc, s) => acc.flatMap { accValue =>
+          s.map { sValue =>
+            accValue :+ sValue
+          }
+        }
+      }
       .map(_.exists(identity))
-      .runA(DfsState())
-      .value
+      .evalState(DfsState())
   }
 }

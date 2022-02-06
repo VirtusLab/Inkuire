@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.http.cli
 
-import cats.data.State
+import org.virtuslab.inkuire.engine.common.utils.State
 import org.virtuslab.inkuire.engine.common.api.ConfigReader
 import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.api.OutputHandler

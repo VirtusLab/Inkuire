@@ -31,6 +31,6 @@ object InkuireDb {
         typeAliases = x.typeAliases ++ y.typeAliases
       )
 
-    override def mempty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty, Map.empty)
+    override def empty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty, Map.empty)
   }
 }

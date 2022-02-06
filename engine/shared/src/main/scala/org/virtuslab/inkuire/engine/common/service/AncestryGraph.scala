@@ -1,7 +1,6 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
-import cats.implicits._
+import org.virtuslab.inkuire.engine.common.utils.State
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
 
@@ -174,14 +173,14 @@ case class AncestryGraph(
       case (Contravariance(typParam), Contravariance(suprParam)) =>
         suprParam.isSubTypeOf(typParam)(context)
       case (Invariance(typParam), Invariance(suprParam)) =>
-        typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
+        typParam.isSubTypeOf(suprParam)(context).flatMap { res1 =>
           if (res1) suprParam.isSubTypeOf(typParam)(context)
           else State.pure(false)
         }
       case (v1, v2) => // Treating not matching variances as invariant
         val typParam  = v1.typ
         val suprParam = v2.typ
-        typParam.isSubTypeOf(suprParam)(context) >>= { res1 =>
+        typParam.isSubTypeOf(suprParam)(context).flatMap { res1 =>
           if (res1) suprParam.isSubTypeOf(typParam)(context)
           else State.pure(false)
         }

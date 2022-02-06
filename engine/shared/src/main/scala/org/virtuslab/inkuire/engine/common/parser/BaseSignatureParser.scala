@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.engine.common.parser
 
-import cats.Monoid
 import org.virtuslab.inkuire.engine.common.model.Type
 import org.virtuslab.inkuire.engine.common.model._
 
@@ -16,7 +15,7 @@ abstract class BaseSignatureParser extends RegexParsers {
     (typ <~ ",") ~ list(typ) ^^ { case head ~ tail => head +: tail } |
       typ ^^ (Seq(_))
 
-  def empty[T](implicit monoid: Monoid[T]): Parser[T] = "" ^^^ monoid.empty
+  def empty[A]: Parser[List[A]] = "" ^^^ List.empty
 
   def genericType: Parser[Type]
 

@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.common.model
 
 import org.virtuslab.inkuire.engine.common.api._
-import cats.data.State
+import org.virtuslab.inkuire.engine.common.utils.State
 
 object Engine {
   case class Env(

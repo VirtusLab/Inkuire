@@ -19,7 +19,7 @@ object AppConfig {
   )
 
   implicit val appConfigMonoid: Monoid[AppConfig] = new Monoid[AppConfig] {
-    def mempty: AppConfig = AppConfig.empty
+    def empty: AppConfig = AppConfig.empty
     def mappend(x: AppConfig, y: AppConfig): AppConfig =
       AppConfig(
         address = x.address.orElse(y.address),

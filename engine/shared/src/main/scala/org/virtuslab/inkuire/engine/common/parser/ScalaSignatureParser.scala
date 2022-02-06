@@ -1,7 +1,5 @@
 package org.virtuslab.inkuire.engine.common.parser
 
-import cats.instances.all._
-import cats.syntax.all._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
@@ -76,9 +74,9 @@ class ScalaSignatureParser extends BaseSignatureParser {
       case baseType ~ types => Type(baseType, types.map(UnresolvedVariance))
     }
 
-  def types: Parser[Seq[TypeLike]] = list(typeLike) | empty[List[TypeLike]]
+  def types: Parser[Seq[TypeLike]] = list(typeLike) | empty[TypeLike]
 
-  def typeArguments: Parser[Seq[TypeLike]] = list(typeLike) | empty[List[TypeLike]]
+  def typeArguments: Parser[Seq[TypeLike]] = list(typeLike) | empty[TypeLike]
 
   def typeVariable: Parser[(String, Seq[Type])] =
     (identifier <~ "<:") ~ singleType ^^ { case typeVar ~ constraint => (typeVar, Seq(constraint)) } |
@@ -144,7 +142,10 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
   private val scalaSignatureParser = new ScalaSignatureParser
 
   override def parse(str: String): Either[String, ParsedSignature] =
-    doParse(str) map convert map (s => curry(s)) >>= validate
+    doParse(str)
+      .map(convert)
+      .map(s => curry(s))
+      .flatMap(validate)
 
   val parsingErrorGenericMessage =
     "Could not parse provided signature. Example signature looks like this: List[Int] => (Int => Boolean) => Int"
