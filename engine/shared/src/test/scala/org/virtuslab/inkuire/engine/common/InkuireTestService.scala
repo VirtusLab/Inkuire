@@ -6,7 +6,7 @@ import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
 import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
 import org.virtuslab.inkuire.engine.common.service.SubstitutionMatchService
-import org.virtuslab.inkuire.engine.common.utils.fp._
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 import java.io.File
 import java.net.URL

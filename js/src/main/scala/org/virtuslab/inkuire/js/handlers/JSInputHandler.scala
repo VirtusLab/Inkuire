@@ -8,7 +8,8 @@ import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.model.AppConfig
 import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.engine.common.utils.fp._
+import org.virtuslab.inkuire.engine.common.api.FutureExcept
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -16,17 +17,17 @@ import scala.util.chaining._
 
 class JSInputHandler(private val scriptPath: String) extends InputHandler with ConfigReader {
 
-  private def tryGetURLContent(url: String)(implicit ec: ExecutionContext): EitherT[Future, String, String] =
+  private def tryGetURLContent(url: String)(implicit ec: ExecutionContext): FutureExcept[String] =
     Ajax
       .get(url)
       .map(_.responseText.pipe(Right(_)))
       .fallbackTo(Future(Left("Could not read contents of file")))
-      .pipe(new EitherT(_))
+      .pipe(new FutureExcept(_))
 
-  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): EitherT[Future, String, AppConfig] = {
+  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
     args.headOption
       .toRight("Missing configuration url")
-      .pipe(e => new EitherT(Future(e)))
+      .pipe(e => new FutureExcept(Future(e)))
       .flatMap[String](tryGetURLContent(_))
       .semiflatmap(parseConfig)
       .mapInner {
@@ -35,7 +36,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       }
   }
 
-  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): EitherT[Future, String, InkuireDb] = {
+  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
     appConfig.inkuirePaths
       .map(scriptPath + _)
       .map(tryGetURLContent(_).value)
@@ -50,7 +51,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
           .pipe(Monoid.combineAll[InkuireDb])
       }
       .map(Right(_).asInstanceOf[Either[String, InkuireDb]])
-      .pipe(new EitherT(_))
+      .pipe(new FutureExcept(_))
   }
 
   private def parseConfig(config: String): Either[String, AppConfig] = {

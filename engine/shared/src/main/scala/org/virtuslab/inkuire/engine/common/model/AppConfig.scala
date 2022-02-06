@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import org.virtuslab.inkuire.engine.common.utils.fp._
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 case class AppConfig(
   address:      Option[String] = None,

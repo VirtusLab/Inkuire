@@ -1,8 +1,8 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import org.virtuslab.inkuire.engine.common.utils.fp._
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
-//TODO technically it would be better to have a different type for type declarations -> types: Map[ITID, (Declaration, Seq[Type])]
+// TODO(kπ) technically it would be better to have a different type for type declarations -> types: Map[ITID, (Declaration, Seq[Type])]
 case class InkuireDb(
   functions:           Seq[ExternalSignature],
   types:               Map[ITID, (Type, Seq[Type])],

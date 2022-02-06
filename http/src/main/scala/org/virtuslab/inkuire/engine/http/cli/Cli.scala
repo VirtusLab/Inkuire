@@ -17,7 +17,8 @@ import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.chaining._
 import scala.concurrent.Future
-import org.virtuslab.inkuire.engine.common.utils.fp._
+import org.virtuslab.inkuire.engine.common.api.FutureExcept
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 import scala.concurrent.ExecutionContext
 
 class Cli extends InputHandler with OutputHandler with ConfigReader {
@@ -76,7 +77,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
 
   private def getURLContent(url: URL): String = Source.fromInputStream(url.openStream()).getLines().mkString
 
-  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): EitherT[Future, String, InkuireDb] = {
+  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
     appConfig.inkuirePaths
       .flatMap(path => getURLs(new URL(path), ".json"))
       .map(getURLContent)
@@ -88,12 +89,12 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
       .pipe(Monoid.combineAll[InkuireDb](_))
       .pipe(Right(_))
       .pipe(x => Future.apply[Either[String, InkuireDb]](x))
-      .pipe(new EitherT(_))
+      .pipe(new FutureExcept(_))
   }
 
-  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): EitherT[Future, String, AppConfig] = {
+  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
     parseArgs(AppConfig.parseCliOption)(args.toList)
       .map(Monoid.combineAll[AppConfig])
-      .pipe(config => new EitherT(Future(config)))
+      .pipe(config => new FutureExcept(Future(config)))
   }
 }
