@@ -37,11 +37,11 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalacOptions ++= Seq(
   "-Yrangepos",
-  "-Ywarn-unused"
+  "-Ywarn-unused",
+  "-deprecation"
 )
 
 val http4sVersion = "0.21.0"
-val catsVersion = "2.2.0"
 val circeVersion = "0.13.0"
 
 lazy val inkuireEngine = crossProject(JSPlatform, JVMPlatform)
@@ -51,8 +51,6 @@ lazy val inkuireEngine = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.softwaremill.quicklens" %%% "quicklens" % "1.7.2",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
-      "org.typelevel" %%% "cats-core" % catsVersion,
-      "org.typelevel" %%% "cats-effect" % catsVersion,
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion,
