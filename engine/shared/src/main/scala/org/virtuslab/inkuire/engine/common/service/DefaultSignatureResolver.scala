@@ -3,6 +3,7 @@ package org.virtuslab.inkuire.engine.common.service
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
+
 import scala.util.chaining._
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with MatchingOps {

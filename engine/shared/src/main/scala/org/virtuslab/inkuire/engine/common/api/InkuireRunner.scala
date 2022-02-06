@@ -6,6 +6,7 @@ import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
 import org.virtuslab.inkuire.engine.common.service.ScalaExternalSignaturePrettifier
 import org.virtuslab.inkuire.engine.common.service.SubstitutionMatchService
 import org.virtuslab.inkuire.engine.common.service.TopLevelMatchQualityService
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.chaining._
@@ -36,7 +37,12 @@ class InkuireRunner(
           }
       }
       .value
-      .map(_.fold(str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"), identity))
+      .map(
+        _.fold(
+          str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"),
+          identity
+        )
+      )
 
 }
 

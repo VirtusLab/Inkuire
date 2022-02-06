@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.utils.State
-import org.virtuslab.inkuire.engine.common.utils.Monoid._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
+import org.virtuslab.inkuire.engine.common.utils.Monoid._
+import org.virtuslab.inkuire.engine.common.utils.State
 
 class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 

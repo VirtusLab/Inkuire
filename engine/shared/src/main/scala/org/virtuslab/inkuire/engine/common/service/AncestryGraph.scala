@@ -1,8 +1,8 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.utils.State
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
+import org.virtuslab.inkuire.engine.common.utils.State
 
 import scala.collection.mutable.{Set => MSet}
 

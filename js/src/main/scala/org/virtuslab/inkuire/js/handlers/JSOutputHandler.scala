@@ -11,6 +11,7 @@ import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 

@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.common.api
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 case class FutureExcept[A](value: Future[Either[String, A]]) {
   def map[B](f: A => B)(implicit ec: ExecutionContext): FutureExcept[B] =
@@ -10,7 +10,7 @@ case class FutureExcept[A](value: Future[Either[String, A]]) {
   def flatMap[B](f: A => FutureExcept[B])(implicit ec: ExecutionContext): FutureExcept[B] =
     new FutureExcept(
       value.flatMap {
-        case Left(value) => Future(Left(value))
+        case Left(value)  => Future(Left(value))
         case Right(value) => f(value).value
       }
     )

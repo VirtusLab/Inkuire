@@ -20,9 +20,9 @@ import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.ResultFormat
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 

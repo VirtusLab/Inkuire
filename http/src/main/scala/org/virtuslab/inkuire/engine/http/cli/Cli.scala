@@ -1,23 +1,23 @@
 package org.virtuslab.inkuire.engine.http.cli
 
 import org.virtuslab.inkuire.engine.common.api.ConfigReader
+import org.virtuslab.inkuire.engine.common.api.FutureExcept
 import org.virtuslab.inkuire.engine.common.api.InputHandler
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.AppConfig
 import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.InkuireDb
 import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 import java.io.File
 import java.net.URL
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.chaining._
-import scala.concurrent.Future
-import org.virtuslab.inkuire.engine.common.api.FutureExcept
-import org.virtuslab.inkuire.engine.common.utils.Monoid
-import scala.concurrent.ExecutionContext
 
 class Cli extends InputHandler with OutputHandler with ConfigReader {
 
@@ -26,7 +26,7 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
     f: (String, String) => AppConfig
   )(
     args: List[String],
-    agg: Either[String, List[AppConfig]] = Right(List.empty)
+    agg:  Either[String, List[AppConfig]] = Right(List.empty)
   ): Either[String, List[AppConfig]] = {
     args match {
       case Nil => agg

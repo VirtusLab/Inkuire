@@ -1,8 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import org.virtuslab.inkuire.engine.common.utils.State
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
+import org.virtuslab.inkuire.engine.common.utils.State
+
+import scala.util.chaining._
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view.mapValues {
@@ -17,6 +19,16 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
       case t: Type if t.isVariable => Seq(t.itid.get)
       case g: Type                 => g.params.map(_.typ).flatMap(retrieveVariables)
       case _ => Seq()
+    }
+
+  private def sequence[S, A](v: List[State[S, A]]): State[S, List[A]] =
+    v.foldLeft(State.pure[S, List[A]](List.empty)) {
+      case (acc, s) =>
+        acc.flatMap { accValue =>
+          s.map { sValue =>
+            accValue :+ sValue
+          }
+        }
     }
 
   def hasCyclicDependency: Boolean = {
@@ -35,13 +47,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
               .getOrElse(current, Seq())
               .toList
               .map(loop)
-              .foldLeft(State.pure[DfsState, List[Boolean]](List.empty)) {
-                case (acc, s) => acc.flatMap { accValue =>
-                  s.map { sValue =>
-                    accValue :+ sValue
-                  }
-                }
-              }
+              .pipe(sequence)
           else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
@@ -53,13 +59,7 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
           flag <- if (dfsState.visited.contains(v)) State.pure[DfsState, Boolean](false) else loop(v)
         } yield flag
       }
-      .foldLeft(State.pure[DfsState, List[Boolean]](List.empty)) {
-        case (acc, s) => acc.flatMap { accValue =>
-          s.map { sValue =>
-            accValue :+ sValue
-          }
-        }
-      }
+      .pipe(sequence)
       .map(_.exists(identity))
       .evalState(DfsState())
   }
