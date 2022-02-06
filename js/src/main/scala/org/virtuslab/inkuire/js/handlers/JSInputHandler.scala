@@ -22,12 +22,12 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
       .get(url)
       .map(_.responseText.pipe(Right(_)))
       .fallbackTo(Future(Left("Could not read contents of file")))
-      .pipe(new FutureExcept(_))
+      .pipe(FutureExcept.apply)
 
   override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
     args.headOption
       .toRight("Missing configuration url")
-      .pipe(e => new FutureExcept(Future(e)))
+      .pipe(FutureExcept.fromExcept)
       .flatMap[String](tryGetURLContent(_))
       .semiflatmap(parseConfig)
       .mapInner {
@@ -50,8 +50,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler with C
           }
           .pipe(Monoid.combineAll[InkuireDb])
       }
-      .map(Right(_).asInstanceOf[Either[String, InkuireDb]])
-      .pipe(new FutureExcept(_))
+      .pipe(FutureExcept.fromFuture)
   }
 
   private def parseConfig(config: String): Either[String, AppConfig] = {

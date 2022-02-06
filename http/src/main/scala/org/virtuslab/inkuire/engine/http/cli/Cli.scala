@@ -87,14 +87,12 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
         case Right(db) => db
       }
       .pipe(Monoid.combineAll[InkuireDb](_))
-      .pipe(Right(_))
-      .pipe(x => Future.apply[Either[String, InkuireDb]](x))
-      .pipe(new FutureExcept(_))
+      .pipe(FutureExcept.pure)
   }
 
   override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
     parseArgs(AppConfig.parseCliOption)(args.toList)
       .map(Monoid.combineAll[AppConfig])
-      .pipe(config => new FutureExcept(Future(config)))
+      .pipe(FutureExcept.fromExcept)
   }
 }
