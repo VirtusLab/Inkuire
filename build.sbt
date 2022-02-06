@@ -1,6 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 ThisBuild / name := "inkuire"
 ThisBuild / organization := "org.virtuslab"
 
@@ -38,7 +35,8 @@ ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaV
 ThisBuild / scalacOptions ++= Seq(
   "-Yrangepos",
   "-Ywarn-unused",
-  "-deprecation"
+  "-deprecation",
+  "-feature"
 )
 
 val http4sVersion = "0.21.0"

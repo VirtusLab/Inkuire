@@ -18,7 +18,7 @@ object Main extends App {
         inputHandler = new Cli,
         outputHandler = new HttpServer
       )
-      .run(args),
+      .run(args.toSeq),
     Duration.Inf
   )
 
