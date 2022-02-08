@@ -66,11 +66,11 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
           case (a: Type) :: (b: Type) :: Nil =>
             (ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) ||
               ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)) &&
-              a.params.size == b.params.size &&
-              a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
-                case (a: Type, b: Type) => a.itid == b.itid
-                case _ => false
-              }
+            a.params.size == b.params.size &&
+            a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
+              case (a: Type, b: Type) => a.itid == b.itid
+              case _                  => false
+            }
           case _ :: _ :: Nil => false
           case _             => true
         }

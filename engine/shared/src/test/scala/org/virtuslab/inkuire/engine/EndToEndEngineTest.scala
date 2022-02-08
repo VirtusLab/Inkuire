@@ -14,8 +14,9 @@ class EndToEndEngineTest extends munit.FunSuite {
   }
   override def munitFixtures: List[Fixture[InkuireTestService]] = List(testService)
 
-  /** Test whether a search using a `signature` includes `funName`
-    */
+  /**
+   * Test whether a search using a `signature` includes `funName`
+   */
   def testFunctionFound(signature: String, funName: String)(implicit loc: munit.Location): Unit = {
     test(s"$funName : $signature") {
       assert(testService().query(signature).exists(_.name == funName))

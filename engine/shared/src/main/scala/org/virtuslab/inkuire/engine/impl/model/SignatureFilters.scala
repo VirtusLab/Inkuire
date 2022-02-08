@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine.impl.model
 
 trait SignatureFilters {
   def filterFrom(AnnotatedSignatures: Seq[AnnotatedSignature]): Seq[AnnotatedSignature]
-  def canMatch(eSgn:                 AnnotatedSignature):      Boolean
+  def canMatch(eSgn:                  AnnotatedSignature):      Boolean
 }
 
 object SignatureFilters {

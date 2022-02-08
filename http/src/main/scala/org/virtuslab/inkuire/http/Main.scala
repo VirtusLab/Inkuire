@@ -7,7 +7,6 @@ import org.virtuslab.inkuire.http.HttpServer
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-
 import scala.util.chaining._
 
 object Main extends App {

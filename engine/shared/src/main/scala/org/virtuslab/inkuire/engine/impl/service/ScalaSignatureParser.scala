@@ -89,7 +89,7 @@ class ScalaSignatureParser extends BaseSignatureParser {
     } |
       typeVariable ^^ (v => (Seq(v._1), Map(v._1 -> v._2)))
 
-  //TODO change to upper and lower bounds when the model can work with it
+  // TODO change to upper and lower bounds when the model can work with it
   def curriedVariables: Parser[(Seq[String], Map[String, Seq[Type]])] =
     "[" ~> typeVariables <~ "]" <~ "=>" |
       "" ^^^ (Seq.empty, Map.empty)

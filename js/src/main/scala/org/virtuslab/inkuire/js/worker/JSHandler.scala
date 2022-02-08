@@ -9,7 +9,7 @@ import org.virtuslab.inkuire.engine.impl.model.ResultFormat
 
 trait JSHandler {
 
-  //TODO: Consider configuring it
+  // TODO: Consider configuring it
   def resultLimit: Option[Long] = None
 
   /* It's a common pattern for cases when you need to switch to new computation before end of previous computation.

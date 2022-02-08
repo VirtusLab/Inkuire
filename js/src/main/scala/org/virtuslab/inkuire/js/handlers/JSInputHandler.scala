@@ -4,10 +4,9 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import org.scalajs.dom.ext.Ajax
 import org.virtuslab.inkuire.engine.api.FutureExcept
-import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.api.InkuireDb
+import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
-import org.virtuslab.inkuire.engine.impl.utils.Monoid
 import org.virtuslab.inkuire.js.model.JsConfig
 
 import scala.concurrent.ExecutionContext
@@ -52,7 +51,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
               .collect {
                 case Right(db) => db
               }
-              .pipe(Monoid.combineAll[InkuireDb])
+              .pipe(InkuireDb.combineAll)
           }
           .pipe(FutureExcept.fromFuture)
       }

@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.impl.utils.Monoid
 import org.virtuslab.inkuire.engine.impl.model._
+import org.virtuslab.inkuire.engine.impl.utils.Monoid
 
 // TODO(kπ) technically it would be better to have a different type for type declarations -> types: Map[ITID, (Declaration, Seq[Type])]
 case class InkuireDb(
@@ -32,7 +32,7 @@ object InkuireDb {
       implicitConversions = x.implicitConversions ++ y.implicitConversions,
       typeAliases = x.typeAliases ++ y.typeAliases
     )
-    
+
   def combineAll(list: List[InkuireDb]): InkuireDb =
     list.foldLeft[InkuireDb](InkuireDb.empty) {
       case (acc, a) => InkuireDb.combine(acc, a)

@@ -37,7 +37,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         .using(_.drop(1))
   }
 
-  private def mostGeneral(types: Seq[TypeLike]): Seq[TypeLike] = { //TODO can be applied deeper if needed
+  private def mostGeneral(types: Seq[TypeLike]): Seq[TypeLike] = { // TODO can be applied deeper if needed
     types.filter {
       case typ: Type =>
         (ag.getAllParentsITIDs(typ).toSet - typ.itid.get)
@@ -47,7 +47,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
     }.distinct
   }
 
-  private def mostSpecific(types: Seq[TypeLike]): Seq[TypeLike] = { //TODO can be applied deeper if needed
+  private def mostSpecific(types: Seq[TypeLike]): Seq[TypeLike] = { // TODO can be applied deeper if needed
     types
       .foldLeft(types) {
         case (acc, typ: Type) =>
@@ -78,7 +78,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         constraints =
           signature.context.constraints.view
             .mapValues(resolveMultipleTypes(_).toOption.get.head)
-            .toMap //TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
+            .toMap // TODO this should be resolved in a private def in context of Seq monad (similarly to multipleTypes)
       } yield signature
         .modify(_.receiver)
         .setTo(receiver)
@@ -155,7 +155,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
         _.map(_ -> typ)
           .filter {
             case (t: Type, typ: Type) => t.params.size == typ.params.size
-            case _ => true
+            case _                    => true
           }
           .map(_._1)
       )

@@ -53,9 +53,9 @@ class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualitySer
 
   val p = new ScalaAnnotatedSignaturePrettifier
 
-  /** Returns match quality metric for two typelikes
-    * the lower the metric value, the better the match
-    */
+  /**
+   * Returns match quality metric for two typelikes the lower the metric value, the better the match
+   */
   def typeMatchQualityMetric(typ: TypeLike, supr: TypeLike): Int = {
     (typ, supr) match {
       case (t: Type, s: Type) if t.isStarProjection && s.isStarProjection =>

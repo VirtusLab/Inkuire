@@ -16,8 +16,8 @@ import org.http4s.server.blaze._
 import org.http4s.server.middleware._
 import org.slf4j
 import org.slf4j.LoggerFactory
-import org.virtuslab.inkuire.engine.api.OutputHandler
 import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.OutputHandler
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -52,14 +52,16 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
               )
             }
           case GET -> Root / "forSignature" :? SignatureParameter(signature) =>
-            env.run(signature).fold(
-              fa => BadRequest(fa),
-              fb =>
-                Ok(
-                  fb.asJson.toString,
-                  `Content-Type`(MediaType.application.json)
-                )
-            )
+            env
+              .run(signature)
+              .fold(
+                fa => BadRequest(fa),
+                fb =>
+                  Ok(
+                    fb.asJson.toString,
+                    `Content-Type`(MediaType.application.json)
+                  )
+              )
           case GET -> Root =>
             Found(
               Templates.rootPage,

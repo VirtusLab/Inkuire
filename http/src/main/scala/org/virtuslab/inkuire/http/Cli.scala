@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.http
 
+import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.api.FutureExcept
+import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.api.OutputHandler
-import org.virtuslab.inkuire.engine.api.Env
-import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
 import org.virtuslab.inkuire.engine.impl.utils.Monoid
 
@@ -74,9 +74,8 @@ class Cli extends InputHandler with OutputHandler {
   override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
     readConfig(args)
       .pipe(FutureExcept.fromExcept)
-      .flatMap{ appConfig =>
-        appConfig
-          .inkuirePaths
+      .flatMap { appConfig =>
+        appConfig.inkuirePaths
           .flatMap(path => getURLs(new URL(path), ".json"))
           .map(getURLContent)
           .toList

@@ -26,6 +26,6 @@ case class Contravariance(typ: TypeLike) extends Variance
 case class Invariance(typ: TypeLike) extends Variance
 
 /**
-  * Variance of `types` from queries
-  */
+ * Variance of `types` from queries
+ */
 case class UnresolvedVariance(typ: TypeLike) extends Variance

@@ -5,9 +5,9 @@ import monix.execution.Ack
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import monix.reactive.subjects.PublishSubject
+import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.api.OutputHandler
 import org.virtuslab.inkuire.engine.impl.model.EndFormat
-import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.impl.model.OutputFormat
 import org.virtuslab.inkuire.engine.impl.service.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
