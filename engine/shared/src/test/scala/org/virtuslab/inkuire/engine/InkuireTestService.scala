@@ -1,12 +1,12 @@
 package org.virtuslab.inkuire.engine
 
-import org.virtuslab.inkuire.engine.model.ExternalSignature
-import org.virtuslab.inkuire.engine.model.InkuireDb
-import org.virtuslab.inkuire.engine.parser.ScalaSignatureParserService
-import org.virtuslab.inkuire.engine.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.engine.service.DefaultSignatureResolver
-import org.virtuslab.inkuire.engine.service.SubstitutionMatchService
-import org.virtuslab.inkuire.engine.utils.Monoid
+import org.virtuslab.inkuire.engine.impl.model.AnnotatedSignature
+import org.virtuslab.inkuire.engine.impl.model.InkuireDb
+import org.virtuslab.inkuire.engine.impl.service.ScalaSignatureParserService
+import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
+import org.virtuslab.inkuire.engine.impl.service.DefaultSignatureResolver
+import org.virtuslab.inkuire.engine.impl.service.SubstitutionMatchService
+import org.virtuslab.inkuire.engine.impl.utils.Monoid
 
 import java.io.File
 import java.net.URL
@@ -40,7 +40,7 @@ class InkuireTestService(path: String) {
   val resolver     = new DefaultSignatureResolver(db)
   val parser       = new ScalaSignatureParserService
 
-  def query(q: String): Seq[ExternalSignature] = {
+  def query(q: String): Seq[AnnotatedSignature] = {
     parser
       .parse(q)
       .flatMap(resolver.resolve)

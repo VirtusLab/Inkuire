@@ -17,16 +17,16 @@ import org.http4s.server.middleware._
 import org.slf4j
 import org.slf4j.LoggerFactory
 import org.virtuslab.inkuire.engine.api.OutputHandler
-import org.virtuslab.inkuire.engine.model.Env
-import org.virtuslab.inkuire.engine.model.ResultFormat
+import org.virtuslab.inkuire.engine.impl.model.Env
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import org.virtuslab.inkuire.engine.impl.model.AppConfig
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
-class HttpServer extends OutputHandler {
+class HttpServer(appConfig: AppConfig) extends OutputHandler {
 
   val logger: slf4j.Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
@@ -34,25 +34,6 @@ class HttpServer extends OutputHandler {
 
     implicit val cs:    ContextShift[IO] = IO.contextShift(ec)
     implicit val timer: Timer[IO]        = IO.timer(ec)
-
-    val formatter = new OutputFormatter(env.prettifier)
-
-    def results(signature: String): Either[String, ResultFormat] = {
-      env.parser
-        .parse(signature)
-        .left
-        .map { e =>
-          logger.info("Error when parsing signature: '" + e + "' for signature: " + signature)
-          e
-        }
-        .flatMap { parsed =>
-          logger.info(s"Parsed signature: " + signature)
-          env.resolver.resolve(parsed)
-        }
-        .map(env.matcher findMatches _)
-        .map(env.matchQualityService sortMatches _)
-        .map(formatter.createOutput(signature, _))
-    }
 
     def static(file: String, blocker: Blocker, request: Request[IO]) =
       StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
@@ -65,14 +46,14 @@ class HttpServer extends OutputHandler {
           case req @ POST -> Root / "query" =>
             req.decode[UrlForm] { m =>
               val signature = m.values("query").headOption.get
-              val res       = results(signature)
+              val res       = env.run(signature)
               res.fold(
                 fa => BadRequest(fa),
                 fb => Ok(Templates.result(fb), `Content-Type`(MediaType.text.html))
               )
             }
           case GET -> Root / "forSignature" :? SignatureParameter(signature) =>
-            results(signature).fold(
+            env.run(signature).fold(
               fa => BadRequest(fa),
               fb =>
                 Ok(
@@ -101,7 +82,7 @@ class HttpServer extends OutputHandler {
       blocker <- Blocker[IO]
       server <-
         BlazeServerBuilder[IO]
-          .bindHttp(env.appConfig.getPort, env.appConfig.getAddress)
+          .bindHttp(appConfig.getPort, appConfig.getAddress)
           .withHttpApp(CORS(appService(blocker), methodConfig))
           .resource
     } yield server

@@ -1,14 +1,13 @@
 package org.virtuslab.inkuire.http
 
-import org.virtuslab.inkuire.engine.api.ConfigReader
 import org.virtuslab.inkuire.engine.api.FutureExcept
 import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.api.OutputHandler
-import org.virtuslab.inkuire.engine.model.AppConfig
-import org.virtuslab.inkuire.engine.model.Env
-import org.virtuslab.inkuire.engine.model.InkuireDb
-import org.virtuslab.inkuire.engine.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.engine.utils.Monoid
+import org.virtuslab.inkuire.engine.impl.model.AppConfig
+import org.virtuslab.inkuire.engine.impl.model.Env
+import org.virtuslab.inkuire.engine.impl.model.InkuireDb
+import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
+import org.virtuslab.inkuire.engine.impl.utils.Monoid
 
 import java.io.File
 import java.net.URL
@@ -19,7 +18,7 @@ import scala.io.Source
 import scala.io.StdIn.readLine
 import scala.util.chaining._
 
-class Cli extends InputHandler with OutputHandler with ConfigReader {
+class Cli extends InputHandler with OutputHandler {
 
   @tailrec
   private def parseArgs(
@@ -73,20 +72,24 @@ class Cli extends InputHandler with OutputHandler with ConfigReader {
 
   private def getURLContent(url: URL): String = Source.fromInputStream(url.openStream()).getLines().mkString
 
-  override def readInput(appConfig: AppConfig)(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
-    appConfig.inkuirePaths
-      .flatMap(path => getURLs(new URL(path), ".json"))
-      .map(getURLContent)
-      .toList
-      .map(EngineModelSerializers.deserialize)
-      .collect {
-        case Right(db) => db
+  override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
+    readConfig(args)
+      .flatMap{ appConfig =>
+        appConfig
+          .inkuirePaths
+          .flatMap(path => getURLs(new URL(path), ".json"))
+          .map(getURLContent)
+          .toList
+          .map(EngineModelSerializers.deserialize)
+          .collect {
+            case Right(db) => db
+          }
+          .pipe(Monoid.combineAll[InkuireDb](_))
+          .pipe(FutureExcept.pure)
       }
-      .pipe(Monoid.combineAll[InkuireDb](_))
-      .pipe(FutureExcept.pure)
   }
 
-  override def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
+  def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
     parseArgs(AppConfig.parseCliOption)(args.toList)
       .map(Monoid.combineAll[AppConfig])
       .pipe(FutureExcept.fromExcept)

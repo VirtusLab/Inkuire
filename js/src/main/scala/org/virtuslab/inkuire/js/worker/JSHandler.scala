@@ -3,9 +3,9 @@ package org.virtuslab.inkuire.js.worker
 import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
-import org.virtuslab.inkuire.engine.model.EndFormat
-import org.virtuslab.inkuire.engine.model.OutputFormat
-import org.virtuslab.inkuire.engine.model.ResultFormat
+import org.virtuslab.inkuire.engine.impl.model.EndFormat
+import org.virtuslab.inkuire.engine.impl.model.OutputFormat
+import org.virtuslab.inkuire.engine.impl.model.ResultFormat
 
 trait JSHandler {
 

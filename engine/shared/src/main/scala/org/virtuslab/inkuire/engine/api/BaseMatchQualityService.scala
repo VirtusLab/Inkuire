@@ -1,16 +1,14 @@
 package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.model._
+import org.virtuslab.inkuire.engine.impl.model._
 
 trait BaseMatchQualityService {
-
-  def sortMatches(functions: Seq[(ExternalSignature, Signature)]): Seq[(ExternalSignature, Int)] =
+  def sortMatches(functions: Seq[(AnnotatedSignature, Signature)]): Seq[(AnnotatedSignature, Int)] =
     functions
       .map {
         case (fun, matching) => fun -> matchQualityMetric(fun, matching)
       }
       .sortBy(_._2)
 
-  def matchQualityMetric(externalSignature: ExternalSignature, matching: Signature): Int
-
+  def matchQualityMetric(AnnotatedSignature: AnnotatedSignature, matching: Signature): Int
 }

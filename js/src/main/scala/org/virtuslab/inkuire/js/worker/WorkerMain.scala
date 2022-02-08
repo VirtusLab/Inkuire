@@ -23,11 +23,9 @@ object WorkerMain {
     InkuireRunner
       .scalaRunner(
         new JSInputHandler(scriptPath),
-        new JSInputHandler(scriptPath),
         new JSOutputHandler(new InkuireWorker(self))
       )
       .run(Seq(scriptPath + "inkuire-config.json"))
-
   }
 
 }
