@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.engine
 
 import org.virtuslab.inkuire.engine.impl.model.AnnotatedSignature
-import org.virtuslab.inkuire.engine.impl.model.InkuireDb
+import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.impl.service.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
 import org.virtuslab.inkuire.engine.impl.service.DefaultSignatureResolver

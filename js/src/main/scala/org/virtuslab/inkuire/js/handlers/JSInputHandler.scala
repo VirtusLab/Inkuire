@@ -5,10 +5,10 @@ import io.circe.parser._
 import org.scalajs.dom.ext.Ajax
 import org.virtuslab.inkuire.engine.api.FutureExcept
 import org.virtuslab.inkuire.engine.api.InputHandler
-import org.virtuslab.inkuire.engine.impl.model.AppConfig
-import org.virtuslab.inkuire.engine.impl.model.InkuireDb
+import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
 import org.virtuslab.inkuire.engine.impl.utils.Monoid
+import org.virtuslab.inkuire.js.model.JsConfig
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -23,7 +23,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
       .fallbackTo(Future(Left("Could not read contents of file")))
       .pipe(FutureExcept.apply)
 
-  private def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
+  private def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[JsConfig] = {
     args.headOption
       .toRight("Missing configuration url")
       .pipe(FutureExcept.fromExcept)
@@ -38,7 +38,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
 
   override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
     readConfig(args)
-      .flatMap { (appConfig: AppConfig) =>
+      .flatMap { (appConfig: JsConfig) =>
         appConfig.inkuirePaths
           .map(scriptPath + _)
           .map(tryGetURLContent(_).value)
@@ -58,9 +58,9 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
       }
   }
 
-  private def parseConfig(config: String): Either[String, AppConfig] = {
+  private def parseConfig(config: String): Either[String, JsConfig] = {
     parse(config)
-      .flatMap(_.as[AppConfig])
+      .flatMap(_.as[JsConfig])
       .fold(l => Left(l.toString), Right.apply)
   }
 }

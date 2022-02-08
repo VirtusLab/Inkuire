@@ -5,6 +5,7 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.virtuslab.inkuire.engine.impl.model._
+import org.virtuslab.inkuire.engine.api.InkuireDb
 
 import scala.util.chaining._
 

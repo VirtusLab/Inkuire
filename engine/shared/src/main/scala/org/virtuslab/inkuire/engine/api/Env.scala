@@ -1,7 +1,7 @@
-package org.virtuslab.inkuire.engine.impl.model
+package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.api._
 import org.virtuslab.inkuire.engine.impl.service._
+import org.virtuslab.inkuire.engine.impl.model._
 
 case class Env(
   db:                  InkuireDb,

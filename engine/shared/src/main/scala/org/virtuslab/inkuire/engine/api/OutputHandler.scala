@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.impl.model.Env
+import org.virtuslab.inkuire.engine.api.Env
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future

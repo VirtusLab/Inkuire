@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.impl.model
+package org.virtuslab.inkuire.http
 
 import org.virtuslab.inkuire.engine.impl.utils.Monoid
 

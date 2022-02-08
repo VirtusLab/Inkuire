@@ -3,9 +3,8 @@ package org.virtuslab.inkuire.http
 import org.virtuslab.inkuire.engine.api.FutureExcept
 import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.api.OutputHandler
-import org.virtuslab.inkuire.engine.impl.model.AppConfig
-import org.virtuslab.inkuire.engine.impl.model.Env
-import org.virtuslab.inkuire.engine.impl.model.InkuireDb
+import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
 import org.virtuslab.inkuire.engine.impl.utils.Monoid
 
@@ -74,6 +73,7 @@ class Cli extends InputHandler with OutputHandler {
 
   override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
     readConfig(args)
+      .pipe(FutureExcept.fromExcept)
       .flatMap{ appConfig =>
         appConfig
           .inkuirePaths
@@ -84,14 +84,13 @@ class Cli extends InputHandler with OutputHandler {
           .collect {
             case Right(db) => db
           }
-          .pipe(Monoid.combineAll[InkuireDb](_))
+          .pipe(InkuireDb.combineAll)
           .pipe(FutureExcept.pure)
       }
   }
 
-  def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig] = {
+  def readConfig(args: Seq[String]): Either[String, AppConfig] = {
     parseArgs(AppConfig.parseCliOption)(args.toList)
       .map(Monoid.combineAll[AppConfig])
-      .pipe(FutureExcept.fromExcept)
   }
 }

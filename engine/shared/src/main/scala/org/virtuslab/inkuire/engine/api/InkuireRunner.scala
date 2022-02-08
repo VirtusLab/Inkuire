@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.impl.model._
 import org.virtuslab.inkuire.engine.impl.service._
 
 import scala.concurrent.ExecutionContext
