@@ -1,7 +1,7 @@
 package org.virtuslab.inkuire.js.worker
 
 import org.scalajs.dom.raw.DedicatedWorkerGlobalScope
-import org.virtuslab.inkuire.engine.common.api.InkuireRunner
+import org.virtuslab.inkuire.engine.api.InkuireRunner
 import org.virtuslab.inkuire.js.handlers.JSInputHandler
 import org.virtuslab.inkuire.js.handlers.JSOutputHandler
 

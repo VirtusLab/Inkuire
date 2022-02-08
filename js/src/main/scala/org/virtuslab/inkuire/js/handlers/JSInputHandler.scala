@@ -3,13 +3,13 @@ package org.virtuslab.inkuire.js.handlers
 import io.circe.generic.auto._
 import io.circe.parser._
 import org.scalajs.dom.ext.Ajax
-import org.virtuslab.inkuire.engine.common.api.ConfigReader
-import org.virtuslab.inkuire.engine.common.api.FutureExcept
-import org.virtuslab.inkuire.engine.common.api.InputHandler
-import org.virtuslab.inkuire.engine.common.model.AppConfig
-import org.virtuslab.inkuire.engine.common.model.InkuireDb
-import org.virtuslab.inkuire.engine.common.serialization.EngineModelSerializers
-import org.virtuslab.inkuire.engine.common.utils.Monoid
+import org.virtuslab.inkuire.engine.api.ConfigReader
+import org.virtuslab.inkuire.engine.api.FutureExcept
+import org.virtuslab.inkuire.engine.api.InputHandler
+import org.virtuslab.inkuire.engine.model.AppConfig
+import org.virtuslab.inkuire.engine.model.InkuireDb
+import org.virtuslab.inkuire.engine.serialization.EngineModelSerializers
+import org.virtuslab.inkuire.engine.utils.Monoid
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future

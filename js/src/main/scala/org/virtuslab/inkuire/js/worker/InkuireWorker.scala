@@ -8,7 +8,7 @@ import monix.reactive._
 import org.scalajs.dom.Event
 import org.scalajs.dom.raw.MessageEvent
 import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope
-import org.virtuslab.inkuire.engine.common.model.ResultFormat
+import org.virtuslab.inkuire.engine.model.ResultFormat
 import org.virtuslab.inkuire.js.worker.JSHandler
 
 class InkuireWorker(self: DedicatedWorkerGlobalScope) extends JSHandler {

@@ -67,7 +67,7 @@ lazy val inkuireHttp = project
       "org.slf4j" % "slf4j-simple" % "1.7.30",
       "com.lihaoyi" %% "scalatags" % "0.9.4"
     ),
-    assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
+    assembly / mainClass := Some("org.virtuslab.inkuire.http.Main")
   )
   .dependsOn(inkuireEngine.jvm)
 

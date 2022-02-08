@@ -5,11 +5,11 @@ import monix.execution.Ack
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import monix.reactive.subjects.PublishSubject
-import org.virtuslab.inkuire.engine.common.api.OutputHandler
-import org.virtuslab.inkuire.engine.common.model.EndFormat
-import org.virtuslab.inkuire.engine.common.model.Env
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
-import org.virtuslab.inkuire.engine.http.http.OutputFormatter
+import org.virtuslab.inkuire.engine.api.OutputHandler
+import org.virtuslab.inkuire.engine.model.EndFormat
+import org.virtuslab.inkuire.engine.model.Env
+import org.virtuslab.inkuire.engine.model.OutputFormat
+import org.virtuslab.inkuire.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
 
 import scala.concurrent.ExecutionContext
