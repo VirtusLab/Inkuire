@@ -1,24 +1,26 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.kernel.Monoid
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 case class AppConfig(
-  address:      Option[String],
-  port:         Option[Int],
-  inkuirePaths: Seq[String]
+  address:      Option[String] = None,
+  port:         Option[Int] = None,
+  inkuirePaths: Seq[String] = Seq.empty
 ) {
   def getAddress: String = address.getOrElse("0.0.0.0")
   def getPort:    Int    = port.getOrElse(8080)
 }
 
 object AppConfig {
+  def empty: AppConfig = AppConfig(
+    address = None,
+    port = None,
+    inkuirePaths = Seq.empty
+  )
+
   implicit val appConfigMonoid: Monoid[AppConfig] = new Monoid[AppConfig] {
-    def empty: AppConfig = AppConfig(
-      address = None,
-      port = None,
-      inkuirePaths = Seq.empty
-    )
-    def combine(x: AppConfig, y: AppConfig): AppConfig =
+    def empty: AppConfig = AppConfig.empty
+    def mappend(x: AppConfig, y: AppConfig): AppConfig =
       AppConfig(
         address = x.address.orElse(y.address),
         port = x.port.orElse(y.port),
@@ -28,11 +30,11 @@ object AppConfig {
 
   def parseCliOption(opt: String, v: String): AppConfig =
     opt match {
-      case "-a" | "--address" => Monoid.empty[AppConfig].copy(address = Some(v))
-      case "-p" | "--port"    => Monoid.empty[AppConfig].copy(port = Some(v.toInt))
-      case "-i" | "--inkuire" => Monoid.empty[AppConfig].copy(inkuirePaths = Seq(v))
+      case "-a" | "--address" => AppConfig(address = Some(v))
+      case "-p" | "--port"    => AppConfig(port = Some(v.toInt))
+      case "-i" | "--inkuire" => AppConfig(inkuirePaths = Seq(v))
       case o =>
         println(s"Inkuire ignored wrong option: $o")
-        Monoid.empty[AppConfig]
+        AppConfig.empty
     }
 }

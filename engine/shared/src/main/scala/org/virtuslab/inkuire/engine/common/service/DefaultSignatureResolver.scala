@@ -1,9 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.implicits._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
+
+import scala.util.chaining._
 
 class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolver with MatchingOps {
 
@@ -65,7 +66,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       receiver <-
         signature.receiver
           .fold[Either[String, Seq[Option[Contravariance]]]](Right(Seq(None)))(r =>
-            resolvePossibleVariances(Contravariance(r.typ)).map(_.map(_.some.asInstanceOf[Option[Contravariance]]))
+            resolvePossibleVariances(Contravariance(r.typ)).map(_.map(_.pipe(Some.apply)))
           )
       args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance))
       result <- resolvePossibleVariances(Covariance(signature.result.typ))
@@ -106,7 +107,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
       case t: Type if t.isVariable =>
         resolveMultipleTypes(t.params.map(_.typ)).map(_.map { params =>
           t.modify(_.itid)
-            .setTo(ITID(t.name.name, isParsed = true).some)
+            .setTo(ITID(t.name.name, isParsed = true).pipe(Some.apply))
             .modify(_.params)
             .setTo(params.zipVariances(t.params))
         })

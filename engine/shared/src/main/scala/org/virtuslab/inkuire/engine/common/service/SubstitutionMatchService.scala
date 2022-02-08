@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
-import cats.implicits._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.api._
 import org.virtuslab.inkuire.engine.common.model._
+import org.virtuslab.inkuire.engine.common.utils.Monoid._
+import org.virtuslab.inkuire.engine.common.utils.State
 
 class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 
@@ -17,7 +17,7 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
         .checkTypesWithVariances(
           sgn.typesWithVariances,
           supr.typesWithVariances,
-          sgn.context |+| supr.context
+          sgn.context <> supr.context
         )
         .flatMap { okTypes =>
           State.get[TypingState].map { typingState =>
@@ -25,8 +25,7 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
             else false
           }
         }
-        .runA(TypingState.empty)
-        .value
+        .evalState(TypingState.empty)
     }
   }
 

@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.common.model
 
-import cats.kernel.Monoid
+import org.virtuslab.inkuire.engine.common.utils.Monoid
 
 case class SignatureContext(
   vars:        Set[String],
@@ -20,7 +20,7 @@ object SignatureContext {
   implicit val signatureContextMonoid: Monoid[SignatureContext] = new Monoid[SignatureContext] {
     override def empty: SignatureContext = SignatureContext(Set.empty, Map.empty)
 
-    override def combine(x: SignatureContext, y: SignatureContext): SignatureContext = {
+    override def mappend(x: SignatureContext, y: SignatureContext): SignatureContext = {
       SignatureContext(
         x.vars ++ y.vars,
         x.constraints ++ y.constraints

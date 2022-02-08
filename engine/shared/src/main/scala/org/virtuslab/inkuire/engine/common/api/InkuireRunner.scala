@@ -1,6 +1,5 @@
 package org.virtuslab.inkuire.engine.common.api
 
-import cats.effect.IO
 import org.virtuslab.inkuire.engine.common.model._
 import org.virtuslab.inkuire.engine.common.parser.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.common.service.DefaultSignatureResolver
@@ -8,32 +7,42 @@ import org.virtuslab.inkuire.engine.common.service.ScalaExternalSignaturePrettif
 import org.virtuslab.inkuire.engine.common.service.SubstitutionMatchService
 import org.virtuslab.inkuire.engine.common.service.TopLevelMatchQualityService
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.chaining._
+
 class InkuireRunner(
-  configReader:        ConfigReader,
-  inputHandler:        InputHandler,
-  outputHandler:       OutputHandler,
-  parser:              BaseSignatureParserService,
-  resolver:            InkuireDb => BaseSignatureResolver,
-  matchService:        InkuireDb => BaseMatchService,
-  matchQualityService: InkuireDb => BaseMatchQualityService,
-  prettifier:          BaseSignaturePrettifier
+  val configReader:        ConfigReader,
+  val inputHandler:        InputHandler,
+  val outputHandler:       OutputHandler,
+  val parser:              BaseSignatureParserService,
+  val resolver:            InkuireDb => BaseSignatureResolver,
+  val matchService:        InkuireDb => BaseMatchService,
+  val matchQualityService: InkuireDb => BaseMatchQualityService,
+  val prettifier:          BaseSignaturePrettifier
 ) {
 
-  def run(args: Seq[String]): IO[Unit] =
+  def run(args: Seq[String])(implicit ec: ExecutionContext): Future[Unit] =
     configReader
       .readConfig(args)
       .flatMap { config: AppConfig =>
         inputHandler
           .readInput(config)
-          .semiflatMap { db: InkuireDb =>
+          .flatMap { db: InkuireDb =>
             outputHandler
-              .serveOutput()
-              .runA(
-                Engine.Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
+              .serveOutput(
+                Env(db, matchService(db), matchQualityService(db), prettifier, parser, resolver(db), config)
               )
+              .pipe(FutureExcept.fromFuture)
           }
       }
-      .fold(str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"), identity)
+      .value
+      .map(
+        _.fold(
+          str => println(s"Oooooh man, bad luck. Inkuire encountered an unexpected error. Caused by $str"),
+          identity
+        )
+      )
 
 }
 

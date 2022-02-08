@@ -1,9 +1,10 @@
 package org.virtuslab.inkuire.engine.common.api
 
-import cats.data.EitherT
-import cats.effect.IO
+import org.virtuslab.inkuire.engine.common.api.FutureExcept
 import org.virtuslab.inkuire.engine.common.model.AppConfig
 
+import scala.concurrent.ExecutionContext
+
 trait ConfigReader {
-  def readConfig(args: Seq[String]): EitherT[IO, String, AppConfig]
+  def readConfig(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[AppConfig]
 }

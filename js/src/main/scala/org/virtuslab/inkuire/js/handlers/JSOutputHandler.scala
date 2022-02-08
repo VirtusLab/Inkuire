@@ -7,15 +7,18 @@ import monix.reactive.Observable
 import monix.reactive.subjects.PublishSubject
 import org.virtuslab.inkuire.engine.common.api.OutputHandler
 import org.virtuslab.inkuire.engine.common.model.EndFormat
-import org.virtuslab.inkuire.engine.common.model.Engine
+import org.virtuslab.inkuire.engine.common.model.Env
 import org.virtuslab.inkuire.engine.common.model.OutputFormat
 import org.virtuslab.inkuire.engine.http.http.OutputFormatter
 import org.virtuslab.inkuire.js.worker.JSHandler
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
 
-  override def serveOutput(env: Engine.Env): IO[Unit] = {
+  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
     val outputFormatter = new OutputFormatter(env.prettifier)
 
     def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
@@ -43,7 +46,7 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
         }
     }
 
-    IO.async { _ =>
+    IO.async { (_: Any) =>
       jsHandler.registerOutput(subject)
       jsHandler.inputChanges.map(executeQuery).subscribe {
         case Right(v) =>
@@ -54,6 +57,6 @@ class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
           Ack.Continue
       }
       jsHandler.notifyEngineReady
-    }
+    }.unsafeToFuture()
   }
 }

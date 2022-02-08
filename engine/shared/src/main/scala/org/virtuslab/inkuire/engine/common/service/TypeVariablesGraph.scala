@@ -1,9 +1,10 @@
 package org.virtuslab.inkuire.engine.common.service
 
-import cats.data.State
-import cats.implicits._
 import com.softwaremill.quicklens._
 import org.virtuslab.inkuire.engine.common.model._
+import org.virtuslab.inkuire.engine.common.utils.State
+
+import scala.util.chaining._
 
 case class TypeVariablesGraph(variableBindings: VariableBindings) {
   val dependencyGraph: Map[ITID, Seq[ITID]] = variableBindings.bindings.view.mapValues {
@@ -20,6 +21,16 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
       case _ => Seq()
     }
 
+  private def sequence[S, A](v: List[State[S, A]]): State[S, List[A]] =
+    v.foldLeft(State.pure[S, List[A]](List.empty)) {
+      case (acc, s) =>
+        acc.flatMap { accValue =>
+          s.map { sValue =>
+            accValue :+ sValue
+          }
+        }
+    }
+
   def hasCyclicDependency: Boolean = {
     case class DfsState(visited: Set[ITID] = Set.empty, stack: Set[ITID] = Set.empty)
 
@@ -29,26 +40,27 @@ case class TypeVariablesGraph(variableBindings: VariableBindings) {
         cycle    = dfsState.stack.contains(current)
         visited  = dfsState.visited.contains(current)
         newState = dfsState.modifyAll(_.visited, _.stack).using(_ + current)
-        _ <- State.set[DfsState](newState)
+        _ <- State.put[DfsState](newState)
         f <-
           if (!visited)
             dependencyGraph
               .getOrElse(current, Seq())
               .toList
-              .traverse(loop)
+              .map(loop)
+              .pipe(sequence)
           else State.pure[DfsState, List[Boolean]](List())
         _ <- State.modify[DfsState](s => s.modify(_.stack).using(_ - current))
       } yield cycle || f.exists(identity)
 
     dependencyGraph.keys.toList
-      .traverse { v =>
+      .map { v =>
         for {
           dfsState <- State.get[DfsState]
           flag <- if (dfsState.visited.contains(v)) State.pure[DfsState, Boolean](false) else loop(v)
         } yield flag
       }
+      .pipe(sequence)
       .map(_.exists(identity))
-      .runA(DfsState())
-      .value
+      .evalState(DfsState())
   }
 }

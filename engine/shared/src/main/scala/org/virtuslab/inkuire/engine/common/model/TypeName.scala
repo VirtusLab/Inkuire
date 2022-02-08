@@ -1,5 +1,7 @@
 package org.virtuslab.inkuire.engine.common.model
 
+import scala.language.implicitConversions
+
 case class TypeName(name: String) {
   override def hashCode(): Int = name.toLowerCase.hashCode
 

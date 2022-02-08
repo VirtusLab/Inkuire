@@ -1,11 +1,12 @@
 package org.virtuslab.inkuire.engine.common.serialization
 
-import cats.syntax.all._
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.virtuslab.inkuire.engine.common.model._
+
+import scala.util.chaining._
 
 object EngineModelSerializers {
   implicit val varianceEncoder: Encoder[Variance] = Encoder.instance {
@@ -46,11 +47,12 @@ object EngineModelSerializers {
   implicit val itidKeyEncoder: KeyEncoder[ITID] = (id: ITID) => s"${id.isParsed}=${id.uuid}"
 
   implicit val itidKeyDecoder: KeyDecoder[ITID] = (str: String) =>
-    if (str.startsWith("true=")) ITID.parsed(str.stripPrefix("true=")).some
-    else if (str.startsWith("false=")) ITID.external(str.stripPrefix("false=")).some
+    if (str.startsWith("true=")) ITID.parsed(str.stripPrefix("true=")).pipe(Some.apply)
+    else if (str.startsWith("false=")) ITID.external(str.stripPrefix("false=")).pipe(Some.apply)
     else None
 
   def serialize(db: InkuireDb): String = db.asJson.toString
 
-  def deserialize(str: String): Either[String, InkuireDb] = decode[InkuireDb](str).leftMap(_.show)
+  def deserialize(str: String): Either[String, InkuireDb] =
+    decode[InkuireDb](str).fold(l => Left(l.toString), Right.apply)
 }
