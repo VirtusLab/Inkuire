@@ -1,4 +1,3 @@
-ThisBuild / name := "inkuire"
 ThisBuild / organization := "org.virtuslab"
 
 ThisBuild / homepage := Some(url("https://github.com/VirtusLab/Inkuire"))
@@ -41,9 +40,10 @@ ThisBuild / scalacOptions ++= Seq(
 
 val http4sVersion = "0.21.0"
 val circeVersion = "0.13.0"
+val monixVersion = "3.2.2"
 
 lazy val inkuireEngine = crossProject(JSPlatform, JVMPlatform)
-  .in(file("./engine"))
+  .in(file("engine"))
   .settings(
     name := "inkuire-engine",
     libraryDependencies ++= Seq(
@@ -57,7 +57,7 @@ lazy val inkuireEngine = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val inkuireHttp = project
-  .in(file("./http"))
+  .in(file("http"))
   .settings(
     name := "inkuire-http",
     libraryDependencies ++= Seq(
@@ -67,19 +67,19 @@ lazy val inkuireHttp = project
       "org.slf4j" % "slf4j-simple" % "1.7.30",
       "com.lihaoyi" %% "scalatags" % "0.9.4"
     ),
-    assembly / mainClass := Some("org.virtuslab.inkuire.engine.http.Main")
+    assembly / mainClass := Some("org.virtuslab.inkuire.http.Main")
   )
   .dependsOn(inkuireEngine.jvm)
 
 lazy val inkuireJs = project
-  .in(file("./js"))
+  .in(file("js"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "inkuire-js",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %%% "core" % "2.2.9",
-      "io.monix" %%% "monix" % "3.2.2",
-      "io.monix" %%% "monix-reactive" % "3.2.2"
+      "io.monix" %%% "monix" % monixVersion,
+      "io.monix" %%% "monix-reactive" % monixVersion
     ),
     scalaJSUseMainModuleInitializer := true,
   )

@@ -3,13 +3,13 @@ package org.virtuslab.inkuire.js.worker
 import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
-import org.virtuslab.inkuire.engine.common.model.EndFormat
-import org.virtuslab.inkuire.engine.common.model.OutputFormat
-import org.virtuslab.inkuire.engine.common.model.ResultFormat
+import org.virtuslab.inkuire.engine.impl.model.EndFormat
+import org.virtuslab.inkuire.engine.impl.model.OutputFormat
+import org.virtuslab.inkuire.engine.impl.model.ResultFormat
 
 trait JSHandler {
 
-  //TODO: Consider configuring it
+  // TODO: Consider configuring it
   def resultLimit: Option[Long] = None
 
   /* It's a common pattern for cases when you need to switch to new computation before end of previous computation.
