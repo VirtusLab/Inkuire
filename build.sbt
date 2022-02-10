@@ -77,7 +77,7 @@ lazy val inkuireJs = project
   .settings(
     name := "inkuire-js",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client" %%% "core" % "2.2.9",
+      "com.softwaremill.sttp.client" %%% "core" % "2.2.9" cross CrossVersion.for3Use2_13,
       "io.monix" %%% "monix" % monixVersion,
       "io.monix" %%% "monix-reactive" % monixVersion
     ),
