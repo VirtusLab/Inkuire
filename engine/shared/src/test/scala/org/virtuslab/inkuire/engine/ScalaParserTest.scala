@@ -1,13 +1,13 @@
 package org.virtuslab.inkuire.engine
 
-import org.virtuslab.inkuire.engine.impl.service.ScalaSignatureParserService
 import org.virtuslab.inkuire.engine.impl.model._
+import org.virtuslab.inkuire.engine.impl.service.ScalaSignatureParserService
 
 class ScalaParserTest extends munit.FunSuite with ScalaParserTestUtils {
 
   val parser = new ScalaSignatureParserService
 
-  def parseCorrectSignature(str: String, expected: Signature) = {
+  def parseCorrectSignature(str: String, expected: Signature): Unit = {
     test(str) {
       val res = parser.parse(str).map(_.signature)
       assertEquals(res, Right(expected))
@@ -258,7 +258,7 @@ class ScalaParserTest extends munit.FunSuite with ScalaParserTestUtils {
     sgn(
       Seq(
         tpe(
-        "Int"
+          "Int"
         )
       ),
       AndType(
@@ -291,6 +291,181 @@ class ScalaParserTest extends munit.FunSuite with ScalaParserTestUtils {
         ),
         tpe(
           "Double"
+        )
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "X => _",
+    sgn(
+      Seq(
+        tpe(
+          "X",
+          isVariable = true
+        )
+      ),
+      Type.StarProjection.copy(isUnresolved = false)
+    )
+  )
+
+  parseCorrectSignature(
+    "(X => _) => Seq[X]",
+    sgn(
+      Seq(
+        tpe(
+          "Function1",
+          params = Seq(
+            tpe(
+              "X",
+              isVariable = true
+            ),
+            Type.StarProjection.copy(isUnresolved = false)
+          )
+        )
+      ),
+      tpe(
+        "Seq",
+        params = Seq(
+          tpe(
+            "X",
+            isVariable = true
+          )
+        )
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "Seq[Int] => (Int => Long) => Seq[Long]",
+    sgn(
+      Seq(
+        tpe(
+          "Seq",
+          params = Seq(
+            tpe(
+              "Int"
+            )
+          )
+        ),
+        tpe(
+          "Function1",
+          params = Seq(
+            tpe(
+              "Int"
+            ),
+            tpe(
+              "Long"
+            )
+          )
+        )
+      ),
+      tpe(
+        "Seq",
+        params = Seq(
+          tpe(
+            "Long"
+          )
+        )
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "Set[Long] => Long => Boolean",
+    sgn(
+      Seq(
+        tpe(
+          "Set",
+          params = Seq(
+            tpe(
+              "Long"
+            )
+          )
+        ),
+        tpe(
+          "Long"
+        )
+      ),
+      tpe(
+        "Boolean"
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "BigDecimal => Byte",
+    sgn(
+      Seq(
+        tpe(
+          "BigDecimal"
+        )
+      ),
+      tpe(
+        "Byte"
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "[A, B] => A => B => A",
+    sgn(
+      Seq(
+        tpe(
+          "A",
+          isVariable = true
+        ),
+        tpe(
+          "B",
+          isVariable = true
+        )
+      ),
+      tpe(
+        "A",
+        isVariable = true
+      ),
+      context = SignatureContext(
+        vars = Set("A", "B"),
+        constraints = Map.empty
+      )
+    )
+  )
+
+  parseCorrectSignature(
+    "Seq[Int] => (Int => Seq[Long]) => Seq[Long]",
+    sgn(
+      Seq(
+        tpe(
+          "Seq",
+          params = Seq(
+            tpe(
+              "Int"
+            )
+          )
+        ),
+        tpe(
+          "Function1",
+          params = Seq(
+            tpe(
+              "Int"
+            ),
+            tpe(
+              "Seq",
+              params = Seq(
+                tpe(
+                  "Long"
+                )
+              )
+            )
+          )
+        )
+      ),
+      tpe(
+        "Seq",
+        params = Seq(
+          tpe(
+            "Long"
+          )
         )
       )
     )
