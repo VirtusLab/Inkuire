@@ -24,7 +24,11 @@ ThisBuild / developers := List(
 )
 
 publish / skip := true
-ThisBuild / scalaVersion := "2.13.8"
+
+val scala2Version = "2.13.8"
+val scala3Version = "3.1.1"
+ThisBuild / scalaVersion := scala2Version
+ThisBuild / crossScalaVersions := Seq(scala2Version, scala3Version)
 
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
@@ -38,17 +42,17 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature"
 )
 
-val http4sVersion = "0.21.0"
-val circeVersion = "0.13.0"
-val monixVersion = "3.2.2"
+val http4sVersion = "0.23.10"
+val circeVersion = "0.14.1"
+val monixVersion = "3.4.0"
 
 lazy val inkuireEngine = crossProject(JSPlatform, JVMPlatform)
   .in(file("engine"))
   .settings(
     name := "inkuire-engine",
     libraryDependencies ++= Seq(
-      "com.softwaremill.quicklens" %%% "quicklens" % "1.7.2",
-      "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.1.2",
+      "com.softwaremill.quicklens" %%% "quicklens" % "1.8.2",
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.1.0",
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion,
