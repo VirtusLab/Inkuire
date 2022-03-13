@@ -31,12 +31,11 @@ val orgSettings = Seq(
 )
 
 val scalafixSettings = Seq(
-  semanticdbEnabled := true,
-  semanticdbVersion := scalafixSemanticdb.revision,
+//   semanticdbEnabled := true,
+//   semanticdbVersion := scalafixSemanticdb.revision,
 )
-
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
-ThisBuild / scalafixScalaBinaryVersion := scalaVersion.value
+// ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+// ThisBuild / scalafixScalaBinaryVersion := scalaVersion.value
 
 val commonSettings = orgSettings ++ scalafixSettings ++ Seq(
   scalaVersion := scala3,

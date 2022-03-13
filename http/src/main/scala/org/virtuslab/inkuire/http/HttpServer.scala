@@ -9,7 +9,7 @@ import org.http4s.blaze.server._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.http4s.server.middleware._
-import org.slf4j.{ LoggerFactory, Logger }
+import org.slf4j.{Logger, LoggerFactory}
 import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.api.OutputHandler
 
@@ -18,7 +18,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import cats.effect.unsafe.implicits.global
-
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
@@ -71,7 +70,7 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
       .withAllowCredentials(true)
       .withMaxAge(1.day)
 
-    val app = 
+    val app =
       BlazeServerBuilder[IO]
         .withExecutionContext(ec)
         .bindHttp(appConfig.getPort, appConfig.getAddress)
