@@ -26,7 +26,6 @@ class InkuireTestService(path: String) {
   val db: InkuireDb =
     getURLs(new URL(path), ".json")
       .map { file =>
-        println(file)
         file
       }
       .map(getURLContent)
