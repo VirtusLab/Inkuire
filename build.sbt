@@ -1,6 +1,4 @@
 
-publish / skip := true
-
 val scala213 = "2.13.8"
 val scala3 = "3.1.1"
 
@@ -30,16 +28,8 @@ val orgSettings = Seq(
   ),
 )
 
-ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
-
 val commonSettings = orgSettings ++ Seq(
-  scalaVersion := scala213,
   scalacOptions ++= Seq(
-    "-Yrangepos",
-    "-Ywarn-unused",
     "-deprecation",
     "-feature"
   ),
@@ -55,7 +45,8 @@ lazy val root =
     .settings(commonSettings)
     .settings(
       name := "inkuire-root",
-      publishArtifact := false
+      publishArtifact := false,
+      publish / skip := true
     )
     .aggregate(
       (inkuireEngine.projectRefs ++ inkuireHttp.projectRefs ++ inkuireJs.projectRefs): _*
