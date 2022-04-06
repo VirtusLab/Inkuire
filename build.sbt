@@ -30,15 +30,13 @@ val orgSettings = Seq(
   ),
 )
 
-val scalafixSettings = Seq(
-//   semanticdbEnabled := true,
-//   semanticdbVersion := scalafixSemanticdb.revision,
-)
-// ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
-// ThisBuild / scalafixScalaBinaryVersion := scalaVersion.value
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
+ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 
-val commonSettings = orgSettings ++ scalafixSettings ++ Seq(
-  scalaVersion := scala3,
+val commonSettings = orgSettings ++ Seq(
+  scalaVersion := scala213,
   scalacOptions ++= Seq(
     "-Yrangepos",
     "-Ywarn-unused",
@@ -50,6 +48,18 @@ val commonSettings = orgSettings ++ scalafixSettings ++ Seq(
 val http4sVersion = "0.23.10"
 val circeVersion = "0.14.1"
 val monixVersion = "3.4.0"
+
+lazy val root =
+  project
+    .in(file("."))
+    .settings(commonSettings)
+    .settings(
+      name := "inkuire-root",
+      publishArtifact := false
+    )
+    .aggregate(
+      (inkuireEngine.projectRefs ++ inkuireHttp.projectRefs ++ inkuireJs.projectRefs): _*
+    )
 
 lazy val inkuireEngine = projectMatrix
   .in(file("engine"))
@@ -86,15 +96,14 @@ lazy val inkuireHttp = projectMatrix
     ),
     assembly / mainClass := Some("org.virtuslab.inkuire.http.Main")
   )
+  .dependsOn(inkuireEngine)
   .jvmPlatform(
     scalaVersions = Seq(scala3, scala213)
   )
-  .dependsOn(inkuireEngine)
 
 lazy val inkuireJs = projectMatrix
   .in(file("js"))
   .settings(commonSettings)
-  .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "inkuire-js",
     libraryDependencies ++= Seq(
@@ -104,7 +113,7 @@ lazy val inkuireJs = projectMatrix
     ),
     scalaJSUseMainModuleInitializer := true,
   )
+  .dependsOn(inkuireEngine)
   .jsPlatform(
     scalaVersions = Seq(scala3, scala213)
   )
-  .dependsOn(inkuireEngine)

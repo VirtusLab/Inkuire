@@ -1,23 +1,23 @@
 package org.virtuslab.inkuire.http
 
 import cats.effect._
+import cats.effect.unsafe.implicits.global
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.http4s._
+import org.http4s.blaze.server._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.implicits._
-import org.http4s.blaze.server._
-import io.circe.syntax._
-import io.circe.generic.auto._
 import org.http4s.server.middleware._
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.api.OutputHandler
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
-import cats.effect.unsafe.implicits.global
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
