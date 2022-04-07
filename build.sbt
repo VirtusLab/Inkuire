@@ -58,7 +58,7 @@ lazy val inkuireEngine = projectMatrix
   .settings(
     name := "inkuire-engine",
     libraryDependencies ++= Seq(
-      "com.softwaremill.quicklens" %%% "quicklens" % "1.8.4",
+      "com.softwaremill.quicklens" %%% "quicklens" % "1.8.5",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.1.1",
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion,
