@@ -1,20 +1,16 @@
 package org.virtuslab.inkuire.http
 
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.http4s.HttpRoutes
-import org.http4s.MediaType
-import org.http4s.Request
-import org.http4s.StaticFile
-import org.http4s.UrlForm
+import org.http4s._
+import org.http4s.blaze.server._
 import org.http4s.dsl.io._
-import org.http4s.headers.Location
-import org.http4s.headers.`Content-Type`
+import org.http4s.headers._
 import org.http4s.implicits._
-import org.http4s.server.blaze._
 import org.http4s.server.middleware._
-import org.slf4j
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.virtuslab.inkuire.engine.api.Env
 import org.virtuslab.inkuire.engine.api.OutputHandler
@@ -27,17 +23,14 @@ object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
 class HttpServer(appConfig: AppConfig) extends OutputHandler {
 
-  val logger: slf4j.Logger = LoggerFactory.getLogger(classOf[HttpServer])
+  val logger: Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
   override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
 
-    implicit val cs:    ContextShift[IO] = IO.contextShift(ec)
-    implicit val timer: Timer[IO]        = IO.timer(ec)
+    def static(file: String, request: Request[IO]) =
+      StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
-    def static(file: String, blocker: Blocker, request: Request[IO]) =
-      StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
-
-    def appService(b: Blocker) =
+    def appService: HttpRoutes[IO] =
       HttpRoutes
         .of[IO] {
           case GET -> Root / "query" =>
@@ -68,25 +61,21 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
               Location(uri"/query"),
               `Content-Type`(MediaType.text.html)
             )
-          case req @ GET -> Root / "assets" / path => static(s"assets/$path", b, req)
+          case req @ GET -> Root / "assets" / path => static(s"assets/$path", req)
         }
-        .orNotFound
 
-    val methodConfig = CORSConfig(
-      anyOrigin = true,
-      anyMethod = true,
-      allowCredentials = true,
-      maxAge = 1.day.toSeconds
-    )
+    val methodConfig = CORSConfig.default
+      .withAnyOrigin(true)
+      .withAnyMethod(true)
+      .withAllowCredentials(true)
+      .withMaxAge(1.day)
 
-    val app = for {
-      blocker <- Blocker[IO]
-      server <-
-        BlazeServerBuilder[IO]
-          .bindHttp(appConfig.getPort, appConfig.getAddress)
-          .withHttpApp(CORS(appService(blocker), methodConfig))
-          .resource
-    } yield server
+    val app =
+      BlazeServerBuilder[IO]
+        .withExecutionContext(ec)
+        .bindHttp(appConfig.getPort, appConfig.getAddress)
+        .withHttpApp(CORS(appService.orNotFound, methodConfig))
+        .resource
 
     app.use(_ => IO.never).unsafeToFuture()
   }

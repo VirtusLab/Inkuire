@@ -71,8 +71,7 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
               case (a: Type, b: Type) => a.itid == b.itid
               case _                  => false
             }
-          case _ :: _ :: Nil => false
-          case _             => true
+          case _ => true
         }
     } && !TypeVariablesGraph(bindings).hasCyclicDependency
   }

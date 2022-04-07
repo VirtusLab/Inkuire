@@ -59,19 +59,19 @@ class ScalaSignatureParser extends BaseSignatureParser {
     val params = receiver.fold(args :+ result)(_ +: args :+ result)
     Type(
       s"Function${params.size - 1}",
-      params = params.map(UnresolvedVariance)
+      params = params.map(UnresolvedVariance.apply)
     )
   }
 
   private def mapToTupleType(args: Seq[TypeLike]): Type =
     Type(
       s"Tuple${args.size}",
-      params = args.map(UnresolvedVariance)
+      params = args.map(UnresolvedVariance.apply)
     )
 
   def genericType: Parser[Type] =
     identifier ~ ("[" ~> typeArguments <~ "]") ^^ {
-      case baseType ~ types => Type(baseType, types.map(UnresolvedVariance))
+      case baseType ~ types => Type(baseType, types.map(UnresolvedVariance.apply))
     }
 
   def types: Parser[Seq[TypeLike]] = list(typeLike) | empty[TypeLike]
@@ -226,7 +226,7 @@ class ScalaSignatureParserService extends BaseSignatureParserService {
             t.params.map(_.modify(_.typ).using(curryType))
           case v => Seq(v.modify(_.typ).using(curryType))
         } :+ t.params.last
-        t.modify(_.params).setTo(params).modify(_.name).setTo(s"Function${params.size - 1}")
+        t.modify(_.params).setTo(params).modify(_.name.name).setTo(s"Function${params.size - 1}")
       case t: Type => t.modify(_.params.each).using(_.modify(_.typ).using(curryType))
       case AndType(left, right) => AndType(curryType(left), curryType(right))
       case OrType(left, right)  => AndType(curryType(left), curryType(right))

@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.engine.impl.model
 
-sealed abstract class Variance {
+sealed trait Variance {
   val typ: TypeLike
 }
 

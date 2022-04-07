@@ -68,7 +68,7 @@ class DefaultSignatureResolver(inkuireDb: InkuireDb) extends BaseSignatureResolv
           .fold[Either[String, Seq[Option[Contravariance]]]](Right(Seq(None)))(r =>
             resolvePossibleVariances(Contravariance(r.typ)).map(_.map(_.pipe(Some.apply)))
           )
-      args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance))
+      args <- resolveMultipleVariances[Contravariance](signature.arguments.map(_.typ).map(Contravariance.apply))
       result <- resolvePossibleVariances(Covariance(signature.result.typ))
     } yield {
       for {
