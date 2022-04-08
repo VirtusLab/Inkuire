@@ -14,7 +14,7 @@ class OutputFormatter(prettifier: BaseSignaturePrettifier) {
 
   private def fromSignatures(signatures: Seq[(AnnotatedSignature, Int)]): Seq[Match] =
     signatures
-      .zip(prettifier.prettify(signatures.map(_._1)).split("\n"))
+      .zip(signatures.map { case (sgn, _) => prettifier.prettify(sgn) })
       .map {
         case ((sgn, mq), pretty) =>
           Match(

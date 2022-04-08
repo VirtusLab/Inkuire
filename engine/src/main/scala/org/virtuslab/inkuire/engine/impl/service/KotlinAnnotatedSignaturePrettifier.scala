@@ -5,10 +5,10 @@ import org.virtuslab.inkuire.engine.impl.model._
 
 class KotlinAnnotatedSignaturePrettifier extends BaseSignaturePrettifier {
 
-  override def prettify(sgns: Seq[AnnotatedSignature]): String =
-    sgns.map(doPrettify).map(identity).mkString("\n")
+  override def prettifyAll(sgns: Seq[AnnotatedSignature]): String =
+    sgns.map(prettify).map(identity).mkString("\n")
 
-  private def doPrettify(esgn: AnnotatedSignature): String =
+  override def prettify(esgn: AnnotatedSignature): String =
     s"${prettifySignature(esgn.signature)}"
 
   private def prettifySignature(sgn: Signature): String = {

@@ -35,26 +35,25 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
       }
   }
 
-  override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
-    readConfig(args)
-      .flatMap { (appConfig: JsConfig) =>
-        appConfig.inkuirePaths
-          .map(scriptPath + _)
-          .map(tryGetURLContent(_).value)
-          .toList
-          .foldLeft(Future(List.empty[Either[String, String]])) {
-            case (acc, f) => acc.zip(f).map { case (list, e) => e +: list }
-          }
-          .map { contents =>
-            contents
-              .map(_.flatMap(EngineModelSerializers.deserialize))
-              .collect {
-                case Right(db) => db
-              }
-              .pipe(InkuireDb.combineAll)
-          }
-          .pipe(FutureExcept.fromFuture)
-      }
+  override def readInput(args: Seq[String])(implicit ec: ExecutionContext): Future[Either[String, InkuireDb]] = {
+    readConfig(args).flatMap { (appConfig: JsConfig) =>
+      appConfig.inkuirePaths
+        .map(scriptPath + _)
+        .map(tryGetURLContent(_).value)
+        .toList
+        .foldLeft(Future(List.empty[Either[String, String]])) {
+          case (acc, f) => acc.zip(f).map { case (list, e) => e +: list }
+        }
+        .map { contents =>
+          contents
+            .map(_.flatMap(EngineModelSerializers.deserialize))
+            .collect {
+              case Right(db) => db
+            }
+            .pipe(InkuireDb.combineAll)
+        }
+        .pipe(FutureExcept.fromFuture)
+    }.value
   }
 
   private def parseConfig(config: String): Either[String, JsConfig] = {
