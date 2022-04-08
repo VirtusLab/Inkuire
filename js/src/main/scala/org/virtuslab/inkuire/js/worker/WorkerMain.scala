@@ -8,6 +8,7 @@ import org.virtuslab.inkuire.js.handlers.JSOutputHandler
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
+import org.virtuslab.inkuire.engine.api.InkuireEnv
 
 // This code is used to generate function that will be called as initializer by worker
 @JSExportTopLevel("WorkerMain")
@@ -19,9 +20,10 @@ object WorkerMain {
     val scriptPath = ""
 
     InkuireRunner
-      .scalaRunner(
+      .fromHandlers(
         new JSInputHandler(scriptPath),
-        new JSOutputHandler(new InkuireWorker(self))
+        new JSOutputHandler(new InkuireWorker(self)),
+        InkuireEnv.defaultScalaEnv()
       )
       .run(Seq(scriptPath + "inkuire-config.json"))
   }

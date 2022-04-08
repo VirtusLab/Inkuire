@@ -12,12 +12,14 @@ import org.http4s.implicits._
 import org.http4s.server.middleware._
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.InkuireEnv
 import org.virtuslab.inkuire.engine.api.OutputHandler
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import org.virtuslab.inkuire.engine.impl.service.OutputFormatter
+import java.io.File
 
 object SignatureParameter extends QueryParamDecoderMatcher[String]("signature")
 
@@ -25,7 +27,8 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
 
   val logger: Logger = LoggerFactory.getLogger(classOf[HttpServer])
 
-  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def serveOutput(env: InkuireEnv)(implicit ec: ExecutionContext): Future[Unit] = {
+    val outputFormatter = new OutputFormatter(env.prettifier)
 
     def static(file: String, request: Request[IO]) =
       StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
@@ -38,7 +41,7 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
           case req @ POST -> Root / "query" =>
             req.decode[UrlForm] { m =>
               val signature = m.values("query").headOption.get
-              val res       = env.run(signature)
+              val res       = env.queryRaw(signature).map(outputFormatter.createOutput(signature, _))
               res.fold(
                 fa => BadRequest(fa),
                 fb => Ok(Templates.result(fb), `Content-Type`(MediaType.text.html))
@@ -46,7 +49,8 @@ class HttpServer(appConfig: AppConfig) extends OutputHandler {
             }
           case GET -> Root / "forSignature" :? SignatureParameter(signature) =>
             env
-              .run(signature)
+              .queryRaw(signature)
+              .map(outputFormatter.createOutput(signature, _))
               .fold(
                 fa => BadRequest(fa),
                 fb =>

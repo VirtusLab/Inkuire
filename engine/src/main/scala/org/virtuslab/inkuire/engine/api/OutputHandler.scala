@@ -1,10 +1,10 @@
 package org.virtuslab.inkuire.engine.api
 
-import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.InkuireEnv
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 trait OutputHandler {
-  def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit]
+  def serveOutput(env: InkuireEnv)(implicit ec: ExecutionContext): Future[Unit]
 }

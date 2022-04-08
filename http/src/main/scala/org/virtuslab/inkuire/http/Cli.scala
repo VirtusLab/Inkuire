@@ -1,6 +1,6 @@
 package org.virtuslab.inkuire.http
 
-import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.InkuireEnv
 import org.virtuslab.inkuire.engine.api.FutureExcept
 import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.api.InputHandler
@@ -38,21 +38,16 @@ class Cli extends InputHandler with OutputHandler {
     }
   }
 
-  private def handleCommand(env: Env, input: String): Unit =
-    env.parser
-      .parse(input)
-      .flatMap { s =>
-        env.resolver.resolve(s)
-      }
-      .map { r =>
-        env.matcher.findMatches(r).map { case (fun, _) => fun }
-      }
+  private def handleCommand(env: InkuireEnv, input: String): Unit =
+    env
+      .query(input)
+      .map(_.map(env.prettify))
       .fold(
         println,
-        matches => println(env.prettifier.prettify(matches))
+        matches => println(matches.mkString("\n"))
       )
 
-  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def serveOutput(env: InkuireEnv)(implicit ec: ExecutionContext): Future[Unit] = {
     print(s"inkuire> ")
     val command: String = readLine()
     if (command.toLowerCase == "exit") {
@@ -71,10 +66,9 @@ class Cli extends InputHandler with OutputHandler {
 
   private def getURLContent(url: URL): String = Source.fromInputStream(url.openStream()).getLines().mkString
 
-  override def readInput(args: Seq[String])(implicit ec: ExecutionContext): FutureExcept[InkuireDb] = {
+  override def readInput(args: Seq[String])(implicit ec: ExecutionContext): Future[Either[String, InkuireDb]] = {
     readConfig(args)
-      .pipe(FutureExcept.fromExcept)
-      .flatMap { appConfig =>
+      .map[InkuireDb] { appConfig =>
         appConfig.inkuirePaths
           .flatMap(path => getURLs(new URL(path), ".json"))
           .map(getURLContent)
@@ -84,8 +78,8 @@ class Cli extends InputHandler with OutputHandler {
             case Right(db) => db
           }
           .pipe(InkuireDb.combineAll)
-          .pipe(FutureExcept.pure)
       }
+      .pipe(Future.apply(_))
   }
 
   def readConfig(args: Seq[String]): Either[String, AppConfig] = {

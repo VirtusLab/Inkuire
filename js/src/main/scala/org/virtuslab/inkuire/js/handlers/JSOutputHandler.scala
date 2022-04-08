@@ -5,7 +5,7 @@ import monix.execution.Ack
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
 import monix.reactive.subjects.PublishSubject
-import org.virtuslab.inkuire.engine.api.Env
+import org.virtuslab.inkuire.engine.api.InkuireEnv
 import org.virtuslab.inkuire.engine.api.OutputHandler
 import org.virtuslab.inkuire.engine.impl.model.EndFormat
 import org.virtuslab.inkuire.engine.impl.model.OutputFormat
@@ -18,7 +18,7 @@ import scala.concurrent.Future
 class JSOutputHandler(private val jsHandler: JSHandler) extends OutputHandler {
   private val subject = PublishSubject[Observable[OutputFormat]]()
 
-  override def serveOutput(env: Env)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def serveOutput(env: InkuireEnv)(implicit ec: ExecutionContext): Future[Unit] = {
     val outputFormatter = new OutputFormatter(env.prettifier)
 
     def executeQuery(query: String): Either[String, Observable[OutputFormat]] = {
