@@ -51,6 +51,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
               case Right(db) => db
             }
             .pipe(InkuireDb.combineAll)
+            .withOrphanTypes
         }
         .pipe(FutureExcept.fromFuture)
     }.value

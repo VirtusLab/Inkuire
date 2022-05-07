@@ -34,6 +34,7 @@ class InkuireTestService(path: String) {
         case Right(db) => db
       }
       .pipe(Monoid.combineAll[InkuireDb])
+      .withOrphanTypes
 
   val matchService = new SubstitutionMatchService(db)
   val resolver     = new DefaultSignatureResolver(db)
