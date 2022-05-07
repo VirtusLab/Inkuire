@@ -78,6 +78,7 @@ class Cli extends InputHandler with OutputHandler {
             case Right(db) => db
           }
           .pipe(InkuireDb.combineAll)
+          .withOrphanTypes
       }
       .pipe(Future.apply(_))
   }

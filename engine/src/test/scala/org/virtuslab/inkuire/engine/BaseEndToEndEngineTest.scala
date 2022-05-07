@@ -2,8 +2,10 @@ package org.virtuslab.inkuire.engine
 
 import java.io.File
 
-trait BaseEndToEndEngineTest(filePath: String) {
+trait BaseEndToEndEngineTest {
   self: munit.FunSuite =>
+
+  val filePath: String
 
   val testService: Fixture[InkuireTestService] = new Fixture[InkuireTestService]("testService") {
     var testService: InkuireTestService = null

@@ -1,6 +1,8 @@
 package org.virtuslab.inkuire.engine
 
-class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest("./engine/src/test/resources/stdlib.json") {
+class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
+
+  override val filePath: String = "./engine/src/test/resources/stdlib.json"
 
   testFunctionFound("List[A] => (A => B) => List[B]", "map")
 
