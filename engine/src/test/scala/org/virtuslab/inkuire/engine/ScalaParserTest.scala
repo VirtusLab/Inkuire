@@ -485,7 +485,7 @@ trait ScalaParserTestUtils {
   ): Type =
     Type(
       name = name,
-      params = params.map(UnresolvedVariance),
+      params = params.map(UnresolvedVariance.apply),
       nullable = nullable,
       itid = None,
       isVariable = isVariable,
