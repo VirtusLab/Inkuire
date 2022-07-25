@@ -16,14 +16,12 @@ class DeserializationTest extends munit.FunSuite {
     }
   }
 
-  testDeserialization("3.1.3")
-
-  testDeserialization("3.1.2")
-
-  testDeserialization("3.1.1")
-
-  testDeserialization("3.1.0")
-
-  testDeserialization("3.0.2")
+  List(
+    "3.1.3",
+    "3.1.2",
+    "3.1.1",
+    "3.1.0",
+    "3.0.2"
+  ).foreach(testDeserialization)
 
 }
