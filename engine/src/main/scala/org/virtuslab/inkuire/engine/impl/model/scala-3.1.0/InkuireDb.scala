@@ -6,7 +6,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import org.virtuslab.inkuire.engine.impl.model
 import org.virtuslab.inkuire.engine.impl.model._
-import org.virtuslab.inkuire.engine.api.{ InkuireDb => IDB }
+import org.virtuslab.inkuire.engine.api
 
 import scala.util.chaining._
 
@@ -17,8 +17,8 @@ case class InkuireDb(
 )
 
 object InkuireDb {
-  def toCurrent(inkuireDb: InkuireDb): IDB = {
-    IDB(
+  def toCurrent(inkuireDb: InkuireDb): api.InkuireDb = {
+    api.InkuireDb(
       inkuireDb.functions,
       inkuireDb.types,
       inkuireDb.implicitConversions.flatMap {
@@ -55,7 +55,6 @@ object InkuireDb {
     else if (str.startsWith("false=")) ITID.external(str.stripPrefix("false=")).pipe(Some.apply)
     else None
 
-  def deserialize(str: String): Either[String, IDB] =
+  def deserialize(str: String): Either[String, api.InkuireDb] =
     decode[InkuireDb](str).fold(l => Left(l.toString), idb => Right.apply(InkuireDb.toCurrent(idb)))
 }
-

@@ -36,7 +36,7 @@ val commonSettings = orgSettings ++ Seq(
 )
 
 val http4sVersion = "0.23.10"
-val circeVersion = "0.14.1"
+val circeVersion = "0.14.2"
 val monixVersion = "3.4.0"
 
 lazy val root =

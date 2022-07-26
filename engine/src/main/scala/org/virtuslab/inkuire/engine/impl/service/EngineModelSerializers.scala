@@ -55,7 +55,8 @@ object EngineModelSerializers {
   def serialize(db: InkuireDb): String = db.asJson.toString
 
   def deserialize(str: String): Either[String, InkuireDb] =
-    decode[InkuireDb](str).fold(l => Left(l.toString), Right.apply)
+    decode[InkuireDb](str)
+      .fold(l => Left(l.toString), Right.apply)
       .orElse(`scala-3.0.2`.InkuireDb.deserialize(str))
       .orElse(`scala-3.1.0`.InkuireDb.deserialize(str))
 }

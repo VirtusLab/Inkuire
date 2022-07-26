@@ -2,20 +2,12 @@ package org.virtuslab.inkuire.engine.impl.model.`scala-3.0.2`
 
 import io.circe._
 import io.circe.generic.auto._
+import io.circe.generic.semiauto.deriveDecoder
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.virtuslab.inkuire.engine.impl.model
-import org.virtuslab.inkuire.engine.impl.model.{
-  AnnotatedSignature => _,
-  Signature => _,
-  Variance => _,
-  Covariance => _,
-  Contravariance => _,
-  Invariance => _,
-  UnresolvedVariance => _,
-  _
-}
-import org.virtuslab.inkuire.engine.api.{ InkuireDb => IDB }
+import org.virtuslab.inkuire.engine.impl.model._
+import org.virtuslab.inkuire.engine.api
 
 import scala.util.chaining._
 
@@ -39,9 +31,25 @@ case class Type(
   )
 }
 
+object Type {
+  implicit val typeDecoder: Decoder[Type] = deriveDecoder
+}
+
 sealed trait Variance {
   val typ: Type
   def toCurrent: model.Variance
+}
+
+object Variance {
+  implicit val varianceDecoder: Decoder[Variance] = (src: HCursor) =>
+    for {
+      kind <- src.downField("variancekind").as[String]
+      parsed <- kind match {
+        case "covariance"     => src.value.as[Covariance]
+        case "contravariance" => src.value.as[Contravariance]
+        case "invariance"     => src.value.as[Invariance]
+      }
+    } yield parsed
 }
 
 case class Covariance(typ: Type) extends Variance {
@@ -71,7 +79,20 @@ case class Signature(
       receiver.map(_.toCurrent),
       arguments.map(_.toCurrent),
       result.toCurrent,
-      context
+      context.toCurrent
+    )
+}
+
+case class SignatureContext(
+  vars:        Set[String],
+  constraints: Map[String, Seq[Type]]
+) {
+  def toCurrent: model.SignatureContext =
+    model.SignatureContext(
+      vars,
+      constraints.map {
+        case (name, types) => name -> types.map(_.toCurrent)
+      }.toMap
     )
 }
 
@@ -98,8 +119,9 @@ case class InkuireDb(
 )
 
 object InkuireDb {
-  def toCurrent(inkuireDb: InkuireDb): IDB = {
-    IDB(
+
+  def toCurrent(inkuireDb: InkuireDb): api.InkuireDb = {
+    api.InkuireDb(
       inkuireDb.functions.map(_.toCurrent),
       inkuireDb.types.map {
         case (itid, (tpe, parents)) => itid -> (tpe.toCurrent, parents.map(_.toCurrent))
@@ -112,22 +134,11 @@ object InkuireDb {
     )
   }
 
-  implicit val varianceDecoder: Decoder[Variance] = (src: HCursor) =>
-    for {
-      kind <- src.downField("variancekind").as[String]
-      parsed <- kind match {
-        case "covariance"     => src.value.as[Covariance]
-        case "contravariance" => src.value.as[Contravariance]
-        case "invariance"     => src.value.as[Invariance]
-      }
-    } yield parsed
-
   implicit val itidKeyDecoder: KeyDecoder[ITID] = (str: String) =>
     if (str.startsWith("true=")) ITID.parsed(str.stripPrefix("true=")).pipe(Some.apply)
     else if (str.startsWith("false=")) ITID.external(str.stripPrefix("false=")).pipe(Some.apply)
     else None
 
-  def deserialize(str: String): Either[String, IDB] =
+  def deserialize(str: String): Either[String, api.InkuireDb] =
     decode[InkuireDb](str).fold(l => Left(l.toString), idb => Right.apply(InkuireDb.toCurrent(idb)))
 }
-
