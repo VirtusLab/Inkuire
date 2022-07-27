@@ -28,6 +28,10 @@ val orgSettings = Seq(
   ),
 )
 
+// This is needed so that simple `sbt test` doesn't crash with OOM error
+// (by default sbt tries to execute everyting it can at once)
+Global / concurrentRestrictions += Tags.limit(Tags.All, 1)
+
 val commonSettings = orgSettings ++ Seq(
   scalacOptions ++= Seq(
     "-deprecation",
