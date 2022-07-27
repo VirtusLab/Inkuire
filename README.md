@@ -8,7 +8,7 @@
 ---
 
 The project was created as the engineering thesis at AGH University of Technology in collaboration with VirtusLab - the 
-creators of [dokka](https://github.com/Kotlin/dokka) and [scaladoc](https://github.com/lampepfl/dotty/tree/master/scaladoc).
+creators of [dokka](https://github.com/Kotlin/dokka) and [scaladoc](https://github.com/lampepfl/dotty/tree/main/scaladoc).
 
 The goal of the project is to provide way of searching extensive functions and methods by given signature for JVM languages.
 Currently supported langauges are Kotlin and Scala 3.

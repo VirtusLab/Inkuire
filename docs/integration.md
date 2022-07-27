@@ -19,10 +19,10 @@ REST API:
 
 #### JavaScript worker integration
 
-Inkuire can be used as a JavaScript worker. This method is used in the official scaladoc for Scala 3. [link](https://dotty.epfl.ch/api/index.html) [code](https://github.com/lampepfl/dotty/tree/master/scaladoc)
+Inkuire can be used as a JavaScript worker. This method is used in the official scaladoc for Scala 3. [link](https://dotty.epfl.ch/api/index.html) [code](https://github.com/lampepfl/dotty/tree/main/scaladoc)
 Code specific for this integration method is located in `engineJs` module.
 
-Js worker can be used in a similar way as in [Scaladoc Searchbar](https://github.com/lampepfl/dotty/blob/master/scaladoc-js/main/src/searchbar/engine/InkuireJSSearchEngine.scala).
+Js worker can be used in a similar way as in [Scaladoc Searchbar](https://github.com/lampepfl/dotty/blob/main/scaladoc-js/main/src/searchbar/engine/InkuireJSSearchEngine.scala).
 
 #### Scala library
 
