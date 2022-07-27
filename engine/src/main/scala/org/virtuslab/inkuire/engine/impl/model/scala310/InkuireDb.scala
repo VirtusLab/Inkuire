@@ -1,4 +1,4 @@
-package org.virtuslab.inkuire.engine.impl.model.`scala-3.1.0`
+package org.virtuslab.inkuire.engine.impl.model.scala310
 
 import io.circe._
 import io.circe.generic.auto._
