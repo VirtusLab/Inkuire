@@ -11,7 +11,7 @@ val orgSettings = Seq(
       "KacperFKorban",
       "Kacper Korban",
       "kacper.f.korban@gmail.com",
-      url("https://twitter.com/KacperKorban")
+      url("https://twitter.com/KacperFKorban")
     ),
     Developer(
       "BarkingBad",
