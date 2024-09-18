@@ -21,7 +21,8 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
         )
         .flatMap { okTypes =>
           State.get[TypingState].map { typingState =>
-            if (okTypes) checkBindings(typingState.variableBindings)
+            if (okTypes)
+              checkBindings(typingState.variableBindings)
             else false
           }
         }
@@ -43,7 +44,7 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
     val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
       case (acc, against) =>
         acc.filter { sgn =>
-          sgn == against || !(sgn.canSubstituteFor(against) && !against.canSubstituteFor(sgn))
+          sgn == against || !sgn.canSubstituteFor(against) || against.canSubstituteFor(sgn)
         }
     }
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
@@ -59,20 +60,26 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
   }
 
   private def checkBindings(bindings: VariableBindings): Boolean = {
-    bindings.bindings.values.forall { types =>
+    val bindingsCorrect = bindings.bindings.values.forall { types =>
       types
         .sliding(2, 1)
         .forall {
           case (a: Type) :: (b: Type) :: Nil =>
-            (ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) ||
-              ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)) &&
-            a.params.size == b.params.size &&
-            a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
+            val exactlyEqual = a == b
+            // Disable this check, since it can't handle transitive relations
+            // val relatedToEachOther =
+            //   ancestryGraph.getAllParentsITIDs(a).contains(b.itid.get) ||
+            //     ancestryGraph.getAllParentsITIDs(b).contains(a.itid.get)
+            val sameSize = a.params.size == b.params.size
+            val sameTypes = a.params.map(_.typ).zip(b.params.map(_.typ)).forall {
               case (a: Type, b: Type) => a.itid == b.itid
               case _                  => false
             }
+            exactlyEqual || (sameSize && sameTypes)
           case _ => true
         }
-    } && !TypeVariablesGraph(bindings).hasCyclicDependency
+    }
+    val noCycles = !TypeVariablesGraph(bindings).hasCyclicDependency
+    bindingsCorrect && noCycles
   }
 }

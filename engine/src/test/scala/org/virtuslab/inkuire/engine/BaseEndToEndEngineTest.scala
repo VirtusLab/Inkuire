@@ -23,7 +23,8 @@ trait BaseEndToEndEngineTest {
    */
   def testFunctionFound(signature: String, funName: String)(implicit loc: munit.Location): Unit = {
     test(s"$funName : $signature") {
-      assert(testService().query(signature).exists(_.name == funName))
+      val sigs = testService().query(signature)
+      assert(sigs.exists(_.name == funName))
     }
   }
 }
