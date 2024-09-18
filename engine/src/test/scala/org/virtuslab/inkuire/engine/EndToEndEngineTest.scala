@@ -27,7 +27,7 @@ class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
   testFunctionFound(
     "IArray[Float] => (Float => Boolean) => Boolean",
     "IArray.forall"
-  ) // TODO(kπ) IMHO should be just `forall` (generation bug)
+  )
 
   testFunctionFound("List[A] => B => (B => A => B) => B", "foldLeft")
 
@@ -37,12 +37,15 @@ class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
 
   testFunctionFound("F[A] => B => ((B, A) => B) => B", "foldLeft")
 
-  // TODO(kπ) this is a bug in constraint checking
-  // testFunctionFound("List[A] => A => (A => A => A) => A", "foldLeft")
+  testFunctionFound("List[A] => A => (A => A => A) => A", "foldLeft")
 
-  // testFunctionFound("List[A] => A => ((A, A) => A) => A", "foldLeft")
+  testFunctionFound("List[A] => A => ((A, A) => A) => A", "foldLeft")
 
-  // testFunctionFound("F[A] => A => (A => A => A) => A", "foldLeft")
+  testFunctionFound("F[A] => A => (A => A => A) => A", "foldLeft")
 
-  // testFunctionFound("F[A] => A => ((A, A) => A) => A", "foldLeft")
+  testFunctionFound("F[A] => A => ((A, A) => A) => A", "foldLeft")
+
+  testFunctionFound("List[A] => A => Boolean", "contains")
+
+  testFunctionFound("Seq[A] => A => Boolean", "contains")
 }

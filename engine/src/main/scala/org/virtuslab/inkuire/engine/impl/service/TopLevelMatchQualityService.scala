@@ -5,11 +5,18 @@ import org.virtuslab.inkuire.engine.impl.model._
 
 class TopLevelMatchQualityService(val db: InkuireDb) extends BaseMatchQualityService with MatchingOps {
 
-  def matchQualityMetric(AnnotatedSignature: AnnotatedSignature, matching: Signature): Int =
-    variancesMatchQualityMetric(
-      AnnotatedSignature.signature.typesWithVariances,
+  def matchQualityMetric(annotatedSignature: AnnotatedSignature, matching: Signature): Int = {
+    val mq = variancesMatchQualityMetric(
+      annotatedSignature.signature.typesWithVariances,
       matching.typesWithVariances
     )
+    val multi = byFunctionNameMetricMultiplier(annotatedSignature.name)
+    (mq * multi).toInt
+  }
+
+  def byFunctionNameMetricMultiplier(name: String): Double =
+    if (List('$', '`').exists(name.contains(_))) 5.0
+    else 1.0 + (name.length / 10.0)
 
   def variancesMatchQualityMetric(typVariances: Seq[Variance], suprVariances: Seq[Variance]): Int =
     typVariances.zip(suprVariances).map { case (v1, v2) => varianceMatchQualityMetric(v1, v2) }.sum
