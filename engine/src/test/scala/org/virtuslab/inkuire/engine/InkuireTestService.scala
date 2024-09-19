@@ -35,6 +35,7 @@ class InkuireTestService(path: String) {
       }
       .pipe(Monoid.combineAll[InkuireDb])
       .withOrphanTypes
+      .pipe(InkuireDb.withNormalizedFunctions)
 
   val matchService = new SubstitutionMatchService(db)
   val resolver     = new DefaultSignatureResolver(db)

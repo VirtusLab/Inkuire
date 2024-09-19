@@ -2,6 +2,7 @@ package org.virtuslab.inkuire.engine.api
 
 import org.virtuslab.inkuire.engine.impl.model._
 import org.virtuslab.inkuire.engine.impl.utils.Monoid
+import org.virtuslab.inkuire.engine.impl.service.TypeNormalizationOps
 
 import com.softwaremill.quicklens._
 
@@ -73,8 +74,11 @@ case class InkuireDb(
   }
 }
 
-object InkuireDb {
+object InkuireDb extends TypeNormalizationOps {
   def empty: InkuireDb = InkuireDb(Seq.empty, Map.empty, Seq.empty, Map.empty)
+
+  def withNormalizedFunctions(db: InkuireDb): InkuireDb =
+    db.modify(_.functions.each.signature).using(uncurrySignature)
 
   def combine(x: InkuireDb, y: InkuireDb): InkuireDb =
     InkuireDb(

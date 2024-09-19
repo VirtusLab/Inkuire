@@ -5,6 +5,7 @@ import org.virtuslab.inkuire.engine.api._
 import org.virtuslab.inkuire.engine.impl.model._
 import org.virtuslab.inkuire.engine.impl.utils.Monoid._
 import org.virtuslab.inkuire.engine.impl.utils.State
+import scala.util.chaining._
 
 class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchService with MatchingOps {
 
@@ -21,8 +22,7 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
         )
         .flatMap { okTypes =>
           State.get[TypingState].map { typingState =>
-            if (okTypes)
-              checkBindings(typingState.variableBindings)
+            if (okTypes) checkBindings(typingState.variableBindings)
             else false
           }
         }
@@ -41,12 +41,14 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
   }
 
   override def findMatches(resolveResult: ResolveResult): Seq[(AnnotatedSignature, Signature)] = {
-    val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
-      case (acc, against) =>
-        acc.filter { sgn =>
-          sgn == against || !sgn.canSubstituteFor(against) || against.canSubstituteFor(sgn)
-        }
-    }
+    val actualSignatures = resolveResult.signatures
+      .foldLeft(resolveResult.signatures) {
+        case (acc, against) =>
+          acc.filter { sgn =>
+            sgn == against || !sgn.canSubstituteFor(against) || against.canSubstituteFor(sgn)
+          }
+      }
+      .map(uncurrySignature)
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
     resolveResult.filters

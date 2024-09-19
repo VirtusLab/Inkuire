@@ -7,13 +7,14 @@ import org.virtuslab.inkuire.engine.api.FutureExcept
 import org.virtuslab.inkuire.engine.api.InkuireDb
 import org.virtuslab.inkuire.engine.api.InputHandler
 import org.virtuslab.inkuire.engine.impl.service.EngineModelSerializers
+import org.virtuslab.inkuire.engine.impl.service.TypeNormalizationOps
 import org.virtuslab.inkuire.js.model.JsConfig
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.chaining._
 
-class JSInputHandler(private val scriptPath: String) extends InputHandler {
+class JSInputHandler(private val scriptPath: String) extends InputHandler with TypeNormalizationOps {
 
   private def tryGetURLContent(url: String)(implicit ec: ExecutionContext): FutureExcept[String] =
     Ajax
@@ -52,6 +53,7 @@ class JSInputHandler(private val scriptPath: String) extends InputHandler {
             }
             .pipe(InkuireDb.combineAll)
             .withOrphanTypes
+            .pipe(InkuireDb.withNormalizedFunctions)
         }
         .pipe(FutureExcept.fromFuture)
     }.value

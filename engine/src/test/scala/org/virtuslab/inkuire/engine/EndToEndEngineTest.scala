@@ -1,8 +1,6 @@
 package org.virtuslab.inkuire.engine
 
-class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
-
-  override val filePath: String = "./engine/src/test/resources/stdlib.json"
+abstract class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
 
   testFunctionFound("List[A] => (A => B) => List[B]", "map")
 
@@ -48,4 +46,12 @@ class EndToEndEngineTest extends munit.FunSuite with BaseEndToEndEngineTest {
   testFunctionFound("List[A] => A => Boolean", "contains")
 
   testFunctionFound("Seq[A] => A => Boolean", "contains")
+}
+
+class EndToEndEngineTest360RC1 extends EndToEndEngineTest {
+  override val filePath: String = "stdlib-3.6.0-RC1.json"
+}
+
+class EndToEndEngineTest312 extends EndToEndEngineTest {
+  override val filePath: String = "stdlib-3.1.2.json"
 }
