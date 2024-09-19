@@ -5,7 +5,6 @@ import org.virtuslab.inkuire.engine.impl.model._
 
 import scala.util.Random
 
-
 trait MatchingOps extends TypeNormalizationOps {
 
   protected def genDummyTypes(n: Int): IndexedSeq[Type] =

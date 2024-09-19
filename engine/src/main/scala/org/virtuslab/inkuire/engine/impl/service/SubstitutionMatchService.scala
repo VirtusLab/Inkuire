@@ -41,12 +41,14 @@ class SubstitutionMatchService(val inkuireDb: InkuireDb) extends BaseMatchServic
   }
 
   override def findMatches(resolveResult: ResolveResult): Seq[(AnnotatedSignature, Signature)] = {
-    val actualSignatures = resolveResult.signatures.foldLeft(resolveResult.signatures) {
-      case (acc, against) =>
-        acc.filter { sgn =>
-          sgn == against || !sgn.canSubstituteFor(against) || against.canSubstituteFor(sgn)
-        }
-    }.map(uncurrySignature)
+    val actualSignatures = resolveResult.signatures
+      .foldLeft(resolveResult.signatures) {
+        case (acc, against) =>
+          acc.filter { sgn =>
+            sgn == against || !sgn.canSubstituteFor(against) || against.canSubstituteFor(sgn)
+          }
+      }
+      .map(uncurrySignature)
     val actualSignaturesSize = actualSignatures.headOption.map(_.typesWithVariances.size)
     val actualResolveResult  = resolveResult.modify(_.signatures).setTo(actualSignatures)
     resolveResult.filters

@@ -11,7 +11,7 @@ trait BaseEndToEndEngineTest {
     var testService: InkuireTestService = null
     def apply() = testService
     override def beforeAll(): Unit = {
-      val url = Thread.currentThread().getContextClassLoader().getResource(filePath)
+      val url  = Thread.currentThread().getContextClassLoader().getResource(filePath)
       val file = new File(url.getPath())
       testService = new InkuireTestService(file.toURI.toURL.toString())
     }

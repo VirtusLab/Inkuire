@@ -2,7 +2,7 @@ package org.virtuslab.inkuire.engine
 
 class OrphanTypesTest extends munit.FunSuite with BaseEndToEndEngineTest {
 
-  override val filePath: String = "./engine/src/test/resources/orphantypes.json"
+  override val filePath: String = "orphantypes.json"
 
   testFunctionFound("Person => String", "name")
 
