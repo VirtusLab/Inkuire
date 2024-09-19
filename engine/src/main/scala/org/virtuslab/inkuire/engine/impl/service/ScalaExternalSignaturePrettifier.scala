@@ -27,7 +27,7 @@ class ScalaAnnotatedSignaturePrettifier extends BaseSignaturePrettifier {
     args.map(_.typ).map(prettifyType).mkString(sep)
 
   def prettifyType(t: TypeLike): String = t match {
-    case t: Type if t.isStarProjection => "*"
+    case t: Type if t.isStarProjection => "?"
     case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Function.*") =>
       s"(${prettifyArgs(t.params, " => ")})"
     case t: Type if t.isGeneric && !t.isVariable && t.name.name.matches("Tuple.*") =>

@@ -1,5 +1,7 @@
 package org.virtuslab.inkuire.engine.impl.model
 
+import com.softwaremill.quicklens._
+
 case class Signature(
   receiver:  Option[Contravariance],
   arguments: Seq[Contravariance],
@@ -7,6 +9,8 @@ case class Signature(
   context:   SignatureContext
 ) {
   def typesWithVariances: Seq[Variance] = receiver.toSeq ++ arguments :+ result
+  def modifyAllTypes(f: TypeLike => TypeLike): Signature =
+    this.modifyAll(_.receiver.each.typ, _.arguments.each.typ, _.result.typ).using(f)
 }
 
 object Signature {

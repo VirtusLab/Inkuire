@@ -5,7 +5,8 @@ import org.virtuslab.inkuire.engine.impl.model._
 
 import scala.util.Random
 
-trait MatchingOps {
+
+trait MatchingOps extends TypeNormalizationOps {
 
   protected def genDummyTypes(n: Int): IndexedSeq[Type] =
     1.to(n).map { i =>
@@ -56,7 +57,7 @@ trait MatchingOps {
         .flatMap(identity)
         .zip(concreteType.params.map(_.typ))
         .toMap
-    parents.map(substituteBindings(_, bindings))
+    parents.map(substituteBindings(_, bindings)).map(uncurryTypes)
   }
 
   implicit class TypeMatchingOps(typ: TypeLike) {

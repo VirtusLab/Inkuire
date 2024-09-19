@@ -79,6 +79,7 @@ class Cli extends InputHandler with OutputHandler {
           }
           .pipe(InkuireDb.combineAll)
           .withOrphanTypes
+          .pipe(InkuireDb.withNormalizedFunctions)
       }
       .pipe(Future.apply(_))
   }
